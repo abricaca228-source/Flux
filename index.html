@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Discord Clone</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+            * { box-sizing: border-box; }
+            body { background-color: #313338; color: #dbdee1; font-family: 'gg sans', sans-serif; display: flex; height: 100vh; margin: 0; overflow: hidden; }
+            
+            /* ЛОГИН */
+            #login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; width: 100%; background: #313338; z-index: 100; position: absolute; top: 0; left: 0; }
+            .login-box { background: #2b2d31; padding: 40px; border-radius: 5px; text-align: center; box-shadow: 0 2px 10px 0 rgba(0,0,0,0.2); width: 340px; }
+            .login-input { padding: 10px; border-radius: 3px; border: 1px solid #1e1f22; background: #1e1f22; color: white; width: 100%; margin-bottom: 15px; font-size: 16px; }
+            .btn-group { display: flex; gap: 10px; }
+            .btn { flex: 1; padding: 10px; border: none; border-radius: 3px; cursor: pointer; font-weight: bold; color: white; transition: 0.2s; }
+            .btn-login { background: #5865f2; }
+            .btn-register { background: #248046; }
+            .error-msg { color: #fa777c; font-size: 14px; margin-bottom: 10px; display: none; }
+
+            /* САЙДБАР */
+            .sidebar { width: 240px; background-color: #2b2d31; display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; }
+            .sidebar-channels { padding: 10px; }
+            .sidebar-title { font-weight: bold; padding: 15px 10px 5px 10px; color: #f2f3f5; font-size: 12px; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; }
+            
+            .channel { padding: 8px 10px; margin: 1px 8px; border-radius: 4px; cursor: pointer; color: #949ba4; font-weight: 500; display: flex; align-items: center; }
+            .channel:hover { background-color: #35373c; color: #dbdee1; }
+            .channel.active { background-color: #404249; color: white; }
+            .hashtag { color: #6d6f78; margin-right: 5px; font-size: 20px; }
+            .dm-avatar { width: 24px; height: 24px; border-radius: 50%; margin-right: 8px; background: #5865f2; }
+            
+            /* СЕКЦИЯ ЗАПРОСОВ В ДРУЗЬЯ */
+            #requests-section { display: none; margin-bottom: 10px; background: #2b2d31; padding-bottom: 5px; border-bottom: 1px solid #1e1f22; animation: fadeIn 0.5s; }
+            @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+            .request-item { padding: 8px 15px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: white; }
+            .req-actions span { cursor: pointer; font-size: 16px; margin-left: 8px; }
+            .req-accept { color: #248046; }
+            .req-reject { color: #da373c; }
+
+            .add-dm-btn { cursor: pointer; font-size: 18px; color: #949ba4; }
+            .add-dm-btn:hover { color: #248046; }
+
+            /* ПАНЕЛЬ ЮЗЕРА */
+            .user-panel { background-color: #232428; padding: 10px; display: flex; align-items: center; cursor: pointer; margin-top: auto; }
+            .user-panel:hover { background-color: #292b2f; }
+            .my-avatar { width: 32px; height: 32px; border-radius: 50%; background-color: #5865f2; margin-right: 10px; object-fit: cover; }
+            .my-info { flex-grow: 1; overflow: hidden; }
+            .my-name { font-weight: bold; font-size: 14px; color: white; }
+            .my-bio { font-size: 12px; color: #b5bac1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+            .settings-icon { color: #b5bac1; font-size: 18px; }
+
+            /* ЧАТ */
+            .chat-area { flex-grow: 1; display: flex; flex-direction: column; background-color: #313338; min-width: 0; width: 100%; }
+            .chat-header { height: 48px; border-bottom: 1px solid #26272d; display: flex; align-items: center; padding: 0 16px; font-weight: bold; color: white; flex-shrink: 0; }
+            #messages { list-style-type: none; margin: 0; padding: 20px; flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+            
+            .message { display: flex; align-items: flex-start; position: relative; }
+            .message:hover { background-color: #2e3035; }
+            .avatar { width: 40px; height: 40px; border-radius: 50%; background-color: #5865f2; margin-right: 15px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; font-size: 18px; object-fit: cover; }
+            .content { background: transparent; max-width: 80%; width: 100%; }
+            .username-row { display: flex; align-items: baseline; margin-bottom: 2px; }
+            .username { font-weight: bold; color: #fff; font-size: 16px; margin-right: 8px; }
+            .timestamp { color: #949ba4; font-size: 12px; font-weight: 400; }
+            .bio-tag { font-size: 11px; color: #949ba4; margin-left: 5px; background: #1e1f22; padding: 2px 5px; border-radius: 3px; }
+            .text { color: #dbdee1; font-size: 15px; line-height: 1.4; word-break: break-word; }
+            .delete-btn { display: none; position: absolute; right: 10px; top: 10px; color: #fa777c; cursor: pointer; font-size: 18px; }
+            .message:hover .delete-btn { display: block; }
+            .chat-image { max-width: 300px; max-height: 250px; border-radius: 8px; margin-top: 5px; cursor: pointer; object-fit: cover; }
+
+            /* МОДАЛКИ */
+            .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); justify-content: center; align-items: center; }
+            .modal-content { background: #313338; padding: 30px; border-radius: 8px; width: 400px; text-align: center; position: relative; }
+            #modal-img { max-width: 90%; max-height: 90%; border-radius: 5px; }
+            .close-btn { position: absolute; top: 10px; right: 15px; color: #f2f3f5; font-size: 30px; cursor: pointer; }
+            .profile-preview { width: 100px; height: 100px; border-radius: 50%; background: #5865f2; margin: 0 auto 20px; object-fit: cover; border: 3px solid #2b2d31; }
+            .settings-input { width: 100%; padding: 10px; margin-bottom: 10px; background: #1e1f22; border: none; color: white; border-radius: 3px; }
+
+            form { padding: 0 16px 20px 16px; margin: 0; width: 100%; flex-shrink: 0; }
+            .input-wrapper { background-color: #383a40; border-radius: 8px; display: flex; align-items: center; padding: 0 10px; width: 100%; }
+            input[type="text"] { flex-grow: 1; padding: 15px 10px; border: none; background: transparent; color: white; outline: none; font-size: 16px; width: 100%; }
+            .file-btn { cursor: pointer; color: #b5bac1; padding: 10px; font-size: 24px; flex-shrink: 0; }
+        </style>
+    </head>
+    <body>
+        <div id="image-modal" class="modal" onclick="this.style.display='none'">
+            <span class="close-btn">&times;</span>
+            <img id="modal-img">
+        </div>
+
+        <div id="settings-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-btn" onclick="document.getElementById('settings-modal').style.display='none'">&times;</span>
+                <h2 style="color: white; margin-bottom: 20px;">Профиль</h2>
+                <img id="settings-avatar-preview" class="profile-preview" src="">
+                <label class="btn btn-login" style="display:block; margin-bottom:15px;">
+                    Загрузить аватар
+                    <input type="file" style="display: none;" accept="image/*" onchange="previewAvatar(this)">
+                </label>
+                <input type="text" id="settings-bio" class="settings-input" placeholder="О себе">
+                <button class="btn btn-register" onclick="saveProfile()">Сохранить</button>
+            </div>
+        </div>
+
+        <div id="dm-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-btn" onclick="document.getElementById('dm-modal').style.display='none'">&times;</span>
+                <h2 style="color: white; margin-bottom: 20px;">Отправить запрос</h2>
+                <input type="text" id="dm-username" class="settings-input" placeholder="Никнейм пользователя">
+                <div id="dm-error" style="color:#fa777c; margin-bottom:10px; display:none;"></div>
+                <button class="btn btn-login" onclick="sendFriendRequest()">Отправить заявку</button>
+            </div>
+        </div>
+
+        <div id="login-screen">
+            <div class="login-box">
+                <h2 style="color: white; margin-bottom: 20px;">Вход в Discord</h2>
+                <input type="text" id="usernameInput" class="login-input" placeholder="Никнейм" />
+                <input type="password" id="passwordInput" class="login-input" placeholder="Пароль" />
+                <div id="errorMsg" class="error-msg">Ошибка</div>
+                <div class="btn-group">
+                    <button class="btn btn-login" onclick="auth('login')">Войти</button>
+                    <button class="btn btn-register" onclick="auth('register')">Регистрация</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="app-container">
+            <div class="sidebar">
+                <div class="sidebar-title">Текстовые каналы</div>
+                <div class="sidebar-channels">
+                    <div class="channel active" onclick="switchChannel('general')"><span class="hashtag">#</span>general</div>
+                    <div class="channel" onclick="switchChannel('gaming')"><span class="hashtag">#</span>gaming</div>
+                    <div class="channel" onclick="switchChannel('music')"><span class="hashtag">#</span>music</div>
+                </div>
+
+                <div id="requests-section">
+                    <div class="sidebar-title" style="color: #f2f3f5;">Заявки в друзья</div>
+                    <div id="requests-list"></div>
+                </div>
+
+                <div class="sidebar-title">
+                    Личные сообщения
+                    <span class="add-dm-btn" onclick="document.getElementById('dm-modal').style.display='flex'" title="Найти друга">+</span>
+                </div>
+                <div id="dm-list"></div>
+
+                <div class="user-panel" onclick="openSettings()">
+                    <img id="my-avatar-img" class="my-avatar" src="">
+                    <div class="my-info">
+                        <div id="my-name-text" class="my-name">User</div>
+                        <div id="my-bio-text" class="my-bio">Online</div>
+                    </div>
+                    <div class="settings-icon">⚙️</div>
+                </div>
+            </div>
+
+            <div class="chat-area">
+                <div class="chat-header">
+                    <span class="hashtag" id="header-icon">#</span> 
+                    <span id="header-title">general</span>
+                </div>
+                <ul id='messages'></ul>
+                <form action="" onsubmit="sendMessage(event)">
+                    <div class="input-wrapper">
+                        <label class="file-btn">+<input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleFileSelect(this)"></label>
+                        <input type="text" id="messageText" autocomplete="off" placeholder="Написать..."/>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <script>
+            var ws = null;
+            var username = "";
+            var currentUserAvatar = ""; 
+            var currentUserBio = "";
+            var currentChannel = "general";
+            var tempAvatarBase64 = "";
+
+            async function auth(type) {
+                var user = document.getElementById("usernameInput").value;
+                var pass = document.getElementById("passwordInput").value;
+                if (!user || !pass) return;
+                try {
+                    let response = await fetch("/" + type, {
+                        method: "POST", headers: {"Content-Type": "application/json"},
+                        body: JSON.stringify({username: user, password: pass})
+                    });
+                    if (response.ok) {
+                        let data = await response.json();
+                        username = user;
+                        updateMyProfileUI(data.avatar_url, data.bio);
+                        loadDMs(); 
+                        loadRequests();
+                        document.getElementById("login-screen").style.display = "none";
+                        document.getElementById("app-container").style.display = "flex";
+                        connectWebSocket();
+                    } else {
+                        let result = await response.json();
+                        document.getElementById("errorMsg").innerText = result.detail;
+                        document.getElementById("errorMsg").style.display = "block";
+                    }
+                } catch (e) { alert("Ошибка соединения"); }
+            }
+
+            async function loadDMs() {
+                let response = await fetch("/get_dms?username=" + username);
+                let dms = await response.json();
+                var dmList = document.getElementById("dm-list");
+                dmList.innerHTML = "";
+                dms.forEach(friend => addDMToSidebar(friend));
+            }
+
+            async function loadRequests() {
+                let response = await fetch("/get_requests?username=" + username);
+                let reqs = await response.json();
+                var list = document.getElementById("requests-list");
+                var section = document.getElementById("requests-section");
+                list.innerHTML = "";
+                if (reqs.length > 0) {
+                    section.style.display = "block";
+                    reqs.forEach(req => {
+                        var div = document.createElement("div");
+                        div.className = "request-item";
+                        div.innerHTML = `${req.sender}<div class="req-actions"><span class="req-accept" onclick="respondRequest(${req.id}, 'accept')" title="Принять">✅</span><span class="req-reject" onclick="respondRequest(${req.id}, 'reject')" title="Отклонить">❌</span></div>`;
+                        list.appendChild(div);
+                    });
+                } else {
+                    section.style.display = "none";
+                }
+            }
+
+            async function sendFriendRequest() {
+                var friendName = document.getElementById("dm-username").value;
+                if(!friendName) return;
+                let response = await fetch("/send_request", {
+                    method: "POST", headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({sender: username, receiver: friendName})
+                });
+                if(response.ok) {
+                    document.getElementById("dm-modal").style.display = "none";
+                    document.getElementById("dm-username").value = "";
+                    alert("Заявка отправлена!");
+                } else {
+                    let res = await response.json();
+                    let err = document.getElementById("dm-error");
+                    err.innerText = res.detail;
+                    err.style.display = "block";
+                }
+            }
+
+            async function respondRequest(reqId, action) {
+                let response = await fetch("/respond_request", {
+                    method: "POST", headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({request_id: reqId, action: action})
+                });
+                if (response.ok) {
+                    loadRequests(); 
+                    if (action === 'accept') {
+                        loadDMs(); 
+                    }
+                }
+            }
+
+            function getDMChannelID(u1, u2) {
+                var sorted = [u1, u2].sort();
+                return "dm_" + sorted[0] + "_" + sorted[1];
+            }
+
+            function addDMToSidebar(friendName) {
+                var dmList = document.getElementById("dm-list");
+                var existing = Array.from(dmList.children).find(div => div.innerText.trim() === friendName);
+                if (existing) return;
+
+                var div = document.createElement("div");
+                div.className = "channel";
+                div.innerHTML = `<div class="dm-avatar"></div> ${friendName}`;
+                var channelID = getDMChannelID(username, friendName);
+                div.onclick = function() { switchChannel(channelID, friendName, true); };
+                dmList.appendChild(div);
+            }
+
+            function updateMyProfileUI(avatar, bio) {
+                currentUserAvatar = avatar || "https://cdn.discordapp.com/embed/avatars/0.png";
+                currentUserBio = bio || "Нет статуса";
+                document.getElementById("my-name-text").innerText = username;
+                document.getElementById("my-bio-text").innerText = currentUserBio;
+                document.getElementById("my-avatar-img").src = currentUserAvatar;
+            }
+
+            function switchChannel(channelID, displayName, isDM = false) {
+                currentChannel = channelID;
+                document.querySelectorAll('.channel').forEach(el => el.classList.remove('active'));
+                event.currentTarget.classList.add('active');
+                var title = isDM ? displayName : channelID;
+                var icon = isDM ? "@" : "#";
+                document.getElementById("header-title").innerText = title;
+                document.getElementById("header-icon").innerText = icon;
+                document.getElementById('messages').innerHTML = '';
+                requestHistory();
+            }
+
+            function compressImage(file, callback) {
+                var reader = new FileReader();
+                reader.onload = function(event) {
+                    var img = new Image();
+                    img.src = event.target.result;
+                    img.onload = function() {
+                        var canvas = document.createElement("canvas");
+                        var ctx = canvas.getContext("2d");
+                        var maxWidth = 800;
+                        var scale = maxWidth / img.width;
+                        if (scale > 1) scale = 1;
+                        canvas.width = img.width * scale;
+                        canvas.height = img.height * scale;
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        var dataUrl = canvas.toDataURL("image/jpeg", 0.7);
+                        callback(dataUrl);
+                    }
+                }
+                reader.readAsDataURL(file);
+            }
+
+            function connectWebSocket() {
+                var protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                ws = new WebSocket(protocol + "//" + window.location.host + "/ws/" + username);
+                ws.onopen = function() { requestHistory(); };
+                
+                ws.onmessage = function(event) {
+                    var data = JSON.parse(event.data);
+                    
+                    if (Array.isArray(data)) {
+                        document.getElementById('messages').innerHTML = '';
+                        data.reverse().forEach(msg => addMessageToUI(msg));
+                    } 
+                    else if (data.type === "delete") {
+                        var msgElement = document.getElementById("msg-" + data.message_id);
+                        if (msgElement) msgElement.remove();
+                    }
+                    else if (data.type === "new_request") {
+                        loadRequests(); 
+                    }
+                    else if (data.type === "request_accepted") {
+                        loadDMs(); 
+                    }
+                    else {
+                        if (data.channel === currentChannel) addMessageToUI(data);
+                    }
+                };
+            }
+
+            function requestHistory() {
+                if(ws && ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify({type: "history", channel: currentChannel}));
+                }
+            }
+
+            function addMessageToUI(data) {
+                var messages = document.getElementById('messages');
+                if (document.getElementById("msg-" + data.id)) return;
+                var li = document.createElement('li');
+                li.className = "message";
+                li.id = "msg-" + data.id;
+                var contentHtml = data.content.startsWith("data:image") 
+                    ? `<img src="${data.content}" class="chat-image" onclick="document.getElementById('image-modal').style.display='flex';document.getElementById('modal-img').src=this.src;">` 
+                    : `<div class="text">${data.content}</div>`;
+                var deleteBtn = (data.username === username) ? `<div class="delete-btn" onclick="deleteMessage(${data.id})">🗑️</div>` : "";
+                var avatarSrc = data.avatar_url || "https://cdn.discordapp.com/embed/avatars/0.png";
+                li.innerHTML = `<img class="avatar" src="${avatarSrc}"><div class="content"><div class="username-row"><span class="username">${data.username}</span><span class="timestamp">${data.created_at}</span><span class="bio-tag">${data.bio || ""}</span></div>${contentHtml}</div>${deleteBtn}`;
+                messages.appendChild(li);
+                messages.scrollTop = messages.scrollHeight;
+            }
+
+            function deleteMessage(id) {
+                if(confirm("Удалить?")) ws.send(JSON.stringify({type: "delete", message_id: id}));
+            }
+            
+            function handleFileSelect(input) {
+                if (input.files[0]) compressImage(input.files[0], base64 => { if (ws) ws.send(JSON.stringify({type: "message", channel: currentChannel, username: username, content: base64})); });
+                input.value = '';
+            }
+            function sendMessage(event) {
+                event.preventDefault();
+                var input = document.getElementById("messageText");
+                if (input.value.trim() !== "" && ws) {
+                    ws.send(JSON.stringify({type: "message", channel: currentChannel, username: username, content: input.value}));
+                    input.value = '';
+                }
+            }
+            function openSettings() {
+                document.getElementById("settings-modal").style.display = "flex";
+                document.getElementById("settings-bio").value = currentUserBio;
+                document.getElementById("settings-avatar-preview").src = currentUserAvatar;
+                tempAvatarBase64 = ""; 
+            }
+            function previewAvatar(input) {
+                if (input.files[0]) compressImage(input.files[0], base64 => { tempAvatarBase64 = base64; document.getElementById("settings-avatar-preview").src = tempAvatarBase64; });
+            }
+            async function saveProfile() {
+                var newBio = document.getElementById("settings-bio").value;
+                var newAvatar = tempAvatarBase64 || currentUserAvatar;
+                await fetch("/update_profile", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({username: username, bio: newBio, avatar_url: newAvatar})});
+                updateMyProfileUI(newAvatar, newBio);
+                document.getElementById("settings-modal").style.display = "none";
+                requestHistory();
+            }
+        </script>
+    </body>
+</html>
+"""
