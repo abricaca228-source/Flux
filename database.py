@@ -3,16 +3,18 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker, declarative_base
 from sqlalchemy import text
 
-# --- УМНАЯ НАСТРОЙКА ---
-# Если мы в облаке (Render), берем адрес оттуда.
-# Если мы дома, используем локальный адрес.
+# Получаем адрес базы данных из настроек Render
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-# Исправление для Render (там адрес начинается с postgres://, а нам нужно postgresql://)
-if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
-    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+asyncpg://", 1)
-elif not DATABASE_URL:
-    # Запасной вариант для твоего компьютера
+# --- ИСПРАВЛЕНИЕ АДРЕСА ---
+# Если адрес есть, мы должны убедиться, что он использует драйвер asyncpg
+if DATABASE_URL:
+    if DATABASE_URL.startswith("postgres://"):
+        DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+asyncpg://", 1)
+    elif DATABASE_URL.startswith("postgresql://"):
+        DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
+else:
+    # Запасной вариант для твоего компьютера (localhost)
     DATABASE_URL = "postgresql+asyncpg://postgres:postgres@localhost:5432/flux_db"
 
 engine = create_async_engine(DATABASE_URL, echo=False)
