@@ -1,16 +1,23 @@
+import os
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy import text
 
-# Настройки БД
-DATABASE_URL = "postgresql+asyncpg://postgres:postgres@localhost:5432/my_discord"
+# --- УМНАЯ НАСТРОЙКА ---
+# Если мы в облаке (Render), берем адрес оттуда.
+# Если мы дома, используем локальный адрес.
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+# Исправление для Render (там адрес начинается с postgres://, а нам нужно postgresql://)
+if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+asyncpg://", 1)
+elif not DATABASE_URL:
+    # Запасной вариант для твоего компьютера
+    DATABASE_URL = "postgresql+asyncpg://postgres:postgres@localhost:5432/flux_db"
 
 engine = create_async_engine(DATABASE_URL, echo=False)
 AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 Base = declarative_base()
-
-# Функция инициализации (создания таблиц)
-# Мы перенесли сюда создание таблиц, чтобы main.py был чище
-from sqlalchemy import text
 
 async def init_db():
     async with engine.begin() as conn:
