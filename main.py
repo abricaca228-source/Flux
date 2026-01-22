@@ -27,6 +27,15 @@ class RespondRequestModel(BaseModel):
     request_id: int
     action: str 
 
+# Новые модели для групп
+class CreateGroupModel(BaseModel):
+    name: str
+    owner: str
+
+class AddMemberModel(BaseModel):
+    group_id: int
+    username: str
+
 @app.on_event("startup")
 async def startup():
     await init_db()
@@ -45,7 +54,6 @@ class ConnectionManager:
             del self.active_connections[username]
 
     async def broadcast(self, data: dict):
-        # Отправляем сообщение всем подключенным
         for connection in list(self.active_connections.values()):
             try: await connection.send_text(json.dumps(data))
             except: pass 
@@ -56,7 +64,6 @@ class ConnectionManager:
             try: await websocket.send_text(json.dumps(message))
             except: pass
             
-    # Принудительное отключение (для бана)
     async def kick_user(self, username: str):
         if username in self.active_connections:
             ws = self.active_connections[username]
@@ -79,14 +86,9 @@ async def register(user: AuthModel):
         result = await session.execute(text("SELECT id FROM users WHERE username = :u"), {"u": user.username})
         if result.scalar(): raise HTTPException(status_code=400, detail="Ник занят!")
         
-        # --- ЧИТ-КОД НА АДМИНА ---
-        is_admin = False
-        # Если ник содержит admin (для теста) или просто первый юзер
-        # Но давай сделаем проще: по умолчанию все НЕ админы.
-        
         await session.execute(
             text("INSERT INTO users (username, password, bio, is_admin) VALUES (:u, :p, 'Новичок', :a)"), 
-            {"u": user.username, "p": user.password, "a": is_admin}
+            {"u": user.username, "p": user.password, "a": False}
         )
         await session.commit()
     return {"message": "Success", "avatar_url": "", "bio": "Новичок", "is_admin": False}
@@ -101,19 +103,17 @@ async def login(user: AuthModel):
         row = result.fetchone()
         if not row: raise HTTPException(status_code=400, detail="Неверные данные")
     
-    # Возвращаем статус админа фронтенду
     return {"message": "Success", "avatar_url": row[0], "bio": row[1], "is_admin": row[2]}
 
 @app.post("/update_profile")
 async def update_profile(data: ProfileUpdateModel):
     async with AsyncSessionLocal() as session:
-        # --- ПРОВЕРКА ЧИТ-КОДА ---
         new_bio = data.bio
         make_admin = False
         
         if "#admin" in new_bio:
             make_admin = True
-            new_bio = new_bio.replace("#admin", "").strip() # Убираем код из био
+            new_bio = new_bio.replace("#admin", "").strip()
 
         if make_admin:
             await session.execute(text("UPDATE users SET avatar_url = :a, bio = :b, is_admin = TRUE WHERE username = :u"), {"a": data.avatar_url, "b": new_bio, "u": data.username})
@@ -121,13 +121,12 @@ async def update_profile(data: ProfileUpdateModel):
             await session.execute(text("UPDATE users SET avatar_url = :a, bio = :b WHERE username = :u"), {"a": data.avatar_url, "b": new_bio, "u": data.username})
         
         await session.commit()
-        
-        # Получаем актуальный статус, чтобы вернуть его
         res = await session.execute(text("SELECT is_admin FROM users WHERE username = :u"), {"u": data.username})
         is_admin = res.scalar()
 
     return {"message": "Updated", "bio": new_bio, "is_admin": is_admin}
 
+# --- ДРУЗЬЯ ---
 @app.post("/send_request")
 async def send_request(data: FriendRequestModel):
     async with AsyncSessionLocal() as session:
@@ -186,6 +185,46 @@ async def get_dms(username: str):
             dms.append(friend)
         return dms
 
+# --- ЛОГИКА ГРУПП (НОВОЕ) ---
+@app.post("/create_group")
+async def create_group(data: CreateGroupModel):
+    async with AsyncSessionLocal() as session:
+        # Создаем группу
+        res = await session.execute(text("INSERT INTO groups (name, owner) VALUES (:n, :o) RETURNING id"), {"n": data.name, "o": data.owner})
+        group_id = res.scalar()
+        
+        # Добавляем создателя в участники
+        await session.execute(text("INSERT INTO group_members (group_id, username) VALUES (:gid, :u)"), {"gid": group_id, "u": data.owner})
+        await session.commit()
+    return {"message": "Created", "group_id": group_id, "name": data.name}
+
+@app.post("/add_member")
+async def add_member(data: AddMemberModel):
+    async with AsyncSessionLocal() as session:
+        # Проверяем, существует ли пользователь
+        u_check = await session.execute(text("SELECT id FROM users WHERE username = :u"), {"u": data.username})
+        if not u_check.scalar(): raise HTTPException(status_code=404, detail="Пользователь не найден")
+        
+        try:
+            await session.execute(text("INSERT INTO group_members (group_id, username) VALUES (:gid, :u)"), {"gid": data.group_id, "u": data.username})
+            await session.commit()
+        except:
+            raise HTTPException(status_code=400, detail="Уже в группе")
+            
+    return {"message": "Added"}
+
+@app.get("/get_my_groups")
+async def get_my_groups(username: str):
+    async with AsyncSessionLocal() as session:
+        query = text("""
+            SELECT g.id, g.name 
+            FROM groups g
+            JOIN group_members gm ON g.id = gm.group_id
+            WHERE gm.username = :u
+        """)
+        result = await session.execute(query, {"u": username})
+        return [{"id": row[0], "name": row[1]} for row in result.fetchall()]
+
 # --- WEBSOCKET ---
 @app.websocket("/ws/{username}")
 async def websocket_endpoint(websocket: WebSocket, username: str):
@@ -197,7 +236,6 @@ async def websocket_endpoint(websocket: WebSocket, username: str):
 
             if data.get("type") == "history":
                 async with AsyncSessionLocal() as session:
-                    # Теперь мы достаем еще и is_admin автора сообщения
                     query = text("""
                         SELECT m.id, m.username, m.content, m.channel, m.created_at, u.avatar_url, u.bio, u.is_admin
                         FROM messages m
@@ -206,7 +244,6 @@ async def websocket_endpoint(websocket: WebSocket, username: str):
                         ORDER BY m.id DESC LIMIT 50
                     """)
                     result = await session.execute(query, {"ch": data.get("channel")})
-                    # Добавляем is_admin в отправку
                     history = [{"id": row[0], "username": row[1], "content": row[2], "channel": row[3], "created_at": row[4], "avatar_url": row[5], "bio": row[6], "is_admin": row[7]} for row in result.fetchall()]
                     await websocket.send_text(json.dumps(history))
 
@@ -225,7 +262,7 @@ async def websocket_endpoint(websocket: WebSocket, username: str):
                 data['created_at'] = now
                 data['avatar_url'] = user_row[0] if user_row else ""
                 data['bio'] = user_row[1] if user_row else ""
-                data['is_admin'] = user_row[2] if user_row else False # Шлем статус админа
+                data['is_admin'] = user_row[2] if user_row else False 
                 await manager.broadcast(data)
             
             elif data.get("type") == "typing":
@@ -234,38 +271,27 @@ async def websocket_endpoint(websocket: WebSocket, username: str):
             elif data.get("type") == "delete":
                 msg_id = data.get("message_id")
                 requester = username
-                
                 async with AsyncSessionLocal() as session:
-                    # Проверяем, кто просит удалить
                     user_check = await session.execute(text("SELECT is_admin FROM users WHERE username = :u"), {"u": requester})
                     is_requester_admin = user_check.scalar()
-
-                    # Проверяем, чье сообщение
                     msg_check = await session.execute(text("SELECT username FROM messages WHERE id = :id"), {"id": msg_id})
                     msg_owner = msg_check.scalar()
-
-                    # Удаляем если: автор совпадает ИЛИ просит админ
                     if msg_owner == requester or is_requester_admin:
                         await session.execute(text("DELETE FROM messages WHERE id = :id"), {"id": msg_id})
                         await session.commit()
                         await manager.broadcast(data)
 
-            # --- КОМАНДА БАНА ---
             elif data.get("type") == "ban_user":
                 target_user = data.get("target")
                 async with AsyncSessionLocal() as session:
-                    # Проверяем права (только админ может банить)
                     admin_check = await session.execute(text("SELECT is_admin FROM users WHERE username = :u"), {"u": username})
                     if admin_check.scalar() == True:
-                        # Удаляем пользователя и его сообщения
                         await session.execute(text("DELETE FROM users WHERE username = :u"), {"u": target_user})
                         await session.execute(text("DELETE FROM messages WHERE username = :u"), {"u": target_user})
                         await session.execute(text("DELETE FROM dms WHERE user1 = :u OR user2 = :u"), {"u": target_user})
+                        await session.execute(text("DELETE FROM group_members WHERE username = :u"), {"u": target_user}) # Удаляем из групп
                         await session.commit()
-                        
-                        # Кикаем из онлайна
                         await manager.kick_user(target_user)
-                        # Сообщаем всем
                         await manager.broadcast({"type": "system", "content": f"Пользователь {target_user} был забанен!"})
 
     except WebSocketDisconnect:
