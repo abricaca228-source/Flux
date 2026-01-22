@@ -451,39 +451,41 @@
             function addMessageToUI(data) {
                 var messages = document.getElementById('messages');
                 if (document.getElementById("msg-" + data.id)) return;
+                
                 var li = document.createElement('li');
                 li.className = "message";
                 li.id = "msg-" + data.id;
+                
                 var contentHtml = "";
                 if (data.content.startsWith("data:image")) contentHtml = `<img src="${data.content}" class="chat-image" onclick="document.getElementById('image-modal').style.display='flex';document.getElementById('modal-img').src=this.src;">`;
                 else if (data.content.startsWith("data:audio")) contentHtml = `<audio controls src="${data.content}"></audio>`;
                 else contentHtml = `<div class="text">${data.content}</div>`;
 
-                // --- ЛОГИКА АДМИНА ---
+                // --- ЛОГИКА КНОПОК ---
                 var deleteBtn = "";
-                // Кнопка удаления есть, если я автор ИЛИ я админ
+                // Кнопка удаления (Мусорка)
                 if (data.username === username || myIsAdmin) {
                     deleteBtn = `<div class="delete-btn" onclick="deleteMessage(${data.id})">🗑️</div>`;
                 }
                 
-                // Класс для красного ника, если автор сообщения - админ
-                var nameClass = data.is_admin ? "username admin-name" : "username";
-
-                // Кнопка бана (только если я админ и это не я сам)
-                var banOverlay = "";
+                // Кнопка БАНА (⛔) - теперь рядом с именем!
+                var banBtn = "";
                 if (myIsAdmin && data.username !== username) {
-                    banOverlay = `<div class="ban-btn active" onclick="banUser('${data.username}')" title="ЗАБАНИТЬ">⛔</div>`;
+                    // margin-left: 10px отодвигает кнопку от имени
+                    banBtn = `<span style="cursor:pointer; margin-left:10px; font-size:16px;" onclick="banUser('${data.username}')" title="ЗАБАНИТЬ">⛔</span>`;
                 }
-
+                
+                var nameClass = data.is_admin ? "username admin-name" : "username";
                 var avatarSrc = data.avatar_url || "https://cdn.discordapp.com/embed/avatars/0.png";
                 
                 li.innerHTML = `
-                    <div class="avatar-container">
-                        <img class="avatar" src="${avatarSrc}">
-                        ${banOverlay}
-                    </div>
+                    <img class="avatar" src="${avatarSrc}">
                     <div class="content">
-                        <div class="username-row"><span class="${nameClass}">${data.username}</span><span class="timestamp">${data.created_at}</span><span class="bio-tag">${data.bio || ""}</span></div>
+                        <div class="username-row">
+                            <span class="${nameClass}">${data.username}</span>
+                            ${banBtn} <span class="timestamp">${data.created_at}</span>
+                            <span class="bio-tag">${data.bio || ""}</span>
+                        </div>
                         ${contentHtml}
                     </div>
                     ${deleteBtn}
