@@ -20,8 +20,6 @@ def get_password_hash(password):
     return pwd_context.hash(password)
 
 def verify_password(plain_password, hashed_password):
-    # Пытаемся проверить пароль. Если в базе старый (незашифрованный) пароль,
-    # эта функция может выдать ошибку, поэтому делаем простой try-except
     try:
         return pwd_context.verify(plain_password, hashed_password)
     except:
@@ -101,13 +99,26 @@ manager = ConnectionManager()
 async def get(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
+# !!! СЕКРЕТНАЯ КНОПКА СБРОСА БАЗЫ !!!
+@app.get("/secret_reset_database_123")
+async def reset_database():
+    async with AsyncSessionLocal() as session:
+        # Эта команда полностью стирает всё и создает пустую базу
+        await session.execute(text("DROP SCHEMA public CASCADE; CREATE SCHEMA public;"))
+        await session.commit()
+    
+    # Заново создаем таблицы
+    await init_db()
+    
+    return {"status": "БАЗА ДАННЫХ ПОЛНОСТЬЮ ОЧИЩЕНА! ТЕПЕРЬ МОЖНО РЕГИСТРИРОВАТЬСЯ."}
+
 @app.post("/register")
 async def register(user: AuthModel):
     async with AsyncSessionLocal() as session:
         result = await session.execute(text("SELECT id FROM users WHERE username = :u"), {"u": user.username})
         if result.scalar(): raise HTTPException(status_code=400, detail="Ник занят!")
         
-        # ШИФРУЕМ ПАРОЛЬ ПЕРЕД СОХРАНЕНИЕМ
+        # ШИФРУЕМ ПАРОЛЬ
         hashed_password = get_password_hash(user.password)
         
         await session.execute(
@@ -123,33 +134,25 @@ async def register(user: AuthModel):
 @app.post("/login")
 async def login(user: AuthModel):
     async with AsyncSessionLocal() as session:
-        # 1. Ищем пользователя ТОЛЬКО по нику (пароль пока не проверяем)
         result = await session.execute(
             text("SELECT password, avatar_url, bio, is_admin, real_name, location, birth_date, social_link FROM users WHERE username = :u"), 
             {"u": user.username}
         )
         row = result.fetchone()
         
-        # 2. Если пользователя нет - ошибка
-        if not row: 
-            raise HTTPException(status_code=400, detail="Пользователь не найден")
+        if not row: raise HTTPException(status_code=400, detail="Пользователь не найден")
         
         stored_password_hash = row[0]
         
-        # 3. ПРОВЕРЯЕМ ХЕШ ПАРОЛЯ
+        # ПРОВЕРЯЕМ ХЕШ
         if not verify_password(user.password, stored_password_hash):
             raise HTTPException(status_code=400, detail="Неверный пароль")
     
-    # Если всё ок, отдаем данные
     return {
         "message": "Success", 
-        "avatar_url": row[1], 
-        "bio": row[2], 
-        "is_admin": row[3],
-        "real_name": row[4] or "",
-        "location": row[5] or "",
-        "birth_date": row[6] or "",
-        "social_link": row[7] or ""
+        "avatar_url": row[1], "bio": row[2], "is_admin": row[3],
+        "real_name": row[4] or "", "location": row[5] or "",
+        "birth_date": row[6] or "", "social_link": row[7] or ""
     }
 
 @app.post("/update_profile")
@@ -198,19 +201,11 @@ async def get_profile(username: str):
         )
         user = row.fetchone()
         if not user: raise HTTPException(status_code=404, detail="User not found")
-        
         return {
-            "username": user[0], 
-            "bio": user[1], 
-            "avatar_url": user[2], 
-            "is_admin": user[3],
-            "real_name": user[4] or "", 
-            "location": user[5] or "", 
-            "birth_date": user[6] or "", 
-            "social_link": user[7] or ""
+            "username": user[0], "bio": user[1], "avatar_url": user[2], "is_admin": user[3],
+            "real_name": user[4] or "", "location": user[5] or "", "birth_date": user[6] or "", "social_link": user[7] or ""
         }
 
-# --- ОСТАЛЬНЫЕ РОУТЫ (ДРУЗЬЯ, ГРУППЫ, WEBOCKET) ---
 @app.post("/send_request")
 async def send_request(data: FriendRequestModel):
     async with AsyncSessionLocal() as session:
