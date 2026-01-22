@@ -99,18 +99,20 @@ manager = ConnectionManager()
 async def get(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
-# !!! СЕКРЕТНАЯ КНОПКА СБРОСА БАЗЫ !!!
+# !!! ИСПРАВЛЕННАЯ СЕКРЕТНАЯ КНОПКА СБРОСА !!!
 @app.get("/secret_reset_database_123")
 async def reset_database():
     async with AsyncSessionLocal() as session:
-        # Эта команда полностью стирает всё и создает пустую базу
-        await session.execute(text("DROP SCHEMA public CASCADE; CREATE SCHEMA public;"))
+        # Аккуратно удаляем таблицы по одной
+        tables = ["users", "messages", "dms", "friend_requests", "groups", "group_members"]
+        for table in tables:
+            await session.execute(text(f"DROP TABLE IF EXISTS {table} CASCADE"))
         await session.commit()
     
-    # Заново создаем таблицы
+    # Заново создаем пустые таблицы
     await init_db()
     
-    return {"status": "БАЗА ДАННЫХ ПОЛНОСТЬЮ ОЧИЩЕНА! ТЕПЕРЬ МОЖНО РЕГИСТРИРОВАТЬСЯ."}
+    return {"status": "БАЗА ДАННЫХ УСПЕШНО ОЧИЩЕНА! ТЕПЕРЬ РЕГИСТРИРУЙСЯ ЗАНОВО."}
 
 @app.post("/register")
 async def register(user: AuthModel):
