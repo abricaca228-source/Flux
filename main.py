@@ -6,8 +6,26 @@ from pydantic import BaseModel
 from sqlalchemy import text
 from database import AsyncSessionLocal, init_db
 
+# --- БИБЛИОТЕКА ШИФРОВАНИЯ ---
+from passlib.context import CryptContext
+
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
+
+# Настройка шифрования (Bcrypt)
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+# ФУНКЦИИ БЕЗОПАСНОСТИ
+def get_password_hash(password):
+    return pwd_context.hash(password)
+
+def verify_password(plain_password, hashed_password):
+    # Пытаемся проверить пароль. Если в базе старый (незашифрованный) пароль,
+    # эта функция может выдать ошибку, поэтому делаем простой try-except
+    try:
+        return pwd_context.verify(plain_password, hashed_password)
+    except:
+        return False
 
 # --- МОДЕЛИ ---
 class AuthModel(BaseModel):
@@ -89,9 +107,12 @@ async def register(user: AuthModel):
         result = await session.execute(text("SELECT id FROM users WHERE username = :u"), {"u": user.username})
         if result.scalar(): raise HTTPException(status_code=400, detail="Ник занят!")
         
+        # ШИФРУЕМ ПАРОЛЬ ПЕРЕД СОХРАНЕНИЕМ
+        hashed_password = get_password_hash(user.password)
+        
         await session.execute(
             text("INSERT INTO users (username, password, bio, is_admin) VALUES (:u, :p, 'Новичок', :a)"), 
-            {"u": user.username, "p": user.password, "a": False}
+            {"u": user.username, "p": hashed_password, "a": False}
         )
         await session.commit()
     return {
@@ -102,22 +123,33 @@ async def register(user: AuthModel):
 @app.post("/login")
 async def login(user: AuthModel):
     async with AsyncSessionLocal() as session:
+        # 1. Ищем пользователя ТОЛЬКО по нику (пароль пока не проверяем)
         result = await session.execute(
-            text("SELECT avatar_url, bio, is_admin, real_name, location, birth_date, social_link FROM users WHERE username = :u AND password = :p"), 
-            {"u": user.username, "p": user.password}
+            text("SELECT password, avatar_url, bio, is_admin, real_name, location, birth_date, social_link FROM users WHERE username = :u"), 
+            {"u": user.username}
         )
         row = result.fetchone()
-        if not row: raise HTTPException(status_code=400, detail="Неверные данные")
+        
+        # 2. Если пользователя нет - ошибка
+        if not row: 
+            raise HTTPException(status_code=400, detail="Пользователь не найден")
+        
+        stored_password_hash = row[0]
+        
+        # 3. ПРОВЕРЯЕМ ХЕШ ПАРОЛЯ
+        if not verify_password(user.password, stored_password_hash):
+            raise HTTPException(status_code=400, detail="Неверный пароль")
     
+    # Если всё ок, отдаем данные
     return {
         "message": "Success", 
-        "avatar_url": row[0], 
-        "bio": row[1], 
-        "is_admin": row[2],
-        "real_name": row[3] or "",
-        "location": row[4] or "",
-        "birth_date": row[5] or "",
-        "social_link": row[6] or ""
+        "avatar_url": row[1], 
+        "bio": row[2], 
+        "is_admin": row[3],
+        "real_name": row[4] or "",
+        "location": row[5] or "",
+        "birth_date": row[6] or "",
+        "social_link": row[7] or ""
     }
 
 @app.post("/update_profile")
@@ -157,7 +189,6 @@ async def update_profile(data: ProfileUpdateModel):
         "birth_date": data.birth_date, "social_link": data.social_link
     }
 
-# --- НОВЫЙ РОУТ: ПОЛУЧИТЬ ЧУЖОЙ ПРОФИЛЬ ---
 @app.get("/get_profile")
 async def get_profile(username: str):
     async with AsyncSessionLocal() as session:
@@ -179,7 +210,7 @@ async def get_profile(username: str):
             "social_link": user[7] or ""
         }
 
-# --- ОСТАЛЬНЫЕ РОУТЫ ---
+# --- ОСТАЛЬНЫЕ РОУТЫ (ДРУЗЬЯ, ГРУППЫ, WEBOCKET) ---
 @app.post("/send_request")
 async def send_request(data: FriendRequestModel):
     async with AsyncSessionLocal() as session:
