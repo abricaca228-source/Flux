@@ -3,10 +3,10 @@
     <head>
         <title>Flux</title>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;800&display=swap" rel="stylesheet">
         <style>
             :root {
-                /* --- ТЕМА CYBERPUNK (Твоя любимая) --- */
+                /* --- ТЕМА CYBERPUNK --- */
                 --bg-deep: #0f0c29;
                 --bg-medium: #1a163a; 
                 --bg-light: #302b63;
@@ -24,7 +24,7 @@
             body { 
                 background: linear-gradient(135deg, var(--bg-deep), #24243e); 
                 color: var(--text-main); 
-                font-family: 'Inter', sans-serif; 
+                font-family: 'Exo 2', sans-serif; /* НОВЫЙ ШРИФТ */
                 display: flex; height: 100vh; margin: 0; overflow: hidden; 
             }
             
@@ -36,7 +36,6 @@
                 z-index: 200; position: absolute; top: 0; left: 0; 
             }
             
-            /* --- ЛОГОТИП "F" (КОДОМ) --- */
             .logo-container {
                 display: flex; flex-direction: column; align-items: center;
                 margin-bottom: 25px;
@@ -46,14 +45,11 @@
                 font-size: 110px; 
                 font-weight: 900;
                 line-height: 1;
-                font-family: 'Inter', sans-serif;
-                /* Электрический градиент */
                 background: linear-gradient(to bottom, #00ffff, #0055ff);
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
-                /* Неоновое свечение */
                 filter: drop-shadow(0 0 25px rgba(0, 210, 255, 0.7));
-                transform: skewX(-10deg); /* Наклон как на логотипе Flux */
+                transform: skewX(-10deg);
             }
             
             .logo-text {
@@ -81,6 +77,7 @@
                 border: 1px solid var(--glass-border); 
                 background: rgba(0,0,0,0.3); 
                 color: white; width: 100%; margin-bottom: 20px; font-size: 16px; outline: none; transition: 0.3s;
+                font-family: 'Exo 2', sans-serif;
             }
             .login-input:focus { border-color: var(--accent-primary); box-shadow: 0 0 15px rgba(0, 210, 255, 0.2); }
 
@@ -88,6 +85,7 @@
             .btn { 
                 width: 100%; padding: 12px; border: none; border-radius: 10px; 
                 cursor: pointer; font-weight: bold; color: white; transition: 0.3s; font-size: 16px;
+                font-family: 'Exo 2', sans-serif; text-transform: uppercase; letter-spacing: 1px;
             }
             .btn-login { 
                 background: linear-gradient(90deg, var(--accent-secondary), var(--accent-primary)); 
@@ -115,16 +113,17 @@
             
             .sidebar-title { 
                 font-weight: 800; padding: 20px 15px 10px 15px; 
-                color: var(--text-dim); font-size: 11px; letter-spacing: 1px;
+                color: var(--text-dim); font-size: 12px; letter-spacing: 2px;
                 text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; 
             }
-            .add-btn { cursor: pointer; font-size: 18px; color: var(--accent-primary); transition: 0.2s; }
+            .add-btn { cursor: pointer; font-size: 20px; color: var(--accent-primary); transition: 0.2s; }
             .add-btn:hover { text-shadow: 0 0 10px var(--accent-primary); transform: scale(1.1); }
 
             .channel { 
-                padding: 10px 15px; margin: 4px 10px; border-radius: 8px; 
-                cursor: pointer; color: var(--text-dim); font-weight: 500; 
+                padding: 12px 15px; margin: 4px 10px; border-radius: 8px; 
+                cursor: pointer; color: var(--text-dim); font-weight: 600; 
                 display: flex; align-items: center; position: relative; transition: 0.2s;
+                font-size: 15px;
             }
             .channel:hover { background: var(--glass); color: white; }
             .channel.active { 
@@ -135,8 +134,10 @@
             .sidebar-ban-btn { display: none; margin-left: auto; color: var(--danger); font-weight: bold; padding: 2px 6px; border-radius: 4px; font-size: 14px; }
             .channel:hover .sidebar-ban-btn { display: block; }
 
-            .hashtag { color: var(--accent-secondary); margin-right: 8px; font-size: 18px; opacity: 0.7; }
-            .dm-avatar { width: 32px; height: 32px; border-radius: 10px; margin-right: 10px; background: linear-gradient(135deg, #667eea, #764ba2); flex-shrink: 0; }
+            /* Хештеги удалены, но стиль оставим на всякий случай пустым */
+            .hashtag { display: none; } 
+
+            .dm-avatar { width: 32px; height: 32px; border-radius: 10px; margin-right: 10px; background: linear-gradient(135deg, #667eea, #764ba2); flex-shrink: 0; object-fit: cover;}
             
             .user-panel { 
                 background: rgba(0,0,0,0.2); padding: 15px; display: flex; align-items: center; cursor: pointer; margin-top: auto; 
@@ -144,7 +145,7 @@
             }
             .my-avatar { width: 40px; height: 40px; border-radius: 12px; background-color: #5865f2; margin-right: 12px; object-fit: cover; border: 2px solid var(--bg-deep); }
             .my-info { flex-grow: 1; overflow: hidden; }
-            .my-name { font-weight: bold; font-size: 15px; color: white; }
+            .my-name { font-weight: bold; font-size: 16px; color: white; display: flex; align-items: center;}
             .my-bio { font-size: 12px; color: var(--accent-primary); }
             .settings-icon { color: var(--text-dim); font-size: 18px; }
 
@@ -157,7 +158,7 @@
             .chat-header { 
                 height: 60px; border-bottom: 1px solid var(--glass-border); 
                 display: flex; align-items: center; padding: 0 20px; 
-                font-weight: bold; color: white; flex-shrink: 0; 
+                font-weight: 800; color: white; flex-shrink: 0; font-size: 18px; letter-spacing: 0.5px;
                 background: rgba(15, 12, 41, 0.8); backdrop-filter: blur(10px); z-index: 10; 
             }
             .hamburger { display: none; margin-right: 15px; font-size: 24px; cursor: pointer; color: white; }
@@ -165,7 +166,7 @@
             .add-member-header-btn { 
                 margin-left: auto; cursor: pointer; 
                 background: linear-gradient(90deg, var(--success), #00b09b);
-                color: #0f0c29; font-weight: bold;
+                color: #0f0c29; font-weight: 800;
                 padding: 6px 14px; border-radius: 20px; font-size: 13px; display: none; 
                 box-shadow: 0 0 10px rgba(0, 242, 96, 0.2);
             }
@@ -178,12 +179,17 @@
             .avatar { width: 42px; height: 42px; border-radius: 14px; background-color: #5865f2; margin-right: 15px; flex-shrink: 0; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
             
             .content { flex-grow: 1; min-width: 0; display: flex; flex-direction: column; }
-            .username-row { display: flex; align-items: baseline; margin-bottom: 4px; flex-wrap: wrap; }
-            .username { font-weight: bold; color: var(--accent-primary); font-size: 16px; margin-right: 8px; }
-            .admin-name { color: var(--danger); text-shadow: 0 0 10px rgba(255, 65, 108, 0.4); } 
-            .timestamp { color: var(--text-dim); font-size: 11px; font-weight: 400; }
-            .bio-tag { font-size: 10px; color: rgba(255,255,255,0.7); margin-left: 5px; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; }
-            .text { color: #e0e0e0; font-size: 15px; line-height: 1.5; word-break: break-word; }
+            .username-row { display: flex; align-items: center; margin-bottom: 4px; flex-wrap: wrap; }
+            
+            /* ИМЯ ПОЛЬЗОВАТЕЛЯ */
+            .username { font-weight: 700; color: var(--accent-primary); font-size: 16px; margin-right: 8px; }
+            
+            /* КОРОНА АДМИНА */
+            .admin-crown { margin-left: 2px; font-size: 16px; margin-right: 8px; filter: drop-shadow(0 0 5px gold);}
+
+            .timestamp { color: var(--text-dim); font-size: 11px; font-weight: 400; margin-left: 5px; }
+            .bio-tag { font-size: 10px; color: rgba(255,255,255,0.7); margin-left: 8px; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; }
+            .text { color: #e0e0e0; font-size: 15px; line-height: 1.5; word-break: break-word; font-weight: 400; }
             
             .chat-image { max-width: 100%; height: auto; max-height: 300px; border-radius: 12px; margin-top: 8px; cursor: pointer; object-fit: cover; display: block; border: 1px solid var(--glass-border); }
             audio { margin-top: 5px; height: 32px; width: 100%; max-width: 300px; filter: invert(0.9); }
@@ -208,7 +214,7 @@
             }
             .input-wrapper:focus-within { border-color: var(--accent-primary); box-shadow: 0 0 15px rgba(0, 210, 255, 0.15); }
             
-            input[type="text"] { flex-grow: 1; padding: 12px; border: none; background: transparent; color: white; outline: none; font-size: 16px; width: 100%; }
+            input[type="text"] { flex-grow: 1; padding: 12px; border: none; background: transparent; color: white; outline: none; font-size: 16px; width: 100%; font-family: 'Exo 2', sans-serif;}
             .file-btn, .mic-btn { cursor: pointer; color: var(--text-dim); padding: 10px; font-size: 22px; flex-shrink: 0; transition: 0.2s; }
             .file-btn:hover, .mic-btn:hover { color: white; }
             .mic-btn.recording { color: var(--danger); animation: pulse 1s infinite; text-shadow: 0 0 10px var(--danger); }
@@ -223,7 +229,7 @@
             #modal-img { max-width: 100%; max-height: 80vh; border-radius: 8px; }
             .close-btn { position: absolute; top: 15px; right: 20px; color: var(--text-dim); font-size: 24px; cursor: pointer; }
             .profile-preview { width: 100px; height: 100px; border-radius: 25px; background: #5865f2; margin: 0 auto 20px; object-fit: cover; border: 3px solid var(--accent-primary); box-shadow: 0 0 20px rgba(0, 210, 255, 0.3); }
-            .settings-input { width: 100%; padding: 12px; margin-bottom: 15px; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); color: white; border-radius: 8px; outline: none; }
+            .settings-input { width: 100%; padding: 12px; margin-bottom: 15px; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); color: white; border-radius: 8px; outline: none; font-family: 'Exo 2', sans-serif;}
             .settings-input:focus { border-color: var(--accent-secondary); }
             
             @media (max-width: 768px) {
@@ -334,7 +340,7 @@
             <div class="chat-area">
                 <div class="chat-header">
                     <span class="hamburger" onclick="toggleSidebar()">☰</span>
-                    <span class="hashtag" id="header-icon">#</span> 
+                    <span id="header-icon" style="margin-right: 5px; color: var(--accent-primary);"></span> 
                     <span id="header-title">Flux</span>
                     <span id="add-member-btn" class="add-member-header-btn" onclick="document.getElementById('add-member-modal').style.display='flex'">👤+ Добавить</span>
                 </div>
@@ -366,6 +372,13 @@
             var typingTimeout;
             var lastTypingSent = 0;
             var tempAvatarBase64 = null;
+
+            // ФУНКЦИЯ: Генератор аватарки, если нет своей
+            function getDefaultAvatar(name) {
+                // Создаем красивую аватарку с первой буквой имени
+                // Фон - темно-синий, текст - неоновый голубой
+                return `https://ui-avatars.com/api/?name=${name}&background=0f0c29&color=00d2ff&size=128&bold=true&font-size=0.5`;
+            }
 
             function toggleSidebar() {
                 var sidebar = document.getElementById("sidebar");
@@ -411,7 +424,8 @@
                 groups.forEach(g => {
                     var div = document.createElement("div");
                     div.className = "channel";
-                    div.innerHTML = `<span class="hashtag">#</span> ${g.name}`;
+                    // Убрали хештег #
+                    div.innerHTML = `${g.name}`;
                     div.onclick = function() { switchChannel("group_" + g.id, g.name, false, g.id); };
                     list.appendChild(div);
                 });
@@ -516,19 +530,31 @@
                 if (myIsAdmin) {
                     banBtnHtml = `<span class="sidebar-ban-btn" onclick="event.stopPropagation(); banUser('${friendName}')" title="ЗАБАНИТЬ">⛔</span>`;
                 }
-                div.innerHTML = `<div class="dm-avatar"></div> <span style="flex-grow:1;">${friendName}</span> ${banBtnHtml}`;
+                
+                // Используем генератор аватарки, если её нет (но здесь пока заглушка, реальную грузим если знаем URL)
+                // Для простоты в сайдбаре используем дефолтную аватарку-генератор
+                var avatarUrl = getDefaultAvatar(friendName);
+
+                div.innerHTML = `<img src="${avatarUrl}" class="dm-avatar"> <span style="flex-grow:1;">${friendName}</span> ${banBtnHtml}`;
                 var channelID = getDMChannelID(username, friendName);
                 div.onclick = function() { switchChannel(channelID, friendName, true); };
                 dmList.appendChild(div);
             }
 
             function updateMyProfileUI(avatar, bio) {
-                currentUserAvatar = avatar || "https://cdn.discordapp.com/embed/avatars/0.png";
+                // Если аватарки нет, ставим нашу генерацию, а не дискорд
+                currentUserAvatar = avatar || getDefaultAvatar(username);
                 currentUserBio = bio || "Нет статуса";
-                document.getElementById("my-name-text").innerText = username;
+                
+                var nameHtml = username;
+                if (myIsAdmin) {
+                    nameHtml += `<span class="admin-crown" title="Admin">👑</span>`;
+                }
+                
+                document.getElementById("my-name-text").innerHTML = nameHtml;
+                document.getElementById("my-name-text").classList.remove("admin-name"); // Убираем красный цвет
                 document.getElementById("my-bio-text").innerText = currentUserBio;
                 document.getElementById("my-avatar-img").src = currentUserAvatar;
-                if(myIsAdmin) document.getElementById("my-name-text").classList.add("admin-name");
             }
 
             function switchChannel(channelID, displayName, isDM = false, groupId = null) {
@@ -539,7 +565,7 @@
                 event.currentTarget.classList.add('active');
                 
                 var title = isDM ? displayName : displayName;
-                var icon = isDM ? "@" : "#";
+                var icon = isDM ? "@" : ""; // Убираем # для групп
                 document.getElementById("header-title").innerText = title;
                 document.getElementById("header-icon").innerText = icon;
                 
@@ -670,14 +696,23 @@
                     deleteBtn = `<div class="delete-btn" onclick="deleteMessage(${data.id})">🗑️</div>`;
                 }
                 
-                var nameClass = data.is_admin ? "username admin-name" : "username";
-                var avatarSrc = data.avatar_url || "https://cdn.discordapp.com/embed/avatars/0.png";
+                // Логика отображения имени: просто имя или имя + корона
+                var nameHtml = `<span class="username">${data.username}</span>`;
+                if (data.is_admin) {
+                    nameHtml += `<span class="admin-crown" title="Admin">👑</span>`;
+                }
+
+                // Аватарка: Если URL пустой, генерируем сами
+                var avatarSrc = data.avatar_url;
+                if (!avatarSrc) {
+                    avatarSrc = getDefaultAvatar(data.username);
+                }
                 
                 li.innerHTML = `
                     <img class="avatar" src="${avatarSrc}">
                     <div class="content">
                         <div class="username-row">
-                            <span class="${nameClass}">${data.username}</span>
+                            ${nameHtml}
                             <span class="timestamp">${data.created_at}</span>
                             <span class="bio-tag">${data.bio || ""}</span>
                         </div>
