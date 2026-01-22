@@ -3,11 +3,12 @@
     <head>
         <title>Flux</title>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&display=swap" rel="stylesheet">
         <style>
             :root {
+                /* --- ТЕМА CYBERPUNK (Твоя любимая) --- */
                 --bg-deep: #0f0c29;
-                --bg-medium: #1a163a; /* Чуть светлее для панелей */
+                --bg-medium: #1a163a; 
                 --bg-light: #302b63;
                 --accent-primary: #00d2ff; /* Неоновый голубой */
                 --accent-secondary: #3a7bd5;
@@ -27,7 +28,7 @@
                 display: flex; height: 100vh; margin: 0; overflow: hidden; 
             }
             
-            /* --- ЛОГИН ЭКРАН (НОВЫЙ) --- */
+            /* --- ЛОГИН ЭКРАН --- */
             #login-screen { 
                 display: flex; flex-direction: column; align-items: center; justify-content: center; 
                 height: 100%; width: 100%; 
@@ -35,23 +36,42 @@
                 z-index: 200; position: absolute; top: 0; left: 0; 
             }
             
-            .login-logo {
-                font-size: 60px; font-weight: 800; 
-                background: linear-gradient(to right, #00d2ff, #928DAB);
+            /* --- ЛОГОТИП "F" (КОДОМ) --- */
+            .logo-container {
+                display: flex; flex-direction: column; align-items: center;
+                margin-bottom: 25px;
+            }
+            
+            .logo-f {
+                font-size: 110px; 
+                font-weight: 900;
+                line-height: 1;
+                font-family: 'Inter', sans-serif;
+                /* Электрический градиент */
+                background: linear-gradient(to bottom, #00ffff, #0055ff);
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
-                margin-bottom: 20px;
-                letter-spacing: -2px;
-                text-shadow: 0 0 30px rgba(0, 210, 255, 0.3);
+                /* Неоновое свечение */
+                filter: drop-shadow(0 0 25px rgba(0, 210, 255, 0.7));
+                transform: skewX(-10deg); /* Наклон как на логотипе Flux */
+            }
+            
+            .logo-text {
+                font-size: 20px; font-weight: 600; letter-spacing: 8px;
+                text-transform: uppercase;
+                color: var(--accent-primary);
+                opacity: 0.8;
+                margin-top: -5px;
+                text-shadow: 0 0 10px rgba(0, 210, 255, 0.5);
             }
 
             .login-box { 
                 background: rgba(15, 12, 41, 0.7); 
                 backdrop-filter: blur(20px);
-                padding: 50px; 
+                padding: 40px; 
                 border-radius: 20px; 
                 text-align: center; 
-                width: 90%; max-width: 380px; 
+                width: 90%; max-width: 360px; 
                 border: 1px solid var(--glass-border);
                 box-shadow: 0 20px 50px rgba(0,0,0,0.5);
             }
@@ -64,21 +84,21 @@
             }
             .login-input:focus { border-color: var(--accent-primary); box-shadow: 0 0 15px rgba(0, 210, 255, 0.2); }
 
-            .btn-group { display: flex; gap: 15px; }
+            .btn-group { display: flex; gap: 15px; flex-direction: column; }
             .btn { 
-                flex: 1; padding: 12px; border: none; border-radius: 10px; 
+                width: 100%; padding: 12px; border: none; border-radius: 10px; 
                 cursor: pointer; font-weight: bold; color: white; transition: 0.3s; font-size: 16px;
             }
             .btn-login { 
                 background: linear-gradient(90deg, var(--accent-secondary), var(--accent-primary)); 
                 box-shadow: 0 5px 15px rgba(0, 210, 255, 0.3);
             }
-            .btn-login:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 210, 255, 0.5); }
+            .btn-login:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0, 210, 255, 0.6); }
             
             .btn-register { 
                 background: transparent; border: 1px solid var(--glass-border);
             }
-            .btn-register:hover { background: var(--glass); }
+            .btn-register:hover { background: var(--glass); border-color: var(--accent-primary); }
 
             .error-msg { color: var(--danger); font-size: 14px; margin-bottom: 15px; display: none; }
 
@@ -265,14 +285,18 @@
         </div>
 
         <div id="login-screen">
-            <div class="login-logo">Flux</div> <div class="login-box">
-                <h3 style="color: white; margin-bottom: 20px; font-weight:400; opacity:0.8;">Вход в систему</h3>
+            <div class="logo-container">
+                <div class="logo-f">F</div>
+                <div class="logo-text">Flux</div>
+            </div>
+            
+            <div class="login-box">
                 <input type="text" id="usernameInput" class="login-input" placeholder="Никнейм" />
                 <input type="password" id="passwordInput" class="login-input" placeholder="Пароль" />
                 <div id="errorMsg" class="error-msg">Ошибка</div>
                 <div class="btn-group">
                     <button class="btn btn-login" onclick="auth('login')">Войти</button>
-                    <button class="btn btn-register" onclick="auth('register')">Создать</button>
+                    <button class="btn btn-register" onclick="auth('register')">Создать аккаунт</button>
                 </div>
             </div>
         </div>
@@ -327,8 +351,6 @@
         </div>
 
         <script>
-            // --- ВСТАВЬ СЮДА ТОТ ЖЕ JAVASCRIPT, КОТОРЫЙ БЫЛ В ПРОШЛОМ ФАЙЛЕ ---
-            // (Я его не менял, чтобы не путать, но файл нужно перезаписать целиком)
             var ws = null;
             var username = "";
             var currentUserAvatar = ""; 
