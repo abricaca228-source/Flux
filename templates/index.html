@@ -41,41 +41,38 @@
 
             #messages { list-style-type: none; margin: 0; padding: 20px; flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
             
-            /* --- СТРУКТУРА СООБЩЕНИЯ (FLEXBOX) --- */
-            .message { 
-                display: flex; 
-                align-items: flex-start; /* Выравнивание по верху */
-                width: 100%; 
-                padding: 5px 0;
-            }
+            /* --- СТРУКТУРА СООБЩЕНИЯ --- */
+            .message { display: flex; align-items: flex-start; width: 100%; padding: 5px 0; }
             .message:hover { background-color: #2e3035; }
 
-            .avatar { width: 40px; height: 40px; border-radius: 50%; background-color: #5865f2; margin-right: 15px; flex-shrink: 0; object-fit: cover; }
+            /* Контейнер аватара с кнопкой бана */
+            .avatar-container { position: relative; margin-right: 15px; flex-shrink: 0; cursor: pointer; }
+            .avatar { width: 40px; height: 40px; border-radius: 50%; background-color: #5865f2; object-fit: cover; display: block; }
             
-            /* Контент занимает всё место, кроме кнопки удаления */
+            /* КНОПКА БАНА (появляется при наведении на аватар, если ты админ) */
+            .ban-btn { 
+                display: none; position: absolute; top: 0; left: 0; width: 40px; height: 40px; 
+                background: rgba(0,0,0,0.7); border-radius: 50%; color: red; 
+                font-weight: bold; align-items: center; justify-content: center; font-size: 20px; 
+            }
+            .avatar-container:hover .ban-btn.active { display: flex; } /* Показываем только если active */
+
             .content { flex-grow: 1; min-width: 0; display: flex; flex-direction: column; }
-            
             .username-row { display: flex; align-items: baseline; margin-bottom: 4px; flex-wrap: wrap; }
             .username { font-weight: bold; color: #fff; font-size: 16px; margin-right: 8px; }
+            .admin-name { color: #fa777c; } /* Красный ник для админа */
             .timestamp { color: #949ba4; font-size: 12px; font-weight: 400; }
             .bio-tag { font-size: 11px; color: #949ba4; margin-left: 5px; background: #1e1f22; padding: 2px 5px; border-radius: 3px; }
             .text { color: #dbdee1; font-size: 15px; line-height: 1.4; word-break: break-word; }
             .chat-image { max-width: 100%; height: auto; max-height: 300px; border-radius: 8px; margin-top: 5px; cursor: pointer; object-fit: cover; display: block; }
             audio { margin-top: 5px; height: 32px; width: 100%; max-width: 300px; }
 
-            /* --- КНОПКА УДАЛЕНИЯ (ИСПРАВЛЕНА) --- */
-            .delete-btn { 
-                opacity: 0; /* Невидима, но занимает место */
-                cursor: pointer; 
-                font-size: 20px; 
-                padding: 10px; /* Большая зона клика */
-                color: #fa777c;
-                flex-shrink: 0; /* Не сжиматься */
-                margin-left: auto; /* Отодвинуть в самый правый край */
-                align-self: flex-start; /* Вверх */
-                transition: opacity 0.2s;
-            }
-            .message:hover .delete-btn { opacity: 1; } /* Показать при наведении */
+            /* КНОПКА УДАЛЕНИЯ */
+            .delete-btn { opacity: 0; cursor: pointer; font-size: 20px; padding: 10px; color: #fa777c; flex-shrink: 0; margin-left: auto; align-self: flex-start; transition: opacity 0.2s; }
+            .message:hover .delete-btn { opacity: 1; }
+
+            /* СИСТЕМНОЕ СООБЩЕНИЕ */
+            .system-msg { text-align: center; color: #fa777c; font-weight: bold; margin: 10px 0; border: 1px dashed #fa777c; padding: 5px; border-radius: 5px; }
 
             /* ИНДИКАТОР ПЕЧАТИ */
             #typing-indicator { padding: 0 16px 5px 16px; color: #dbdee1; font-size: 12px; font-weight: bold; height: 20px; opacity: 0; transition: opacity 0.2s; }
@@ -85,7 +82,6 @@
             .typing-dots:nth-child(3) { animation-delay: .4s; }
             @keyframes blink { 0% {opacity: .2;} 20% {opacity: 1;} 100% {opacity: .2;} }
 
-            /* ВВОД */
             form { padding: 0 10px 10px 10px; margin: 0; width: 100%; flex-shrink: 0; background: #313338; }
             .input-wrapper { background-color: #383a40; border-radius: 8px; display: flex; align-items: center; padding: 5px 10px; width: 100%; }
             input[type="text"] { flex-grow: 1; padding: 10px; border: none; background: transparent; color: white; outline: none; font-size: 16px; width: 100%; }
@@ -100,7 +96,6 @@
             .profile-preview { width: 100px; height: 100px; border-radius: 50%; background: #5865f2; margin: 0 auto 20px; object-fit: cover; border: 3px solid #2b2d31; }
             .settings-input { width: 100%; padding: 10px; margin-bottom: 10px; background: #1e1f22; border: none; color: white; border-radius: 3px; }
             
-            /* --- МОБИЛЬНАЯ ВЕРСИЯ --- */
             @media (max-width: 768px) {
                 .sidebar { position: absolute; z-index: 100; height: 100%; width: 280px; transform: translateX(-100%); box-shadow: 2px 0 10px rgba(0,0,0,0.5); }
                 .sidebar.open { transform: translateX(0); }
@@ -109,8 +104,6 @@
                 #overlay.show { display: block; }
                 form { padding: 5px; }
                 .chat-area { width: 100%; }
-                
-                /* НА ТЕЛЕФОНЕ КНОПКА ВСЕГДА ВИДНА */
                 .delete-btn { opacity: 1 !important; }
             }
         </style>
@@ -131,6 +124,7 @@
                     <input type="file" style="display: none;" accept="image/*" onchange="previewAvatar(this)">
                 </label>
                 <input type="text" id="settings-bio" class="settings-input" placeholder="О себе">
+                <p style="font-size:12px; color:#949ba4;">Подсказка: Для админки введите код в поле "О себе"</p>
                 <button class="btn btn-register" onclick="saveProfile()">Сохранить</button>
             </div>
         </div>
@@ -209,12 +203,15 @@
             var username = "";
             var currentUserAvatar = ""; 
             var currentUserBio = "";
+            var myIsAdmin = false; // Являюсь ли я админом?
+
             var currentChannel = "general";
             var mediaRecorder = null;
             var audioChunks = [];
             var isRecording = false;
             var typingTimeout;
             var lastTypingSent = 0;
+            var tempAvatarBase64 = null;
 
             function toggleSidebar() {
                 var sidebar = document.getElementById("sidebar");
@@ -236,6 +233,9 @@
                     if (response.ok) {
                         let data = await response.json();
                         username = user;
+                        // Сохраняем статус админа
+                        myIsAdmin = data.is_admin;
+                        
                         updateMyProfileUI(data.avatar_url, data.bio);
                         loadDMs(); 
                         loadRequests();
@@ -330,6 +330,9 @@
                 document.getElementById("my-name-text").innerText = username;
                 document.getElementById("my-bio-text").innerText = currentUserBio;
                 document.getElementById("my-avatar-img").src = currentUserAvatar;
+                
+                // Если я админ, крашу свой ник локально
+                if(myIsAdmin) document.getElementById("my-name-text").classList.add("admin-name");
             }
 
             function switchChannel(channelID, displayName, isDM = false) {
@@ -410,6 +413,19 @@
                     }
                     else if (data.type === "new_request") loadRequests(); 
                     else if (data.type === "request_accepted") loadDMs(); 
+                    
+                    // --- БАН / КИК ---
+                    else if (data.type === "ban") {
+                        alert("ВАС ЗАБАНИЛИ!");
+                        location.reload(); // Перезагружаем страницу, выкидываем на логин
+                    }
+                    else if (data.type === "system") {
+                        var li = document.createElement('li');
+                        li.className = "system-msg";
+                        li.innerText = data.content;
+                        document.getElementById('messages').appendChild(li);
+                    }
+                    
                     else if (data.type === "typing") {
                         if (data.channel === currentChannel && data.username !== username) {
                             var indicator = document.getElementById("typing-indicator");
@@ -443,13 +459,31 @@
                 else if (data.content.startsWith("data:audio")) contentHtml = `<audio controls src="${data.content}"></audio>`;
                 else contentHtml = `<div class="text">${data.content}</div>`;
 
-                var deleteBtn = (data.username === username) ? `<div class="delete-btn" onclick="deleteMessage(${data.id})">🗑️</div>` : "";
+                // --- ЛОГИКА АДМИНА ---
+                var deleteBtn = "";
+                // Кнопка удаления есть, если я автор ИЛИ я админ
+                if (data.username === username || myIsAdmin) {
+                    deleteBtn = `<div class="delete-btn" onclick="deleteMessage(${data.id})">🗑️</div>`;
+                }
+                
+                // Класс для красного ника, если автор сообщения - админ
+                var nameClass = data.is_admin ? "username admin-name" : "username";
+
+                // Кнопка бана (только если я админ и это не я сам)
+                var banOverlay = "";
+                if (myIsAdmin && data.username !== username) {
+                    banOverlay = `<div class="ban-btn active" onclick="banUser('${data.username}')" title="ЗАБАНИТЬ">⛔</div>`;
+                }
+
                 var avatarSrc = data.avatar_url || "https://cdn.discordapp.com/embed/avatars/0.png";
                 
                 li.innerHTML = `
-                    <img class="avatar" src="${avatarSrc}">
+                    <div class="avatar-container">
+                        <img class="avatar" src="${avatarSrc}">
+                        ${banOverlay}
+                    </div>
                     <div class="content">
-                        <div class="username-row"><span class="username">${data.username}</span><span class="timestamp">${data.created_at}</span><span class="bio-tag">${data.bio || ""}</span></div>
+                        <div class="username-row"><span class="${nameClass}">${data.username}</span><span class="timestamp">${data.created_at}</span><span class="bio-tag">${data.bio || ""}</span></div>
                         ${contentHtml}
                     </div>
                     ${deleteBtn}
@@ -459,7 +493,13 @@
             }
 
             function deleteMessage(id) {
-                if(confirm("Удалить?")) ws.send(JSON.stringify({type: "delete", message_id: id}));
+                if(confirm("Удалить сообщение?")) ws.send(JSON.stringify({type: "delete", message_id: id}));
+            }
+            
+            function banUser(targetName) {
+                if(confirm(`ВЫ ТОЧНО ХОТИТЕ ЗАБАНИТЬ ${targetName} НАВСЕГДА?`)) {
+                    ws.send(JSON.stringify({type: "ban_user", target: targetName}));
+                }
             }
             
             function handleFileSelect(input) {
@@ -486,7 +526,14 @@
                 var newBio = document.getElementById("settings-bio").value;
                 var newAvatar = tempAvatarBase64 || currentUserAvatar;
                 await fetch("/update_profile", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({username: username, bio: newBio, avatar_url: newAvatar})});
-                updateMyProfileUI(newAvatar, newBio);
+                
+                // Обновляем данные локально
+                let response = await fetch("/login", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({username: username, password: document.getElementById("passwordInput").value})});
+                let data = await response.json();
+                myIsAdmin = data.is_admin;
+                currentUserBio = data.bio;
+                updateMyProfileUI(data.avatar_url, data.bio);
+                
                 document.getElementById("settings-modal").style.display = "none";
                 requestHistory();
             }
