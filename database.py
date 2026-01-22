@@ -19,6 +19,7 @@ Base = declarative_base()
 
 async def init_db():
     async with engine.begin() as conn:
+        # Создаем таблицу, если её нет
         await conn.execute(text("""
             CREATE TABLE IF NOT EXISTS users (
                 id SERIAL PRIMARY KEY,
@@ -26,14 +27,32 @@ async def init_db():
                 password TEXT NOT NULL,
                 avatar_url TEXT,
                 bio TEXT,
-                is_admin BOOLEAN DEFAULT FALSE
+                is_admin BOOLEAN DEFAULT FALSE,
+                real_name TEXT,
+                location TEXT,
+                birth_date TEXT,
+                social_link TEXT
             )
         """))
         
-        # Обновление для админки (на случай если не сработало раньше)
+        # --- МИГРАЦИЯ: ДОБАВЛЯЕМ НОВЫЕ КОЛОНКИ В СУЩЕСТВУЮЩУЮ БАЗУ ---
+        # Сервер попытается добавить эти колонки. Если они есть — ничего страшного.
         try: await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE"))
         except: pass
+        
+        try: await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS real_name TEXT"))
+        except: pass
 
+        try: await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS location TEXT"))
+        except: pass
+
+        try: await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS birth_date TEXT"))
+        except: pass
+        
+        try: await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS social_link TEXT"))
+        except: pass
+
+        # Остальные таблицы
         await conn.execute(text("""
             CREATE TABLE IF NOT EXISTS messages (
                 id SERIAL PRIMARY KEY,
@@ -60,8 +79,6 @@ async def init_db():
                 UNIQUE(sender, receiver)
             )
         """))
-
-        # --- НОВЫЕ ТАБЛИЦЫ ДЛЯ ГРУПП ---
         await conn.execute(text("""
             CREATE TABLE IF NOT EXISTS groups (
                 id SERIAL PRIMARY KEY,
