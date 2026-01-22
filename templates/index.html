@@ -522,20 +522,32 @@
             function previewAvatar(input) {
                 if (input.files[0]) compressImage(input.files[0], base64 => { tempAvatarBase64 = base64; document.getElementById("settings-avatar-preview").src = tempAvatarBase64; });
             }
-            async function saveProfile() {
+           async function saveProfile() {
                 var newBio = document.getElementById("settings-bio").value;
                 var newAvatar = tempAvatarBase64 || currentUserAvatar;
-                await fetch("/update_profile", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({username: username, bio: newBio, avatar_url: newAvatar})});
                 
-                // Обновляем данные локально
-                let response = await fetch("/login", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({username: username, password: document.getElementById("passwordInput").value})});
-                let data = await response.json();
-                myIsAdmin = data.is_admin;
-                currentUserBio = data.bio;
-                updateMyProfileUI(data.avatar_url, data.bio);
+                // 1. Отправляем запрос на обновление
+                let response = await fetch("/update_profile", {
+                    method: "POST", 
+                    headers: {"Content-Type": "application/json"}, 
+                    body: JSON.stringify({username: username, bio: newBio, avatar_url: newAvatar})
+                });
                 
-                document.getElementById("settings-modal").style.display = "none";
-                requestHistory();
+                if (response.ok) {
+                    // 2. Сервер сразу возвращает нам новый статус админа
+                    let data = await response.json();
+                    
+                    // 3. Обновляем данные в браузере
+                    myIsAdmin = data.is_admin;
+                    currentUserBio = data.bio;
+                    updateMyProfileUI(newAvatar, data.bio);
+                    
+                    // 4. Закрываем окно (ТЕПЕРЬ СРАБОТАЕТ!)
+                    document.getElementById("settings-modal").style.display = "none";
+                    requestHistory(); // Обновляем чат, чтобы появились кнопки удаления
+                } else {
+                    alert("Ошибка при сохранении!");
+                }
             }
 
             document.getElementById("messageText").addEventListener("input", function() {
