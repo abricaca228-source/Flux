@@ -3,18 +3,16 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker, declarative_base
 from sqlalchemy import text
 
-# Получаем адрес базы данных из настроек Render
+# Получаем адрес базы данных
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-# --- ИСПРАВЛЕНИЕ АДРЕСА ---
-# Если адрес есть, мы должны убедиться, что он использует драйвер asyncpg
+# Исправление адреса для Render
 if DATABASE_URL:
     if DATABASE_URL.startswith("postgres://"):
         DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+asyncpg://", 1)
     elif DATABASE_URL.startswith("postgresql://"):
         DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
 else:
-    # Запасной вариант для твоего компьютера (localhost)
     DATABASE_URL = "postgresql+asyncpg://postgres:postgres@localhost:5432/flux_db"
 
 engine = create_async_engine(DATABASE_URL, echo=False)
@@ -23,15 +21,25 @@ Base = declarative_base()
 
 async def init_db():
     async with engine.begin() as conn:
+        # Создаем таблицы, если их нет
         await conn.execute(text("""
             CREATE TABLE IF NOT EXISTS users (
                 id SERIAL PRIMARY KEY,
                 username TEXT UNIQUE NOT NULL,
                 password TEXT NOT NULL,
                 avatar_url TEXT,
-                bio TEXT
+                bio TEXT,
+                is_admin BOOLEAN DEFAULT FALSE
             )
         """))
+        
+        # --- МАГИЯ: ОБНОВЛЕНИЕ ЖИВОЙ БАЗЫ ---
+        # Эта команда добавит колонку is_admin, если таблица уже была создана раньше
+        try:
+            await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE"))
+        except:
+            pass # Если колонка уже есть, просто идем дальше
+
         await conn.execute(text("""
             CREATE TABLE IF NOT EXISTS messages (
                 id SERIAL PRIMARY KEY,
