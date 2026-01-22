@@ -14,10 +14,16 @@ class AuthModel(BaseModel):
     username: str
     password: str
 
+# ОБНОВЛЕННАЯ МОДЕЛЬ ПРОФИЛЯ
 class ProfileUpdateModel(BaseModel):
     username: str
     bio: str
     avatar_url: str
+    # Новые поля (по умолчанию пустые строки, чтобы не ломалось, если не передали)
+    real_name: str = ""
+    location: str = ""
+    birth_date: str = ""
+    social_link: str = ""
 
 class FriendRequestModel(BaseModel):
     sender: str
@@ -90,19 +96,37 @@ async def register(user: AuthModel):
             {"u": user.username, "p": user.password, "a": False}
         )
         await session.commit()
-    return {"message": "Success", "avatar_url": "", "bio": "Новичок", "is_admin": False}
+    # При регистрации возвращаем пустые новые поля
+    return {
+        "message": "Success", 
+        "avatar_url": "", 
+        "bio": "Новичок", 
+        "is_admin": False,
+        "real_name": "", "location": "", "birth_date": "", "social_link": ""
+    }
 
 @app.post("/login")
 async def login(user: AuthModel):
     async with AsyncSessionLocal() as session:
+        # ЗАПРАШИВАЕМ НОВЫЕ ПОЛЯ ИЗ БАЗЫ
         result = await session.execute(
-            text("SELECT avatar_url, bio, is_admin FROM users WHERE username = :u AND password = :p"), 
+            text("SELECT avatar_url, bio, is_admin, real_name, location, birth_date, social_link FROM users WHERE username = :u AND password = :p"), 
             {"u": user.username, "p": user.password}
         )
         row = result.fetchone()
         if not row: raise HTTPException(status_code=400, detail="Неверные данные")
     
-    return {"message": "Success", "avatar_url": row[0], "bio": row[1], "is_admin": row[2]}
+    return {
+        "message": "Success", 
+        "avatar_url": row[0], 
+        "bio": row[1], 
+        "is_admin": row[2],
+        # Если в базе NULL, возвращаем пустую строку
+        "real_name": row[3] or "",
+        "location": row[4] or "",
+        "birth_date": row[5] or "",
+        "social_link": row[6] or ""
+    }
 
 @app.post("/update_profile")
 async def update_profile(data: ProfileUpdateModel):
@@ -114,17 +138,45 @@ async def update_profile(data: ProfileUpdateModel):
             make_admin = True
             new_bio = new_bio.replace("#admin", "").strip()
 
+        # ОБНОВЛЯЕМ ВСЕ НОВЫЕ ПОЛЯ
         if make_admin:
-            await session.execute(text("UPDATE users SET avatar_url = :a, bio = :b, is_admin = TRUE WHERE username = :u"), {"a": data.avatar_url, "b": new_bio, "u": data.username})
+            await session.execute(text("""
+                UPDATE users SET 
+                avatar_url = :a, bio = :b, is_admin = TRUE,
+                real_name = :rn, location = :l, birth_date = :bd, social_link = :sl
+                WHERE username = :u
+            """), {
+                "a": data.avatar_url, "b": new_bio, "u": data.username,
+                "rn": data.real_name, "l": data.location, "bd": data.birth_date, "sl": data.social_link
+            })
         else:
-            await session.execute(text("UPDATE users SET avatar_url = :a, bio = :b WHERE username = :u"), {"a": data.avatar_url, "b": new_bio, "u": data.username})
+            await session.execute(text("""
+                UPDATE users SET 
+                avatar_url = :a, bio = :b,
+                real_name = :rn, location = :l, birth_date = :bd, social_link = :sl
+                WHERE username = :u
+            """), {
+                "a": data.avatar_url, "b": new_bio, "u": data.username,
+                "rn": data.real_name, "l": data.location, "bd": data.birth_date, "sl": data.social_link
+            })
         
         await session.commit()
+        
+        # Получаем обновленный статус админа, чтобы вернуть его
         res = await session.execute(text("SELECT is_admin FROM users WHERE username = :u"), {"u": data.username})
         is_admin = res.scalar()
 
-    return {"message": "Updated", "bio": new_bio, "is_admin": is_admin}
+    return {
+        "message": "Updated", 
+        "bio": new_bio, 
+        "is_admin": is_admin,
+        "real_name": data.real_name,
+        "location": data.location,
+        "birth_date": data.birth_date,
+        "social_link": data.social_link
+    }
 
+# --- ДРУЗЬЯ И ГРУППЫ (БЕЗ ИЗМЕНЕНИЙ) ---
 @app.post("/send_request")
 async def send_request(data: FriendRequestModel):
     async with AsyncSessionLocal() as session:
@@ -197,7 +249,6 @@ async def add_member(data: AddMemberModel):
     async with AsyncSessionLocal() as session:
         u_check = await session.execute(text("SELECT id FROM users WHERE username = :u"), {"u": data.username})
         if not u_check.scalar(): raise HTTPException(status_code=404, detail="Пользователь не найден")
-        
         try:
             await session.execute(text("INSERT INTO group_members (group_id, username) VALUES (:gid, :u)"), {"gid": data.group_id, "u": data.username})
             await session.commit()
@@ -272,29 +323,19 @@ async def websocket_endpoint(websocket: WebSocket, username: str):
                         await session.commit()
                         await manager.broadcast(data)
 
-            # --- ИСПРАВЛЕННЫЙ БАН ---
             elif data.get("type") == "ban_user":
                 target_user = data.get("target")
                 async with AsyncSessionLocal() as session:
                     admin_check = await session.execute(text("SELECT is_admin FROM users WHERE username = :u"), {"u": username})
                     if admin_check.scalar() == True:
-                        # 1. Удаляем юзера
                         await session.execute(text("DELETE FROM users WHERE username = :u"), {"u": target_user})
-                        
-                        # 2. Удаляем сообщения, которые ОН писал
                         await session.execute(text("DELETE FROM messages WHERE username = :u"), {"u": target_user})
-                        
-                        # 3. ВАЖНО: Удаляем историю переписки с ним (где канал содержит его имя)
-                        # Это удалит сообщения "Привет", которые ТЫ ему писал, из базы
                         await session.execute(text("DELETE FROM messages WHERE channel LIKE :pattern"), {"pattern": f"%_{target_user}%"})
-
-                        # 4. Удаляем дружбу и группы
                         await session.execute(text("DELETE FROM dms WHERE user1 = :u OR user2 = :u"), {"u": target_user})
                         await session.execute(text("DELETE FROM group_members WHERE username = :u"), {"u": target_user})
-                        
                         await session.commit()
                         await manager.kick_user(target_user)
-                        await manager.broadcast({"type": "system", "content": f"Пользователь {target_user} был забанен и стерт из истории!"})
+                        await manager.broadcast({"type": "system", "content": f"Пользователь {target_user} был забанен!"})
 
     except WebSocketDisconnect:
         manager.disconnect(username)
