@@ -179,7 +179,6 @@
                 padding: 10px; border-radius: 12px; margin-top: 5px; width: 280px;
                 backdrop-filter: blur(5px);
             }
-            
             .play-btn {
                 width: 36px; height: 36px; border-radius: 50%; 
                 background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
@@ -188,9 +187,7 @@
                 box-shadow: 0 0 10px rgba(0, 210, 255, 0.3);
             }
             .play-btn:hover { transform: scale(1.1); box-shadow: 0 0 15px rgba(0, 210, 255, 0.5); }
-            
             .audio-track-container { flex-grow: 1; display: flex; flex-direction: column; gap: 4px; }
-            
             .audio-track {
                 height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px;
                 position: relative; cursor: pointer; overflow: hidden;
@@ -230,8 +227,9 @@
 
             .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); backdrop-filter: blur(5px); justify-content: center; align-items: center; }
             .modal-content { 
-                background: #1a163a; padding: 30px; border-radius: 16px; width: 90%; max-width: 400px; text-align: center; position: relative; 
+                background: #1a163a; padding: 30px; border-radius: 16px; width: 90%; max-width: 420px; text-align: center; position: relative; 
                 border: 1px solid var(--glass-border); box-shadow: 0 20px 60px rgba(0,0,0,0.6); color: white;
+                max-height: 90vh; overflow-y: auto;
             }
             .modal-content h2 { margin-top: 0; color: var(--accent-primary); }
             #modal-img { max-width: 100%; max-height: 80vh; border-radius: 8px; }
@@ -239,6 +237,9 @@
             .profile-preview { width: 100px; height: 100px; border-radius: 25px; background: #5865f2; margin: 0 auto 20px; object-fit: cover; border: 3px solid var(--accent-primary); box-shadow: 0 0 20px rgba(0, 210, 255, 0.3); }
             .settings-input { width: 100%; padding: 12px; margin-bottom: 15px; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); color: white; border-radius: 8px; outline: none; font-family: 'Exo 2', sans-serif;}
             .settings-input:focus { border-color: var(--accent-secondary); }
+            
+            /* Стили для маленьких лейблов над инпутами */
+            .input-label { text-align: left; color: var(--text-dim); font-size: 12px; margin-bottom: 5px; display: block; margin-left: 2px; }
             
             @media (max-width: 768px) {
                 .sidebar { position: absolute; z-index: 100; height: 100%; width: 280px; transform: translateX(-100%); box-shadow: 10px 0 30px rgba(0,0,0,0.8); }
@@ -260,14 +261,29 @@
         <div id="settings-modal" class="modal">
             <div class="modal-content">
                 <span class="close-btn" onclick="document.getElementById('settings-modal').style.display='none'">&times;</span>
-                <h2>Профиль</h2>
+                <h2>Настройки Профиля</h2>
                 <img id="settings-avatar-preview" class="profile-preview" src="">
-                <label class="btn btn-login" style="display:block; margin-bottom:15px;">
-                    Загрузить аватар
+                <label class="btn btn-login" style="display:block; margin-bottom:20px;">
+                    Сменить Аватар
                     <input type="file" style="display: none;" accept="image/*" onchange="previewAvatar(this)">
                 </label>
-                <input type="text" id="settings-bio" class="settings-input" placeholder="О себе">
-                <button class="btn btn-login" onclick="saveProfile()">Сохранить</button>
+                
+                <span class="input-label">Статус (Био)</span>
+                <input type="text" id="settings-bio" class="settings-input" placeholder="Напиши что-нибудь крутое...">
+                
+                <span class="input-label">Настоящее Имя</span>
+                <input type="text" id="settings-realname" class="settings-input" placeholder="Как тебя зовут?">
+
+                <span class="input-label">Город</span>
+                <input type="text" id="settings-location" class="settings-input" placeholder="Где ты живешь?">
+
+                <span class="input-label">Дата Рождения</span>
+                <input type="text" id="settings-birthdate" class="settings-input" placeholder="ДД.ММ.ГГГГ">
+
+                <span class="input-label">Соцсети (Telegram/Insta)</span>
+                <input type="text" id="settings-social" class="settings-input" placeholder="@username">
+
+                <button class="btn btn-login" onclick="saveProfile()" style="margin-top: 10px;">Сохранить Изменения</button>
             </div>
         </div>
 
@@ -386,6 +402,13 @@
             var username = "";
             var currentUserAvatar = ""; 
             var currentUserBio = "";
+            
+            // НОВЫЕ ПЕРЕМЕННЫЕ ПРОФИЛЯ
+            var currentUserRealName = "";
+            var currentUserLocation = "";
+            var currentUserBirthDate = "";
+            var currentUserSocial = "";
+
             var myIsAdmin = false;
             var currentChannel = ""; 
             var currentGroupId = null; 
@@ -407,10 +430,17 @@
                 overlay.classList.toggle("show");
             }
             function closeSidebarOnMobile() { if (window.innerWidth <= 768) toggleSidebar(); }
+            
+            // ОТКРЫТИЕ НАСТРОЕК (ЗАПОЛНЯЕМ ПОЛЯ)
             function openSettings() {
                 document.getElementById("settings-modal").style.display = 'flex';
-                document.getElementById("settings-bio").value = currentUserBio;
                 document.getElementById("settings-avatar-preview").src = currentUserAvatar;
+                
+                document.getElementById("settings-bio").value = currentUserBio;
+                document.getElementById("settings-realname").value = currentUserRealName;
+                document.getElementById("settings-location").value = currentUserLocation;
+                document.getElementById("settings-birthdate").value = currentUserBirthDate;
+                document.getElementById("settings-social").value = currentUserSocial;
             }
 
             async function auth(type) {
@@ -426,6 +456,13 @@
                         let data = await response.json();
                         username = user;
                         myIsAdmin = data.is_admin;
+                        
+                        // СОХРАНЯЕМ ДАННЫЕ ПРОФИЛЯ
+                        currentUserRealName = data.real_name;
+                        currentUserLocation = data.location;
+                        currentUserBirthDate = data.birth_date;
+                        currentUserSocial = data.social_link;
+                        
                         updateMyProfileUI(data.avatar_url, data.bio);
                         loadDMs(); 
                         loadGroups();
@@ -441,6 +478,7 @@
                 } catch (e) { alert("Ошибка соединения"); }
             }
 
+            // ... ОСТАЛЬНЫЕ ФУНКЦИИ (ГРУППЫ, ДРУЗЬЯ) БЕЗ ИЗМЕНЕНИЙ ...
             async function loadGroups() {
                 let response = await fetch("/get_my_groups?username=" + username);
                 let groups = await response.json();
@@ -544,15 +582,12 @@
                 var dmList = document.getElementById("dm-list");
                 var existing = Array.from(dmList.children).find(div => div.innerText.includes(friendName));
                 if (existing) return;
-                
                 var div = document.createElement("div");
                 div.className = "channel";
-                
                 var banBtnHtml = "";
                 if (myIsAdmin) {
                     banBtnHtml = `<span class="sidebar-ban-btn icon-btn" onclick="event.stopPropagation(); banUser('${friendName}')" title="ЗАБАНИТЬ">${ICONS.ban}</span>`;
                 }
-                
                 var avatarUrl = getDefaultAvatar(friendName);
                 div.innerHTML = `<img src="${avatarUrl}" class="dm-avatar"> <span style="flex-grow:1;">${friendName}</span> ${banBtnHtml}`;
                 var channelID = getDMChannelID(username, friendName);
@@ -567,10 +602,8 @@
                     currentUserAvatar = avatar;
                 }
                 currentUserBio = bio || "Нет статуса";
-                
                 var nameHtml = username;
                 if (myIsAdmin) nameHtml += ICONS.crown;
-                
                 document.getElementById("my-name-text").innerHTML = nameHtml;
                 document.getElementById("my-name-text").classList.remove("admin-name"); 
                 document.getElementById("my-bio-text").innerText = currentUserBio;
@@ -582,18 +615,15 @@
                 currentGroupId = groupId; 
                 document.querySelectorAll('.channel').forEach(el => el.classList.remove('active'));
                 event.currentTarget.classList.add('active');
-                
                 var title = isDM ? displayName : displayName;
                 var icon = isDM ? "@" : ""; 
                 document.getElementById("header-title").innerText = title;
                 document.getElementById("header-icon").innerText = icon;
-                
                 if (groupId) {
                     document.getElementById("add-member-btn").style.display = "block";
                 } else {
                     document.getElementById("add-member-btn").style.display = "none";
                 }
-
                 document.getElementById('messages').innerHTML = '';
                 document.getElementById('typing-indicator').className = ""; 
                 closeSidebarOnMobile(); 
@@ -711,7 +741,6 @@
                     contentHtml = `<img src="${data.content}" class="chat-image" onclick="document.getElementById('image-modal').style.display='flex';document.getElementById('modal-img').src=this.src;">`;
                 } 
                 else if (data.content.startsWith("data:audio")) {
-                    // КАСТОМНЫЙ АУДИО ПЛЕЕР
                     var audioId = "audio-" + data.id;
                     var btnId = "btn-" + data.id;
                     var progId = "prog-" + data.id;
@@ -766,8 +795,6 @@
             window.toggleAudio = function(id) {
                 var audio = document.getElementById('audio-' + id);
                 var btn = document.getElementById('btn-' + id);
-                
-                // Останавливаем все другие аудио
                 document.querySelectorAll('audio').forEach(a => {
                     if(a.id !== 'audio-'+id) {
                         a.pause();
@@ -775,7 +802,6 @@
                         document.getElementById('btn-'+otherId).innerHTML = ICONS.play;
                     }
                 });
-
                 if (audio.paused) {
                     audio.play();
                     btn.innerHTML = ICONS.pause;
@@ -791,11 +817,9 @@
                 var audio = document.getElementById('audio-' + id);
                 var prog = document.getElementById('prog-' + id);
                 var time = document.getElementById('time-' + id);
-                
                 if (audio.duration) {
                     var percent = (audio.currentTime / audio.duration) * 100;
                     prog.style.width = percent + "%";
-                    
                     var mins = Math.floor(audio.currentTime / 60);
                     var secs = Math.floor(audio.currentTime % 60);
                     if (secs < 10) secs = '0' + secs;
@@ -828,7 +852,6 @@
                 var clickX = e.offsetX;
                 var width = track.clientWidth;
                 var duration = audio.duration;
-                
                 audio.currentTime = (clickX / width) * duration;
             };
 
@@ -854,18 +877,42 @@
                     input.value = '';
                 }
             }
+            
+            // СОХРАНЕНИЕ ПРОФИЛЯ
             async function saveProfile() {
                 var newBio = document.getElementById("settings-bio").value;
                 var newAvatar = tempAvatarBase64 || currentUserAvatar;
                 
+                // СОБИРАЕМ НОВЫЕ ПОЛЯ
+                var realName = document.getElementById("settings-realname").value;
+                var location = document.getElementById("settings-location").value;
+                var birthDate = document.getElementById("settings-birthdate").value;
+                var socialLink = document.getElementById("settings-social").value;
+                
                 let response = await fetch("/update_profile", {
                     method: "POST", headers: {"Content-Type": "application/json"}, 
-                    body: JSON.stringify({username: username, bio: newBio, avatar_url: newAvatar})
+                    body: JSON.stringify({
+                        username: username, 
+                        bio: newBio, 
+                        avatar_url: newAvatar,
+                        real_name: realName,
+                        location: location,
+                        birth_date: birthDate,
+                        social_link: socialLink
+                    })
                 });
+                
                 if (response.ok) {
                     let data = await response.json();
                     myIsAdmin = data.is_admin;
                     currentUserBio = data.bio;
+                    
+                    // Обновляем локальные переменные
+                    currentUserRealName = data.real_name;
+                    currentUserLocation = data.location;
+                    currentUserBirthDate = data.birth_date;
+                    currentUserSocial = data.social_link;
+                    
                     updateMyProfileUI(newAvatar, data.bio);
                     document.getElementById("settings-modal").style.display = "none";
                     loadDMs();
