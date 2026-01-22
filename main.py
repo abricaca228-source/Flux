@@ -27,7 +27,6 @@ class RespondRequestModel(BaseModel):
     request_id: int
     action: str 
 
-# Новые модели для групп
 class CreateGroupModel(BaseModel):
     name: str
     owner: str
@@ -126,7 +125,6 @@ async def update_profile(data: ProfileUpdateModel):
 
     return {"message": "Updated", "bio": new_bio, "is_admin": is_admin}
 
-# --- ДРУЗЬЯ ---
 @app.post("/send_request")
 async def send_request(data: FriendRequestModel):
     async with AsyncSessionLocal() as session:
@@ -185,15 +183,11 @@ async def get_dms(username: str):
             dms.append(friend)
         return dms
 
-# --- ЛОГИКА ГРУПП (НОВОЕ) ---
 @app.post("/create_group")
 async def create_group(data: CreateGroupModel):
     async with AsyncSessionLocal() as session:
-        # Создаем группу
         res = await session.execute(text("INSERT INTO groups (name, owner) VALUES (:n, :o) RETURNING id"), {"n": data.name, "o": data.owner})
         group_id = res.scalar()
-        
-        # Добавляем создателя в участники
         await session.execute(text("INSERT INTO group_members (group_id, username) VALUES (:gid, :u)"), {"gid": group_id, "u": data.owner})
         await session.commit()
     return {"message": "Created", "group_id": group_id, "name": data.name}
@@ -201,7 +195,6 @@ async def create_group(data: CreateGroupModel):
 @app.post("/add_member")
 async def add_member(data: AddMemberModel):
     async with AsyncSessionLocal() as session:
-        # Проверяем, существует ли пользователь
         u_check = await session.execute(text("SELECT id FROM users WHERE username = :u"), {"u": data.username})
         if not u_check.scalar(): raise HTTPException(status_code=404, detail="Пользователь не найден")
         
@@ -210,7 +203,6 @@ async def add_member(data: AddMemberModel):
             await session.commit()
         except:
             raise HTTPException(status_code=400, detail="Уже в группе")
-            
     return {"message": "Added"}
 
 @app.get("/get_my_groups")
@@ -225,7 +217,6 @@ async def get_my_groups(username: str):
         result = await session.execute(query, {"u": username})
         return [{"id": row[0], "name": row[1]} for row in result.fetchall()]
 
-# --- WEBSOCKET ---
 @app.websocket("/ws/{username}")
 async def websocket_endpoint(websocket: WebSocket, username: str):
     await manager.connect(websocket, username)
@@ -281,18 +272,29 @@ async def websocket_endpoint(websocket: WebSocket, username: str):
                         await session.commit()
                         await manager.broadcast(data)
 
+            # --- ИСПРАВЛЕННЫЙ БАН ---
             elif data.get("type") == "ban_user":
                 target_user = data.get("target")
                 async with AsyncSessionLocal() as session:
                     admin_check = await session.execute(text("SELECT is_admin FROM users WHERE username = :u"), {"u": username})
                     if admin_check.scalar() == True:
+                        # 1. Удаляем юзера
                         await session.execute(text("DELETE FROM users WHERE username = :u"), {"u": target_user})
+                        
+                        # 2. Удаляем сообщения, которые ОН писал
                         await session.execute(text("DELETE FROM messages WHERE username = :u"), {"u": target_user})
+                        
+                        # 3. ВАЖНО: Удаляем историю переписки с ним (где канал содержит его имя)
+                        # Это удалит сообщения "Привет", которые ТЫ ему писал, из базы
+                        await session.execute(text("DELETE FROM messages WHERE channel LIKE :pattern"), {"pattern": f"%_{target_user}%"})
+
+                        # 4. Удаляем дружбу и группы
                         await session.execute(text("DELETE FROM dms WHERE user1 = :u OR user2 = :u"), {"u": target_user})
-                        await session.execute(text("DELETE FROM group_members WHERE username = :u"), {"u": target_user}) # Удаляем из групп
+                        await session.execute(text("DELETE FROM group_members WHERE username = :u"), {"u": target_user})
+                        
                         await session.commit()
                         await manager.kick_user(target_user)
-                        await manager.broadcast({"type": "system", "content": f"Пользователь {target_user} был забанен!"})
+                        await manager.broadcast({"type": "system", "content": f"Пользователь {target_user} был забанен и стерт из истории!"})
 
     except WebSocketDisconnect:
         manager.disconnect(username)
