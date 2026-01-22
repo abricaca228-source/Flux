@@ -23,24 +23,16 @@
             .sidebar { width: 240px; background-color: #2b2d31; display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; transition: transform 0.3s ease; }
             
             .sidebar-title { font-weight: bold; padding: 15px 10px 5px 10px; color: #f2f3f5; font-size: 12px; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; }
-            
-            /* Элемент списка (Друг) */
+            .add-btn { cursor: pointer; font-size: 18px; color: #b5bac1; }
+            .add-btn:hover { color: white; }
+
             .channel { padding: 8px 10px; margin: 1px 8px; border-radius: 4px; cursor: pointer; color: #949ba4; font-weight: 500; display: flex; align-items: center; position: relative; }
             .channel:hover { background-color: #35373c; color: #dbdee1; }
             .channel.active { background-color: #404249; color: white; }
             
             /* КНОПКА БАНА В САЙДБАРЕ */
-            .sidebar-ban-btn {
-                display: none; /* Скрыта */
-                margin-left: auto; /* Прижать вправо, но внутри строки */
-                color: #fa777c;
-                font-weight: bold;
-                padding: 2px 6px;
-                border-radius: 4px;
-                font-size: 14px;
-            }
+            .sidebar-ban-btn { display: none; margin-left: auto; color: #fa777c; font-weight: bold; padding: 2px 6px; border-radius: 4px; font-size: 14px; }
             .sidebar-ban-btn:hover { background: rgba(250, 119, 124, 0.1); }
-            /* Показываем кнопку, когда наводим на друга */
             .channel:hover .sidebar-ban-btn { display: block; }
 
             .hashtag { color: #6d6f78; margin-right: 5px; font-size: 20px; }
@@ -56,15 +48,15 @@
             .chat-area { flex-grow: 1; display: flex; flex-direction: column; background-color: #313338; min-width: 0; width: 100%; position: relative; }
             .chat-header { height: 48px; border-bottom: 1px solid #26272d; display: flex; align-items: center; padding: 0 16px; font-weight: bold; color: white; flex-shrink: 0; background: #313338; z-index: 10; }
             .hamburger { display: none; margin-right: 15px; font-size: 24px; cursor: pointer; color: #dbdee1; }
+            
+            /* КНОПКА ДОБАВЛЕНИЯ УЧАСТНИКА В ГРУППУ */
+            .add-member-header-btn { margin-left: auto; cursor: pointer; background: #248046; color: white; padding: 5px 10px; border-radius: 4px; font-size: 12px; display: none; }
 
             #messages { list-style-type: none; margin: 0; padding: 20px; flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
             
-            /* --- СТРУКТУРА СООБЩЕНИЯ --- */
             .message { display: flex; align-items: flex-start; width: 100%; padding: 5px 0; }
             .message:hover { background-color: #2e3035; }
-
             .avatar { width: 40px; height: 40px; border-radius: 50%; background-color: #5865f2; margin-right: 15px; flex-shrink: 0; object-fit: cover; }
-            
             .content { flex-grow: 1; min-width: 0; display: flex; flex-direction: column; }
             .username-row { display: flex; align-items: baseline; margin-bottom: 4px; flex-wrap: wrap; }
             .username { font-weight: bold; color: #fff; font-size: 16px; margin-right: 8px; }
@@ -75,14 +67,11 @@
             .chat-image { max-width: 100%; height: auto; max-height: 300px; border-radius: 8px; margin-top: 5px; cursor: pointer; object-fit: cover; display: block; }
             audio { margin-top: 5px; height: 32px; width: 100%; max-width: 300px; }
 
-            /* КНОПКА УДАЛЕНИЯ */
             .delete-btn { opacity: 0; cursor: pointer; font-size: 20px; padding: 10px; color: #fa777c; flex-shrink: 0; margin-left: auto; align-self: flex-start; transition: opacity 0.2s; }
             .message:hover .delete-btn { opacity: 1; }
 
-            /* СИСТЕМНОЕ СООБЩЕНИЕ */
             .system-msg { text-align: center; color: #fa777c; font-weight: bold; margin: 10px 0; border: 1px dashed #fa777c; padding: 5px; border-radius: 5px; }
 
-            /* ИНДИКАТОР ПЕЧАТИ */
             #typing-indicator { padding: 0 16px 5px 16px; color: #dbdee1; font-size: 12px; font-weight: bold; height: 20px; opacity: 0; transition: opacity 0.2s; }
             #typing-indicator.show { opacity: 1; }
             .typing-dots { animation: blink 1.4s infinite both; }
@@ -132,7 +121,6 @@
                     <input type="file" style="display: none;" accept="image/*" onchange="previewAvatar(this)">
                 </label>
                 <input type="text" id="settings-bio" class="settings-input" placeholder="О себе">
-                <p style="font-size:12px; color:#949ba4;">Подсказка: Для админки введите код в поле "О себе"</p>
                 <button class="btn btn-register" onclick="saveProfile()">Сохранить</button>
             </div>
         </div>
@@ -142,8 +130,25 @@
                 <span class="close-btn" onclick="document.getElementById('dm-modal').style.display='none'">&times;</span>
                 <h2>Найти друга</h2>
                 <input type="text" id="dm-username" class="settings-input" placeholder="Никнейм">
-                <div id="dm-error" style="color:#fa777c; margin-bottom:10px; display:none;"></div>
                 <button class="btn btn-login" onclick="sendFriendRequest()">Отправить</button>
+            </div>
+        </div>
+
+        <div id="create-group-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-btn" onclick="document.getElementById('create-group-modal').style.display='none'">&times;</span>
+                <h2>Создать группу</h2>
+                <input type="text" id="group-name-input" class="settings-input" placeholder="Название группы">
+                <button class="btn btn-register" onclick="createGroup()">Создать</button>
+            </div>
+        </div>
+
+        <div id="add-member-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-btn" onclick="document.getElementById('add-member-modal').style.display='none'">&times;</span>
+                <h2>Добавить участника</h2>
+                <input type="text" id="new-member-username" class="settings-input" placeholder="Никнейм друга">
+                <button class="btn btn-login" onclick="addMemberToGroup()">Добавить</button>
             </div>
         </div>
 
@@ -164,15 +169,23 @@
             <div id="overlay" onclick="toggleSidebar()"></div>
             <div class="sidebar" id="sidebar">
                 
-                <div id="requests-section">
+                <div class="sidebar-title">
+                    Группы
+                    <span class="add-btn" onclick="document.getElementById('create-group-modal').style.display='flex'">+</span>
+                </div>
+                <div id="groups-list"></div>
+
+                <div class="sidebar-title">
+                    Личные сообщения
+                    <span class="add-btn" onclick="document.getElementById('dm-modal').style.display='flex'">+</span>
+                </div>
+                <div id="dm-list"></div>
+                
+                <div id="requests-section" style="margin-top: 10px; display: none;">
                     <div class="sidebar-title" style="color: #f2f3f5;">Заявки</div>
                     <div id="requests-list"></div>
                 </div>
-                <div class="sidebar-title">
-                    Личные сообщения
-                    <span class="add-dm-btn" onclick="document.getElementById('dm-modal').style.display='flex'">+</span>
-                </div>
-                <div id="dm-list"></div>
+
                 <div class="user-panel" onclick="openSettings()">
                     <img id="my-avatar-img" class="my-avatar" src="">
                     <div class="my-info">
@@ -188,6 +201,7 @@
                     <span class="hamburger" onclick="toggleSidebar()">☰</span>
                     <span class="hashtag" id="header-icon">#</span> 
                     <span id="header-title">Flux</span>
+                    <span id="add-member-btn" class="add-member-header-btn" onclick="document.getElementById('add-member-modal').style.display='flex'">👤+ Добавить</span>
                 </div>
                 <ul id='messages'></ul>
                 <div id="typing-indicator"></div>
@@ -206,9 +220,11 @@
             var username = "";
             var currentUserAvatar = ""; 
             var currentUserBio = "";
-            var myIsAdmin = false; // Являюсь ли я админом?
+            var myIsAdmin = false;
 
-            var currentChannel = ""; // Изначально канала нет, пока не выберешь друга
+            var currentChannel = ""; 
+            var currentGroupId = null; // ID текущей группы (если открыта группа)
+
             var mediaRecorder = null;
             var audioChunks = [];
             var isRecording = false;
@@ -239,6 +255,7 @@
                         myIsAdmin = data.is_admin;
                         updateMyProfileUI(data.avatar_url, data.bio);
                         loadDMs(); 
+                        loadGroups(); // Грузим группы
                         loadRequests();
                         document.getElementById("login-screen").style.display = "none";
                         document.getElementById("app-container").style.display = "flex";
@@ -249,6 +266,54 @@
                         document.getElementById("errorMsg").style.display = "block";
                     }
                 } catch (e) { alert("Ошибка соединения"); }
+            }
+
+            // --- ГРУППЫ ---
+            async function loadGroups() {
+                let response = await fetch("/get_my_groups?username=" + username);
+                let groups = await response.json();
+                var list = document.getElementById("groups-list");
+                list.innerHTML = "";
+                groups.forEach(g => {
+                    var div = document.createElement("div");
+                    div.className = "channel";
+                    div.innerHTML = `<span class="hashtag">#</span> ${g.name}`;
+                    div.onclick = function() { switchChannel("group_" + g.id, g.name, false, g.id); };
+                    list.appendChild(div);
+                });
+            }
+
+            async function createGroup() {
+                var name = document.getElementById("group-name-input").value;
+                if (!name) return;
+                let response = await fetch("/create_group", {
+                    method: "POST", headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({name: name, owner: username})
+                });
+                if (response.ok) {
+                    document.getElementById("create-group-modal").style.display = "none";
+                    document.getElementById("group-name-input").value = "";
+                    loadGroups();
+                }
+            }
+
+            async function addMemberToGroup() {
+                var memberName = document.getElementById("new-member-username").value;
+                if (!memberName || !currentGroupId) return;
+                
+                let response = await fetch("/add_member", {
+                    method: "POST", headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({group_id: currentGroupId, username: memberName})
+                });
+                
+                if (response.ok) {
+                    alert("Пользователь добавлен!");
+                    document.getElementById("add-member-modal").style.display = "none";
+                    document.getElementById("new-member-username").value = "";
+                } else {
+                    let res = await response.json();
+                    alert("Ошибка: " + res.detail);
+                }
             }
 
             async function loadDMs() {
@@ -269,8 +334,9 @@
                     section.style.display = "block";
                     reqs.forEach(req => {
                         var div = document.createElement("div");
-                        div.className = "request-item";
-                        div.innerHTML = `${req.sender}<div class="req-actions"><span class="req-accept" onclick="respondRequest(${req.id}, 'accept')">✅</span><span class="req-reject" onclick="respondRequest(${req.id}, 'reject')">❌</span></div>`;
+                        div.className = "channel"; // Используем стиль канала для заявок
+                        div.style.cursor = "default";
+                        div.innerHTML = `${req.sender} <span style="margin-left:auto; cursor:pointer;" onclick="respondRequest(${req.id}, 'accept')">✅</span> <span style="margin-left:5px; cursor:pointer;" onclick="respondRequest(${req.id}, 'reject')">❌</span>`;
                         list.appendChild(div);
                     });
                 } else {
@@ -287,14 +353,8 @@
                 });
                 if(response.ok) {
                     document.getElementById("dm-modal").style.display = "none";
-                    document.getElementById("dm-username").value = "";
                     alert("Заявка отправлена!");
-                } else {
-                    let res = await response.json();
-                    let err = document.getElementById("dm-error");
-                    err.innerText = res.detail;
-                    err.style.display = "block";
-                }
+                } else { alert("Ошибка при отправке"); }
             }
 
             async function respondRequest(reqId, action) {
@@ -302,10 +362,7 @@
                     method: "POST", headers: {"Content-Type": "application/json"},
                     body: JSON.stringify({request_id: reqId, action: action})
                 });
-                if (response.ok) {
-                    loadRequests(); 
-                    if (action === 'accept') loadDMs(); 
-                }
+                if (response.ok) { loadRequests(); if (action === 'accept') loadDMs(); }
             }
 
             function getDMChannelID(u1, u2) {
@@ -315,23 +372,17 @@
 
             function addDMToSidebar(friendName) {
                 var dmList = document.getElementById("dm-list");
-                var existing = Array.from(dmList.children).find(div => div.innerText.trim() === friendName);
+                var existing = Array.from(dmList.children).find(div => div.innerText.includes(friendName));
                 if (existing) return;
                 
                 var div = document.createElement("div");
                 div.className = "channel";
-                div.id = "dm-user-" + friendName; // ID чтобы можно было удалить при бане
-
-                // --- ЛОГИКА БАНА В СПИСКЕ КОНТАКТОВ ---
+                
                 var banBtnHtml = "";
                 if (myIsAdmin) {
-                    // Важно: event.stopPropagation() не дает открыться чату при клике на бан
                     banBtnHtml = `<span class="sidebar-ban-btn" onclick="event.stopPropagation(); banUser('${friendName}')" title="ЗАБАНИТЬ">⛔</span>`;
                 }
-
-                // Добавляем аватар, имя и кнопку бана
                 div.innerHTML = `<div class="dm-avatar"></div> <span style="flex-grow:1;">${friendName}</span> ${banBtnHtml}`;
-                
                 var channelID = getDMChannelID(username, friendName);
                 div.onclick = function() { switchChannel(channelID, friendName, true); };
                 dmList.appendChild(div);
@@ -343,18 +394,28 @@
                 document.getElementById("my-name-text").innerText = username;
                 document.getElementById("my-bio-text").innerText = currentUserBio;
                 document.getElementById("my-avatar-img").src = currentUserAvatar;
-                
                 if(myIsAdmin) document.getElementById("my-name-text").classList.add("admin-name");
             }
 
-            function switchChannel(channelID, displayName, isDM = false) {
+            function switchChannel(channelID, displayName, isDM = false, groupId = null) {
                 currentChannel = channelID;
+                currentGroupId = groupId; // Сохраняем ID группы
+
                 document.querySelectorAll('.channel').forEach(el => el.classList.remove('active'));
                 event.currentTarget.classList.add('active');
-                var title = isDM ? displayName : channelID;
+                
+                var title = isDM ? displayName : displayName;
                 var icon = isDM ? "@" : "#";
                 document.getElementById("header-title").innerText = title;
                 document.getElementById("header-icon").innerText = icon;
+                
+                // Показываем кнопку "Добавить участника" ТОЛЬКО в группах
+                if (groupId) {
+                    document.getElementById("add-member-btn").style.display = "block";
+                } else {
+                    document.getElementById("add-member-btn").style.display = "none";
+                }
+
                 document.getElementById('messages').innerHTML = '';
                 document.getElementById('typing-indicator').className = ""; 
                 closeSidebarOnMobile(); 
@@ -413,7 +474,6 @@
                 var protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
                 ws = new WebSocket(protocol + "//" + window.location.host + "/ws/" + username);
                 ws.onopen = function() { 
-                    // Если канал не выбран, ничего не грузим
                     if (currentChannel) requestHistory(); 
                 };
                 ws.onmessage = function(event) {
@@ -428,7 +488,6 @@
                     }
                     else if (data.type === "new_request") loadRequests(); 
                     else if (data.type === "request_accepted") loadDMs(); 
-                    
                     else if (data.type === "ban") {
                         alert("ВАС ЗАБАНИЛИ!");
                         location.reload(); 
@@ -438,11 +497,8 @@
                         li.className = "system-msg";
                         li.innerText = data.content;
                         document.getElementById('messages').appendChild(li);
-                        
-                        // Если забанили кого-то, обновляем список друзей, чтобы он исчез
                         loadDMs();
                     }
-                    
                     else if (data.type === "typing") {
                         if (data.channel === currentChannel && data.username !== username) {
                             var indicator = document.getElementById("typing-indicator");
@@ -530,20 +586,15 @@
                     method: "POST", headers: {"Content-Type": "application/json"}, 
                     body: JSON.stringify({username: username, bio: newBio, avatar_url: newAvatar})
                 });
-                
                 if (response.ok) {
                     let data = await response.json();
                     myIsAdmin = data.is_admin;
                     currentUserBio = data.bio;
                     updateMyProfileUI(newAvatar, data.bio);
                     document.getElementById("settings-modal").style.display = "none";
-                    
-                    // Обновляем список контактов, чтобы появились кнопки бана
                     loadDMs();
                     if(currentChannel) requestHistory(); 
-                } else {
-                    alert("Ошибка при сохранении!");
-                }
+                } else { alert("Ошибка при сохранении!"); }
             }
 
             document.getElementById("messageText").addEventListener("input", function() {
