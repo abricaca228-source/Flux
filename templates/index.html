@@ -3,104 +3,216 @@
     <head>
         <title>Flux</title>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
         <style>
+            :root {
+                --bg-deep: #0f0c29;
+                --bg-medium: #1a163a; /* Чуть светлее для панелей */
+                --bg-light: #302b63;
+                --accent-primary: #00d2ff; /* Неоновый голубой */
+                --accent-secondary: #3a7bd5;
+                --text-main: #ffffff;
+                --text-dim: #b8b8d0;
+                --danger: #ff416c;
+                --success: #00f260;
+                --glass: rgba(255, 255, 255, 0.05);
+                --glass-border: rgba(255, 255, 255, 0.1);
+            }
+
             * { box-sizing: border-box; }
-            body { background-color: #313338; color: #dbdee1; font-family: 'gg sans', sans-serif; display: flex; height: 100vh; margin: 0; overflow: hidden; }
+            body { 
+                background: linear-gradient(135deg, var(--bg-deep), #24243e); 
+                color: var(--text-main); 
+                font-family: 'Inter', sans-serif; 
+                display: flex; height: 100vh; margin: 0; overflow: hidden; 
+            }
             
-            /* --- ЛОГИН --- */
-            #login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; width: 100%; background: #313338; z-index: 200; position: absolute; top: 0; left: 0; }
-            .login-box { background: #2b2d31; padding: 40px; border-radius: 5px; text-align: center; box-shadow: 0 2px 10px 0 rgba(0,0,0,0.2); width: 90%; max-width: 340px; }
-            .login-input { padding: 10px; border-radius: 3px; border: 1px solid #1e1f22; background: #1e1f22; color: white; width: 100%; margin-bottom: 15px; font-size: 16px; }
-            .btn-group { display: flex; gap: 10px; }
-            .btn { flex: 1; padding: 10px; border: none; border-radius: 3px; cursor: pointer; font-weight: bold; color: white; transition: 0.2s; }
-            .btn-login { background: #5865f2; }
-            .btn-register { background: #248046; }
-            .error-msg { color: #fa777c; font-size: 14px; margin-bottom: 10px; display: none; }
+            /* --- ЛОГИН ЭКРАН (НОВЫЙ) --- */
+            #login-screen { 
+                display: flex; flex-direction: column; align-items: center; justify-content: center; 
+                height: 100%; width: 100%; 
+                background: radial-gradient(circle at center, #302b63 0%, #0f0c29 100%);
+                z-index: 200; position: absolute; top: 0; left: 0; 
+            }
+            
+            .login-logo {
+                font-size: 60px; font-weight: 800; 
+                background: linear-gradient(to right, #00d2ff, #928DAB);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                margin-bottom: 20px;
+                letter-spacing: -2px;
+                text-shadow: 0 0 30px rgba(0, 210, 255, 0.3);
+            }
+
+            .login-box { 
+                background: rgba(15, 12, 41, 0.7); 
+                backdrop-filter: blur(20px);
+                padding: 50px; 
+                border-radius: 20px; 
+                text-align: center; 
+                width: 90%; max-width: 380px; 
+                border: 1px solid var(--glass-border);
+                box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            }
+
+            .login-input { 
+                padding: 15px; border-radius: 10px; 
+                border: 1px solid var(--glass-border); 
+                background: rgba(0,0,0,0.3); 
+                color: white; width: 100%; margin-bottom: 20px; font-size: 16px; outline: none; transition: 0.3s;
+            }
+            .login-input:focus { border-color: var(--accent-primary); box-shadow: 0 0 15px rgba(0, 210, 255, 0.2); }
+
+            .btn-group { display: flex; gap: 15px; }
+            .btn { 
+                flex: 1; padding: 12px; border: none; border-radius: 10px; 
+                cursor: pointer; font-weight: bold; color: white; transition: 0.3s; font-size: 16px;
+            }
+            .btn-login { 
+                background: linear-gradient(90deg, var(--accent-secondary), var(--accent-primary)); 
+                box-shadow: 0 5px 15px rgba(0, 210, 255, 0.3);
+            }
+            .btn-login:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 210, 255, 0.5); }
+            
+            .btn-register { 
+                background: transparent; border: 1px solid var(--glass-border);
+            }
+            .btn-register:hover { background: var(--glass); }
+
+            .error-msg { color: var(--danger); font-size: 14px; margin-bottom: 15px; display: none; }
 
             /* --- ИНТЕРФЕЙС --- */
             #app-container { display: none; width: 100%; height: 100%; }
 
-            .sidebar { width: 240px; background-color: #2b2d31; display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; transition: transform 0.3s ease; }
+            .sidebar { 
+                width: 260px; 
+                background: rgba(15, 12, 41, 0.95); 
+                border-right: 1px solid var(--glass-border);
+                display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; 
+                transition: transform 0.3s ease; 
+            }
             
-            .sidebar-title { font-weight: bold; padding: 15px 10px 5px 10px; color: #f2f3f5; font-size: 12px; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; }
-            .add-btn { cursor: pointer; font-size: 18px; color: #b5bac1; }
-            .add-btn:hover { color: white; }
+            .sidebar-title { 
+                font-weight: 800; padding: 20px 15px 10px 15px; 
+                color: var(--text-dim); font-size: 11px; letter-spacing: 1px;
+                text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; 
+            }
+            .add-btn { cursor: pointer; font-size: 18px; color: var(--accent-primary); transition: 0.2s; }
+            .add-btn:hover { text-shadow: 0 0 10px var(--accent-primary); transform: scale(1.1); }
 
-            .channel { padding: 8px 10px; margin: 1px 8px; border-radius: 4px; cursor: pointer; color: #949ba4; font-weight: 500; display: flex; align-items: center; position: relative; }
-            .channel:hover { background-color: #35373c; color: #dbdee1; }
-            .channel.active { background-color: #404249; color: white; }
+            .channel { 
+                padding: 10px 15px; margin: 4px 10px; border-radius: 8px; 
+                cursor: pointer; color: var(--text-dim); font-weight: 500; 
+                display: flex; align-items: center; position: relative; transition: 0.2s;
+            }
+            .channel:hover { background: var(--glass); color: white; }
+            .channel.active { 
+                background: linear-gradient(90deg, rgba(0, 210, 255, 0.1), transparent); 
+                color: var(--accent-primary); border-left: 3px solid var(--accent-primary);
+            }
             
-            /* КНОПКА БАНА В САЙДБАРЕ */
-            .sidebar-ban-btn { display: none; margin-left: auto; color: #fa777c; font-weight: bold; padding: 2px 6px; border-radius: 4px; font-size: 14px; }
-            .sidebar-ban-btn:hover { background: rgba(250, 119, 124, 0.1); }
+            .sidebar-ban-btn { display: none; margin-left: auto; color: var(--danger); font-weight: bold; padding: 2px 6px; border-radius: 4px; font-size: 14px; }
             .channel:hover .sidebar-ban-btn { display: block; }
 
-            .hashtag { color: #6d6f78; margin-right: 5px; font-size: 20px; }
-            .dm-avatar { width: 24px; height: 24px; border-radius: 50%; margin-right: 8px; background: #5865f2; flex-shrink: 0; }
+            .hashtag { color: var(--accent-secondary); margin-right: 8px; font-size: 18px; opacity: 0.7; }
+            .dm-avatar { width: 32px; height: 32px; border-radius: 10px; margin-right: 10px; background: linear-gradient(135deg, #667eea, #764ba2); flex-shrink: 0; }
             
-            .user-panel { background-color: #232428; padding: 10px; display: flex; align-items: center; cursor: pointer; margin-top: auto; }
-            .my-avatar { width: 32px; height: 32px; border-radius: 50%; background-color: #5865f2; margin-right: 10px; object-fit: cover; }
+            .user-panel { 
+                background: rgba(0,0,0,0.2); padding: 15px; display: flex; align-items: center; cursor: pointer; margin-top: auto; 
+                border-top: 1px solid var(--glass-border);
+            }
+            .my-avatar { width: 40px; height: 40px; border-radius: 12px; background-color: #5865f2; margin-right: 12px; object-fit: cover; border: 2px solid var(--bg-deep); }
             .my-info { flex-grow: 1; overflow: hidden; }
-            .my-name { font-weight: bold; font-size: 14px; color: white; }
-            .my-bio { font-size: 12px; color: #b5bac1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-            .settings-icon { color: #b5bac1; font-size: 18px; }
+            .my-name { font-weight: bold; font-size: 15px; color: white; }
+            .my-bio { font-size: 12px; color: var(--accent-primary); }
+            .settings-icon { color: var(--text-dim); font-size: 18px; }
 
-            .chat-area { flex-grow: 1; display: flex; flex-direction: column; background-color: #313338; min-width: 0; width: 100%; position: relative; }
-            .chat-header { height: 48px; border-bottom: 1px solid #26272d; display: flex; align-items: center; padding: 0 16px; font-weight: bold; color: white; flex-shrink: 0; background: #313338; z-index: 10; }
-            .hamburger { display: none; margin-right: 15px; font-size: 24px; cursor: pointer; color: #dbdee1; }
+            .chat-area { 
+                flex-grow: 1; display: flex; flex-direction: column; 
+                background: radial-gradient(circle at top right, #1a163a 0%, #0f0c29 60%);
+                min-width: 0; width: 100%; position: relative; 
+            }
             
-            /* КНОПКА ДОБАВЛЕНИЯ УЧАСТНИКА В ГРУППУ */
-            .add-member-header-btn { margin-left: auto; cursor: pointer; background: #248046; color: white; padding: 5px 10px; border-radius: 4px; font-size: 12px; display: none; }
+            .chat-header { 
+                height: 60px; border-bottom: 1px solid var(--glass-border); 
+                display: flex; align-items: center; padding: 0 20px; 
+                font-weight: bold; color: white; flex-shrink: 0; 
+                background: rgba(15, 12, 41, 0.8); backdrop-filter: blur(10px); z-index: 10; 
+            }
+            .hamburger { display: none; margin-right: 15px; font-size: 24px; cursor: pointer; color: white; }
+            
+            .add-member-header-btn { 
+                margin-left: auto; cursor: pointer; 
+                background: linear-gradient(90deg, var(--success), #00b09b);
+                color: #0f0c29; font-weight: bold;
+                padding: 6px 14px; border-radius: 20px; font-size: 13px; display: none; 
+                box-shadow: 0 0 10px rgba(0, 242, 96, 0.2);
+            }
 
-            #messages { list-style-type: none; margin: 0; padding: 20px; flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+            #messages { list-style-type: none; margin: 0; padding: 20px; flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
             
-            .message { display: flex; align-items: flex-start; width: 100%; padding: 5px 0; }
-            .message:hover { background-color: #2e3035; }
-            .avatar { width: 40px; height: 40px; border-radius: 50%; background-color: #5865f2; margin-right: 15px; flex-shrink: 0; object-fit: cover; }
+            .message { display: flex; align-items: flex-start; width: 100%; padding: 5px 10px; border-radius: 8px; transition: 0.2s; }
+            .message:hover { background: var(--glass); }
+            
+            .avatar { width: 42px; height: 42px; border-radius: 14px; background-color: #5865f2; margin-right: 15px; flex-shrink: 0; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+            
             .content { flex-grow: 1; min-width: 0; display: flex; flex-direction: column; }
             .username-row { display: flex; align-items: baseline; margin-bottom: 4px; flex-wrap: wrap; }
-            .username { font-weight: bold; color: #fff; font-size: 16px; margin-right: 8px; }
-            .admin-name { color: #fa777c; } 
-            .timestamp { color: #949ba4; font-size: 12px; font-weight: 400; }
-            .bio-tag { font-size: 11px; color: #949ba4; margin-left: 5px; background: #1e1f22; padding: 2px 5px; border-radius: 3px; }
-            .text { color: #dbdee1; font-size: 15px; line-height: 1.4; word-break: break-word; }
-            .chat-image { max-width: 100%; height: auto; max-height: 300px; border-radius: 8px; margin-top: 5px; cursor: pointer; object-fit: cover; display: block; }
-            audio { margin-top: 5px; height: 32px; width: 100%; max-width: 300px; }
+            .username { font-weight: bold; color: var(--accent-primary); font-size: 16px; margin-right: 8px; }
+            .admin-name { color: var(--danger); text-shadow: 0 0 10px rgba(255, 65, 108, 0.4); } 
+            .timestamp { color: var(--text-dim); font-size: 11px; font-weight: 400; }
+            .bio-tag { font-size: 10px; color: rgba(255,255,255,0.7); margin-left: 5px; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; }
+            .text { color: #e0e0e0; font-size: 15px; line-height: 1.5; word-break: break-word; }
+            
+            .chat-image { max-width: 100%; height: auto; max-height: 300px; border-radius: 12px; margin-top: 8px; cursor: pointer; object-fit: cover; display: block; border: 1px solid var(--glass-border); }
+            audio { margin-top: 5px; height: 32px; width: 100%; max-width: 300px; filter: invert(0.9); }
 
-            .delete-btn { opacity: 0; cursor: pointer; font-size: 20px; padding: 10px; color: #fa777c; flex-shrink: 0; margin-left: auto; align-self: flex-start; transition: opacity 0.2s; }
+            .delete-btn { opacity: 0; cursor: pointer; font-size: 18px; padding: 8px; color: var(--danger); flex-shrink: 0; margin-left: auto; transition: opacity 0.2s; }
             .message:hover .delete-btn { opacity: 1; }
 
-            .system-msg { text-align: center; color: #fa777c; font-weight: bold; margin: 10px 0; border: 1px dashed #fa777c; padding: 5px; border-radius: 5px; }
+            .system-msg { text-align: center; color: var(--danger); font-weight: bold; margin: 10px 0; border: 1px solid var(--danger); background: rgba(255, 65, 108, 0.1); padding: 8px; border-radius: 8px; font-size: 13px; }
 
-            #typing-indicator { padding: 0 16px 5px 16px; color: #dbdee1; font-size: 12px; font-weight: bold; height: 20px; opacity: 0; transition: opacity 0.2s; }
+            #typing-indicator { padding: 0 20px 10px 20px; color: var(--accent-primary); font-size: 12px; font-weight: bold; height: 20px; opacity: 0; transition: opacity 0.2s; }
             #typing-indicator.show { opacity: 1; }
             .typing-dots { animation: blink 1.4s infinite both; }
             .typing-dots:nth-child(2) { animation-delay: .2s; }
             .typing-dots:nth-child(3) { animation-delay: .4s; }
             @keyframes blink { 0% {opacity: .2;} 20% {opacity: 1;} 100% {opacity: .2;} }
 
-            form { padding: 0 10px 10px 10px; margin: 0; width: 100%; flex-shrink: 0; background: #313338; }
-            .input-wrapper { background-color: #383a40; border-radius: 8px; display: flex; align-items: center; padding: 5px 10px; width: 100%; }
-            input[type="text"] { flex-grow: 1; padding: 10px; border: none; background: transparent; color: white; outline: none; font-size: 16px; width: 100%; }
-            .file-btn, .mic-btn { cursor: pointer; color: #b5bac1; padding: 10px; font-size: 22px; flex-shrink: 0; transition: 0.2s; }
-            .mic-btn.recording { color: #fa777c; animation: pulse 1s infinite; }
+            form { padding: 0 20px 20px 20px; margin: 0; width: 100%; flex-shrink: 0; background: transparent; }
+            .input-wrapper { 
+                background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border);
+                border-radius: 12px; display: flex; align-items: center; padding: 5px 15px; width: 100%; 
+                backdrop-filter: blur(5px); transition: 0.3s;
+            }
+            .input-wrapper:focus-within { border-color: var(--accent-primary); box-shadow: 0 0 15px rgba(0, 210, 255, 0.15); }
+            
+            input[type="text"] { flex-grow: 1; padding: 12px; border: none; background: transparent; color: white; outline: none; font-size: 16px; width: 100%; }
+            .file-btn, .mic-btn { cursor: pointer; color: var(--text-dim); padding: 10px; font-size: 22px; flex-shrink: 0; transition: 0.2s; }
+            .file-btn:hover, .mic-btn:hover { color: white; }
+            .mic-btn.recording { color: var(--danger); animation: pulse 1s infinite; text-shadow: 0 0 10px var(--danger); }
             @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
 
-            .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); justify-content: center; align-items: center; }
-            .modal-content { background: #313338; padding: 30px; border-radius: 8px; width: 90%; max-width: 400px; text-align: center; position: relative; }
-            #modal-img { max-width: 100%; max-height: 80vh; border-radius: 5px; }
-            .close-btn { position: absolute; top: 10px; right: 15px; color: #f2f3f5; font-size: 30px; cursor: pointer; }
-            .profile-preview { width: 100px; height: 100px; border-radius: 50%; background: #5865f2; margin: 0 auto 20px; object-fit: cover; border: 3px solid #2b2d31; }
-            .settings-input { width: 100%; padding: 10px; margin-bottom: 10px; background: #1e1f22; border: none; color: white; border-radius: 3px; }
+            .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); backdrop-filter: blur(5px); justify-content: center; align-items: center; }
+            .modal-content { 
+                background: #1a163a; padding: 30px; border-radius: 16px; width: 90%; max-width: 400px; text-align: center; position: relative; 
+                border: 1px solid var(--glass-border); box-shadow: 0 20px 60px rgba(0,0,0,0.6); color: white;
+            }
+            .modal-content h2 { margin-top: 0; color: var(--accent-primary); }
+            #modal-img { max-width: 100%; max-height: 80vh; border-radius: 8px; }
+            .close-btn { position: absolute; top: 15px; right: 20px; color: var(--text-dim); font-size: 24px; cursor: pointer; }
+            .profile-preview { width: 100px; height: 100px; border-radius: 25px; background: #5865f2; margin: 0 auto 20px; object-fit: cover; border: 3px solid var(--accent-primary); box-shadow: 0 0 20px rgba(0, 210, 255, 0.3); }
+            .settings-input { width: 100%; padding: 12px; margin-bottom: 15px; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); color: white; border-radius: 8px; outline: none; }
+            .settings-input:focus { border-color: var(--accent-secondary); }
             
             @media (max-width: 768px) {
-                .sidebar { position: absolute; z-index: 100; height: 100%; width: 280px; transform: translateX(-100%); box-shadow: 2px 0 10px rgba(0,0,0,0.5); }
+                .sidebar { position: absolute; z-index: 100; height: 100%; width: 280px; transform: translateX(-100%); box-shadow: 10px 0 30px rgba(0,0,0,0.8); }
                 .sidebar.open { transform: translateX(0); }
                 .hamburger { display: block; } 
-                #overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 90; }
+                #overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 90; backdrop-filter: blur(2px); }
                 #overlay.show { display: block; }
-                form { padding: 5px; }
-                .chat-area { width: 100%; }
+                form { padding: 10px; }
                 .delete-btn { opacity: 1 !important; }
             }
         </style>
@@ -121,7 +233,7 @@
                     <input type="file" style="display: none;" accept="image/*" onchange="previewAvatar(this)">
                 </label>
                 <input type="text" id="settings-bio" class="settings-input" placeholder="О себе">
-                <button class="btn btn-register" onclick="saveProfile()">Сохранить</button>
+                <button class="btn btn-login" onclick="saveProfile()">Сохранить</button>
             </div>
         </div>
 
@@ -139,7 +251,7 @@
                 <span class="close-btn" onclick="document.getElementById('create-group-modal').style.display='none'">&times;</span>
                 <h2>Создать группу</h2>
                 <input type="text" id="group-name-input" class="settings-input" placeholder="Название группы">
-                <button class="btn btn-register" onclick="createGroup()">Создать</button>
+                <button class="btn btn-login" onclick="createGroup()">Создать</button>
             </div>
         </div>
 
@@ -153,14 +265,14 @@
         </div>
 
         <div id="login-screen">
-            <div class="login-box">
-                <h2 style="color: white; margin-bottom: 20px;">Flux</h2>
+            <div class="login-logo">Flux</div> <div class="login-box">
+                <h3 style="color: white; margin-bottom: 20px; font-weight:400; opacity:0.8;">Вход в систему</h3>
                 <input type="text" id="usernameInput" class="login-input" placeholder="Никнейм" />
                 <input type="password" id="passwordInput" class="login-input" placeholder="Пароль" />
                 <div id="errorMsg" class="error-msg">Ошибка</div>
                 <div class="btn-group">
-                    <button class="btn btn-login" onclick="auth('login')">Вход</button>
-                    <button class="btn btn-register" onclick="auth('register')">Рег-ция</button>
+                    <button class="btn btn-login" onclick="auth('login')">Войти</button>
+                    <button class="btn btn-register" onclick="auth('register')">Создать</button>
                 </div>
             </div>
         </div>
@@ -168,7 +280,6 @@
         <div id="app-container">
             <div id="overlay" onclick="toggleSidebar()"></div>
             <div class="sidebar" id="sidebar">
-                
                 <div class="sidebar-title">
                     Группы
                     <span class="add-btn" onclick="document.getElementById('create-group-modal').style.display='flex'">+</span>
@@ -182,7 +293,7 @@
                 <div id="dm-list"></div>
                 
                 <div id="requests-section" style="margin-top: 10px; display: none;">
-                    <div class="sidebar-title" style="color: #f2f3f5;">Заявки</div>
+                    <div class="sidebar-title" style="color: var(--accent-secondary);">Заявки</div>
                     <div id="requests-list"></div>
                 </div>
 
@@ -208,7 +319,7 @@
                 <form action="" onsubmit="sendMessage(event)">
                     <div class="input-wrapper">
                         <label class="file-btn">+<input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleFileSelect(this)"></label>
-                        <input type="text" id="messageText" autocomplete="off" placeholder="Сообщение..."/>
+                        <input type="text" id="messageText" autocomplete="off" placeholder="Написать сообщение..."/>
                         <div id="mic-btn" class="mic-btn" onclick="toggleMic()">🎤</div>
                     </div>
                 </form>
@@ -216,6 +327,8 @@
         </div>
 
         <script>
+            // --- ВСТАВЬ СЮДА ТОТ ЖЕ JAVASCRIPT, КОТОРЫЙ БЫЛ В ПРОШЛОМ ФАЙЛЕ ---
+            // (Я его не менял, чтобы не путать, но файл нужно перезаписать целиком)
             var ws = null;
             var username = "";
             var currentUserAvatar = ""; 
@@ -223,7 +336,7 @@
             var myIsAdmin = false;
 
             var currentChannel = ""; 
-            var currentGroupId = null; // ID текущей группы (если открыта группа)
+            var currentGroupId = null; 
 
             var mediaRecorder = null;
             var audioChunks = [];
@@ -255,7 +368,7 @@
                         myIsAdmin = data.is_admin;
                         updateMyProfileUI(data.avatar_url, data.bio);
                         loadDMs(); 
-                        loadGroups(); // Грузим группы
+                        loadGroups();
                         loadRequests();
                         document.getElementById("login-screen").style.display = "none";
                         document.getElementById("app-container").style.display = "flex";
@@ -268,7 +381,6 @@
                 } catch (e) { alert("Ошибка соединения"); }
             }
 
-            // --- ГРУППЫ ---
             async function loadGroups() {
                 let response = await fetch("/get_my_groups?username=" + username);
                 let groups = await response.json();
@@ -334,7 +446,7 @@
                     section.style.display = "block";
                     reqs.forEach(req => {
                         var div = document.createElement("div");
-                        div.className = "channel"; // Используем стиль канала для заявок
+                        div.className = "channel"; 
                         div.style.cursor = "default";
                         div.innerHTML = `${req.sender} <span style="margin-left:auto; cursor:pointer;" onclick="respondRequest(${req.id}, 'accept')">✅</span> <span style="margin-left:5px; cursor:pointer;" onclick="respondRequest(${req.id}, 'reject')">❌</span>`;
                         list.appendChild(div);
@@ -399,7 +511,7 @@
 
             function switchChannel(channelID, displayName, isDM = false, groupId = null) {
                 currentChannel = channelID;
-                currentGroupId = groupId; // Сохраняем ID группы
+                currentGroupId = groupId; 
 
                 document.querySelectorAll('.channel').forEach(el => el.classList.remove('active'));
                 event.currentTarget.classList.add('active');
@@ -409,7 +521,6 @@
                 document.getElementById("header-title").innerText = title;
                 document.getElementById("header-icon").innerText = icon;
                 
-                // Показываем кнопку "Добавить участника" ТОЛЬКО в группах
                 if (groupId) {
                     document.getElementById("add-member-btn").style.display = "block";
                 } else {
