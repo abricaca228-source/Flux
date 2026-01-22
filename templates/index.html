@@ -21,13 +21,31 @@
             #app-container { display: none; width: 100%; height: 100%; }
 
             .sidebar { width: 240px; background-color: #2b2d31; display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; transition: transform 0.3s ease; }
-            .sidebar-channels { padding: 10px; }
+            
             .sidebar-title { font-weight: bold; padding: 15px 10px 5px 10px; color: #f2f3f5; font-size: 12px; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; }
-            .channel { padding: 8px 10px; margin: 1px 8px; border-radius: 4px; cursor: pointer; color: #949ba4; font-weight: 500; display: flex; align-items: center; }
+            
+            /* Элемент списка (Друг) */
+            .channel { padding: 8px 10px; margin: 1px 8px; border-radius: 4px; cursor: pointer; color: #949ba4; font-weight: 500; display: flex; align-items: center; position: relative; }
             .channel:hover { background-color: #35373c; color: #dbdee1; }
             .channel.active { background-color: #404249; color: white; }
+            
+            /* КНОПКА БАНА В САЙДБАРЕ */
+            .sidebar-ban-btn {
+                display: none; /* Скрыта */
+                margin-left: auto; /* Прижать вправо, но внутри строки */
+                color: #fa777c;
+                font-weight: bold;
+                padding: 2px 6px;
+                border-radius: 4px;
+                font-size: 14px;
+            }
+            .sidebar-ban-btn:hover { background: rgba(250, 119, 124, 0.1); }
+            /* Показываем кнопку, когда наводим на друга */
+            .channel:hover .sidebar-ban-btn { display: block; }
+
             .hashtag { color: #6d6f78; margin-right: 5px; font-size: 20px; }
-            .dm-avatar { width: 24px; height: 24px; border-radius: 50%; margin-right: 8px; background: #5865f2; }
+            .dm-avatar { width: 24px; height: 24px; border-radius: 50%; margin-right: 8px; background: #5865f2; flex-shrink: 0; }
+            
             .user-panel { background-color: #232428; padding: 10px; display: flex; align-items: center; cursor: pointer; margin-top: auto; }
             .my-avatar { width: 32px; height: 32px; border-radius: 50%; background-color: #5865f2; margin-right: 10px; object-fit: cover; }
             .my-info { flex-grow: 1; overflow: hidden; }
@@ -45,22 +63,12 @@
             .message { display: flex; align-items: flex-start; width: 100%; padding: 5px 0; }
             .message:hover { background-color: #2e3035; }
 
-            /* Контейнер аватара с кнопкой бана */
-            .avatar-container { position: relative; margin-right: 15px; flex-shrink: 0; cursor: pointer; }
-            .avatar { width: 40px; height: 40px; border-radius: 50%; background-color: #5865f2; object-fit: cover; display: block; }
+            .avatar { width: 40px; height: 40px; border-radius: 50%; background-color: #5865f2; margin-right: 15px; flex-shrink: 0; object-fit: cover; }
             
-            /* КНОПКА БАНА (появляется при наведении на аватар, если ты админ) */
-            .ban-btn { 
-                display: none; position: absolute; top: 0; left: 0; width: 40px; height: 40px; 
-                background: rgba(0,0,0,0.7); border-radius: 50%; color: red; 
-                font-weight: bold; align-items: center; justify-content: center; font-size: 20px; 
-            }
-            .avatar-container:hover .ban-btn.active { display: flex; } /* Показываем только если active */
-
             .content { flex-grow: 1; min-width: 0; display: flex; flex-direction: column; }
             .username-row { display: flex; align-items: baseline; margin-bottom: 4px; flex-wrap: wrap; }
             .username { font-weight: bold; color: #fff; font-size: 16px; margin-right: 8px; }
-            .admin-name { color: #fa777c; } /* Красный ник для админа */
+            .admin-name { color: #fa777c; } 
             .timestamp { color: #949ba4; font-size: 12px; font-weight: 400; }
             .bio-tag { font-size: 11px; color: #949ba4; margin-left: 5px; background: #1e1f22; padding: 2px 5px; border-radius: 3px; }
             .text { color: #dbdee1; font-size: 15px; line-height: 1.4; word-break: break-word; }
@@ -155,12 +163,7 @@
         <div id="app-container">
             <div id="overlay" onclick="toggleSidebar()"></div>
             <div class="sidebar" id="sidebar">
-                <div class="sidebar-title">Каналы</div>
-                <div class="sidebar-channels">
-                    <div class="channel active" onclick="switchChannel('general')"><span class="hashtag">#</span>general</div>
-                    <div class="channel" onclick="switchChannel('gaming')"><span class="hashtag">#</span>gaming</div>
-                    <div class="channel" onclick="switchChannel('music')"><span class="hashtag">#</span>music</div>
-                </div>
+                
                 <div id="requests-section">
                     <div class="sidebar-title" style="color: #f2f3f5;">Заявки</div>
                     <div id="requests-list"></div>
@@ -184,7 +187,7 @@
                 <div class="chat-header">
                     <span class="hamburger" onclick="toggleSidebar()">☰</span>
                     <span class="hashtag" id="header-icon">#</span> 
-                    <span id="header-title">general</span>
+                    <span id="header-title">Flux</span>
                 </div>
                 <ul id='messages'></ul>
                 <div id="typing-indicator"></div>
@@ -205,7 +208,7 @@
             var currentUserBio = "";
             var myIsAdmin = false; // Являюсь ли я админом?
 
-            var currentChannel = "general";
+            var currentChannel = ""; // Изначально канала нет, пока не выберешь друга
             var mediaRecorder = null;
             var audioChunks = [];
             var isRecording = false;
@@ -233,9 +236,7 @@
                     if (response.ok) {
                         let data = await response.json();
                         username = user;
-                        // Сохраняем статус админа
                         myIsAdmin = data.is_admin;
-                        
                         updateMyProfileUI(data.avatar_url, data.bio);
                         loadDMs(); 
                         loadRequests();
@@ -316,9 +317,21 @@
                 var dmList = document.getElementById("dm-list");
                 var existing = Array.from(dmList.children).find(div => div.innerText.trim() === friendName);
                 if (existing) return;
+                
                 var div = document.createElement("div");
                 div.className = "channel";
-                div.innerHTML = `<div class="dm-avatar"></div> ${friendName}`;
+                div.id = "dm-user-" + friendName; // ID чтобы можно было удалить при бане
+
+                // --- ЛОГИКА БАНА В СПИСКЕ КОНТАКТОВ ---
+                var banBtnHtml = "";
+                if (myIsAdmin) {
+                    // Важно: event.stopPropagation() не дает открыться чату при клике на бан
+                    banBtnHtml = `<span class="sidebar-ban-btn" onclick="event.stopPropagation(); banUser('${friendName}')" title="ЗАБАНИТЬ">⛔</span>`;
+                }
+
+                // Добавляем аватар, имя и кнопку бана
+                div.innerHTML = `<div class="dm-avatar"></div> <span style="flex-grow:1;">${friendName}</span> ${banBtnHtml}`;
+                
                 var channelID = getDMChannelID(username, friendName);
                 div.onclick = function() { switchChannel(channelID, friendName, true); };
                 dmList.appendChild(div);
@@ -331,7 +344,6 @@
                 document.getElementById("my-bio-text").innerText = currentUserBio;
                 document.getElementById("my-avatar-img").src = currentUserAvatar;
                 
-                // Если я админ, крашу свой ник локально
                 if(myIsAdmin) document.getElementById("my-name-text").classList.add("admin-name");
             }
 
@@ -382,7 +394,7 @@
                             const reader = new FileReader();
                             reader.readAsDataURL(audioBlob);
                             reader.onloadend = () => {
-                                if (ws) ws.send(JSON.stringify({type: "message", channel: currentChannel, username: username, content: reader.result}));
+                                if (ws && currentChannel) ws.send(JSON.stringify({type: "message", channel: currentChannel, username: username, content: reader.result}));
                             };
                             stream.getTracks().forEach(track => track.stop());
                         };
@@ -400,7 +412,10 @@
             function connectWebSocket() {
                 var protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
                 ws = new WebSocket(protocol + "//" + window.location.host + "/ws/" + username);
-                ws.onopen = function() { requestHistory(); };
+                ws.onopen = function() { 
+                    // Если канал не выбран, ничего не грузим
+                    if (currentChannel) requestHistory(); 
+                };
                 ws.onmessage = function(event) {
                     var data = JSON.parse(event.data);
                     if (Array.isArray(data)) {
@@ -414,16 +429,18 @@
                     else if (data.type === "new_request") loadRequests(); 
                     else if (data.type === "request_accepted") loadDMs(); 
                     
-                    // --- БАН / КИК ---
                     else if (data.type === "ban") {
                         alert("ВАС ЗАБАНИЛИ!");
-                        location.reload(); // Перезагружаем страницу, выкидываем на логин
+                        location.reload(); 
                     }
                     else if (data.type === "system") {
                         var li = document.createElement('li');
                         li.className = "system-msg";
                         li.innerText = data.content;
                         document.getElementById('messages').appendChild(li);
+                        
+                        // Если забанили кого-то, обновляем список друзей, чтобы он исчез
+                        loadDMs();
                     }
                     
                     else if (data.type === "typing") {
@@ -443,7 +460,7 @@
             }
 
             function requestHistory() {
-                if(ws && ws.readyState === WebSocket.OPEN) {
+                if(ws && ws.readyState === WebSocket.OPEN && currentChannel) {
                     ws.send(JSON.stringify({type: "history", channel: currentChannel}));
                 }
             }
@@ -451,28 +468,17 @@
             function addMessageToUI(data) {
                 var messages = document.getElementById('messages');
                 if (document.getElementById("msg-" + data.id)) return;
-                
                 var li = document.createElement('li');
                 li.className = "message";
                 li.id = "msg-" + data.id;
-                
                 var contentHtml = "";
                 if (data.content.startsWith("data:image")) contentHtml = `<img src="${data.content}" class="chat-image" onclick="document.getElementById('image-modal').style.display='flex';document.getElementById('modal-img').src=this.src;">`;
                 else if (data.content.startsWith("data:audio")) contentHtml = `<audio controls src="${data.content}"></audio>`;
                 else contentHtml = `<div class="text">${data.content}</div>`;
 
-                // --- ЛОГИКА КНОПОК ---
                 var deleteBtn = "";
-                // Кнопка удаления (Мусорка)
                 if (data.username === username || myIsAdmin) {
                     deleteBtn = `<div class="delete-btn" onclick="deleteMessage(${data.id})">🗑️</div>`;
-                }
-                
-                // Кнопка БАНА (⛔) - теперь рядом с именем!
-                var banBtn = "";
-                if (myIsAdmin && data.username !== username) {
-                    // margin-left: 10px отодвигает кнопку от имени
-                    banBtn = `<span style="cursor:pointer; margin-left:10px; font-size:16px;" onclick="banUser('${data.username}')" title="ЗАБАНИТЬ">⛔</span>`;
                 }
                 
                 var nameClass = data.is_admin ? "username admin-name" : "username";
@@ -483,7 +489,7 @@
                     <div class="content">
                         <div class="username-row">
                             <span class="${nameClass}">${data.username}</span>
-                            ${banBtn} <span class="timestamp">${data.created_at}</span>
+                            <span class="timestamp">${data.created_at}</span>
                             <span class="bio-tag">${data.bio || ""}</span>
                         </div>
                         ${contentHtml}
@@ -511,42 +517,30 @@
             function sendMessage(event) {
                 event.preventDefault();
                 var input = document.getElementById("messageText");
-                if (input.value.trim() !== "" && ws) {
+                if (input.value.trim() !== "" && ws && currentChannel) {
                     ws.send(JSON.stringify({type: "message", channel: currentChannel, username: username, content: input.value}));
                     input.value = '';
                 }
             }
-            function openSettings() {
-                document.getElementById("settings-modal").style.display = "flex";
-                document.getElementById("settings-bio").value = currentUserBio;
-                document.getElementById("settings-avatar-preview").src = currentUserAvatar;
-            }
-            function previewAvatar(input) {
-                if (input.files[0]) compressImage(input.files[0], base64 => { tempAvatarBase64 = base64; document.getElementById("settings-avatar-preview").src = tempAvatarBase64; });
-            }
-           async function saveProfile() {
+            async function saveProfile() {
                 var newBio = document.getElementById("settings-bio").value;
                 var newAvatar = tempAvatarBase64 || currentUserAvatar;
                 
-                // 1. Отправляем запрос на обновление
                 let response = await fetch("/update_profile", {
-                    method: "POST", 
-                    headers: {"Content-Type": "application/json"}, 
+                    method: "POST", headers: {"Content-Type": "application/json"}, 
                     body: JSON.stringify({username: username, bio: newBio, avatar_url: newAvatar})
                 });
                 
                 if (response.ok) {
-                    // 2. Сервер сразу возвращает нам новый статус админа
                     let data = await response.json();
-                    
-                    // 3. Обновляем данные в браузере
                     myIsAdmin = data.is_admin;
                     currentUserBio = data.bio;
                     updateMyProfileUI(newAvatar, data.bio);
-                    
-                    // 4. Закрываем окно (ТЕПЕРЬ СРАБОТАЕТ!)
                     document.getElementById("settings-modal").style.display = "none";
-                    requestHistory(); // Обновляем чат, чтобы появились кнопки удаления
+                    
+                    // Обновляем список контактов, чтобы появились кнопки бана
+                    loadDMs();
+                    if(currentChannel) requestHistory(); 
                 } else {
                     alert("Ошибка при сохранении!");
                 }
@@ -554,7 +548,7 @@
 
             document.getElementById("messageText").addEventListener("input", function() {
                 var now = Date.now();
-                if (now - lastTypingSent > 2000 && ws) {
+                if (now - lastTypingSent > 2000 && ws && currentChannel) {
                     ws.send(JSON.stringify({type: "typing", channel: currentChannel, username: username}));
                     lastTypingSent = now;
                 }
