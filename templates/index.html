@@ -170,7 +170,36 @@
             .text { color: #e0e0e0; font-size: 15px; line-height: 1.5; word-break: break-word; font-weight: 400; }
             
             .chat-image { max-width: 100%; height: auto; max-height: 300px; border-radius: 12px; margin-top: 8px; cursor: pointer; object-fit: cover; display: block; border: 1px solid var(--glass-border); }
-            audio { margin-top: 5px; height: 32px; width: 100%; max-width: 300px; filter: invert(0.9); }
+
+            /* --- КАСТОМНЫЙ АУДИО ПЛЕЕР --- */
+            .audio-player {
+                display: flex; align-items: center; gap: 10px;
+                background: rgba(0, 0, 0, 0.3); 
+                border: 1px solid var(--glass-border);
+                padding: 10px; border-radius: 12px; margin-top: 5px; width: 280px;
+                backdrop-filter: blur(5px);
+            }
+            
+            .play-btn {
+                width: 36px; height: 36px; border-radius: 50%; 
+                background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+                display: flex; align-items: center; justify-content: center; cursor: pointer;
+                color: #0f0c29; flex-shrink: 0; transition: 0.2s;
+                box-shadow: 0 0 10px rgba(0, 210, 255, 0.3);
+            }
+            .play-btn:hover { transform: scale(1.1); box-shadow: 0 0 15px rgba(0, 210, 255, 0.5); }
+            
+            .audio-track-container { flex-grow: 1; display: flex; flex-direction: column; gap: 4px; }
+            
+            .audio-track {
+                height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px;
+                position: relative; cursor: pointer; overflow: hidden;
+            }
+            .audio-progress {
+                height: 100%; width: 0%; background: var(--accent-primary);
+                box-shadow: 0 0 10px var(--accent-primary); transition: width 0.1s linear;
+            }
+            .audio-time { font-size: 10px; color: var(--text-dim); text-align: right; }
 
             .delete-btn { opacity: 0; cursor: pointer; flex-shrink: 0; margin-left: auto; transition: opacity 0.2s; }
             .message:hover .delete-btn { opacity: 1; }
@@ -194,7 +223,6 @@
             
             input[type="text"] { flex-grow: 1; padding: 12px; border: none; background: transparent; color: white; outline: none; font-size: 16px; width: 100%; font-family: 'Exo 2', sans-serif;}
             
-            /* КНОПКИ ФОРМЫ */
             .file-btn, .mic-btn { cursor: pointer; color: var(--text-dim); padding: 10px; flex-shrink: 0; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
             .file-btn:hover, .mic-btn:hover { color: white; }
             .mic-btn.recording { color: var(--danger); animation: pulse 1s infinite; filter: drop-shadow(0 0 5px var(--danger)); }
@@ -344,13 +372,14 @@
         </div>
 
         <script>
-            // --- SVG CONSTANTS ---
             const ICONS = {
                 crown: `<svg class="admin-crown" viewBox="0 0 24 24"><path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/></svg>`,
                 ban: `<svg class="icon icon-danger" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11H7v-2h10v2z"/></svg>`,
                 trash: `<svg class="icon icon-danger" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>`,
                 check: `<svg class="icon icon-success" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>`,
-                cross: `<svg class="icon icon-danger" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>`
+                cross: `<svg class="icon icon-danger" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>`,
+                play: `<svg style="width:16px; height:16px; fill:currentColor; margin-left:2px;" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`,
+                pause: `<svg style="width:16px; height:16px; fill:currentColor;" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`
             };
 
             var ws = null;
@@ -477,7 +506,6 @@
                         var div = document.createElement("div");
                         div.className = "channel"; 
                         div.style.cursor = "default";
-                        // ИКОНКИ ГАЛОЧКИ И КРЕСТИКА
                         div.innerHTML = `${req.sender} <span class="icon-btn" style="margin-left:auto;" onclick="respondRequest(${req.id}, 'accept')">${ICONS.check}</span> <span class="icon-btn" style="margin-left:5px;" onclick="respondRequest(${req.id}, 'reject')">${ICONS.cross}</span>`;
                         list.appendChild(div);
                     });
@@ -522,7 +550,6 @@
                 
                 var banBtnHtml = "";
                 if (myIsAdmin) {
-                    // ИКОНКА БАНА
                     banBtnHtml = `<span class="sidebar-ban-btn icon-btn" onclick="event.stopPropagation(); banUser('${friendName}')" title="ЗАБАНИТЬ">${ICONS.ban}</span>`;
                 }
                 
@@ -679,13 +706,35 @@
                 li.className = "message";
                 li.id = "msg-" + data.id;
                 var contentHtml = "";
-                if (data.content.startsWith("data:image")) contentHtml = `<img src="${data.content}" class="chat-image" onclick="document.getElementById('image-modal').style.display='flex';document.getElementById('modal-img').src=this.src;">`;
-                else if (data.content.startsWith("data:audio")) contentHtml = `<audio controls src="${data.content}"></audio>`;
-                else contentHtml = `<div class="text">${data.content}</div>`;
+
+                if (data.content.startsWith("data:image")) {
+                    contentHtml = `<img src="${data.content}" class="chat-image" onclick="document.getElementById('image-modal').style.display='flex';document.getElementById('modal-img').src=this.src;">`;
+                } 
+                else if (data.content.startsWith("data:audio")) {
+                    // КАСТОМНЫЙ АУДИО ПЛЕЕР
+                    var audioId = "audio-" + data.id;
+                    var btnId = "btn-" + data.id;
+                    var progId = "prog-" + data.id;
+                    var timeId = "time-" + data.id;
+                    
+                    contentHtml = `
+                    <div class="audio-player">
+                        <audio id="${audioId}" src="${data.content}" preload="metadata" ontimeupdate="updateAudioProgress(${data.id})" onended="resetAudio(${data.id})" onloadedmetadata="setAudioDuration(${data.id})"></audio>
+                        <div id="${btnId}" class="play-btn" onclick="toggleAudio(${data.id})">${ICONS.play}</div>
+                        <div class="audio-track-container">
+                            <div class="audio-track" onclick="seekAudio(event, ${data.id})">
+                                <div id="${progId}" class="audio-progress"></div>
+                            </div>
+                        </div>
+                        <div id="${timeId}" class="audio-time">0:00</div>
+                    </div>`;
+                }
+                else {
+                    contentHtml = `<div class="text">${data.content}</div>`;
+                }
 
                 var deleteBtn = "";
                 if (data.username === username || myIsAdmin) {
-                    // ИКОНКА МУСОРКИ
                     deleteBtn = `<div class="delete-btn icon-btn icon-danger" onclick="deleteMessage(${data.id})">${ICONS.trash}</div>`;
                 }
                 
@@ -712,6 +761,76 @@
                 messages.appendChild(li);
                 messages.scrollTop = messages.scrollHeight;
             }
+
+            // --- АУДИО ФУНКЦИИ ---
+            window.toggleAudio = function(id) {
+                var audio = document.getElementById('audio-' + id);
+                var btn = document.getElementById('btn-' + id);
+                
+                // Останавливаем все другие аудио
+                document.querySelectorAll('audio').forEach(a => {
+                    if(a.id !== 'audio-'+id) {
+                        a.pause();
+                        var otherId = a.id.split('-')[1];
+                        document.getElementById('btn-'+otherId).innerHTML = ICONS.play;
+                    }
+                });
+
+                if (audio.paused) {
+                    audio.play();
+                    btn.innerHTML = ICONS.pause;
+                    btn.style.boxShadow = "0 0 15px var(--accent-primary)";
+                } else {
+                    audio.pause();
+                    btn.innerHTML = ICONS.play;
+                    btn.style.boxShadow = "none";
+                }
+            };
+
+            window.updateAudioProgress = function(id) {
+                var audio = document.getElementById('audio-' + id);
+                var prog = document.getElementById('prog-' + id);
+                var time = document.getElementById('time-' + id);
+                
+                if (audio.duration) {
+                    var percent = (audio.currentTime / audio.duration) * 100;
+                    prog.style.width = percent + "%";
+                    
+                    var mins = Math.floor(audio.currentTime / 60);
+                    var secs = Math.floor(audio.currentTime % 60);
+                    if (secs < 10) secs = '0' + secs;
+                    time.innerText = mins + ':' + secs;
+                }
+            };
+            
+            window.setAudioDuration = function(id) {
+                 var audio = document.getElementById('audio-' + id);
+                 var time = document.getElementById('time-' + id);
+                 if(audio.duration && !isNaN(audio.duration)) {
+                    var mins = Math.floor(audio.duration / 60);
+                    var secs = Math.floor(audio.duration % 60);
+                    if (secs < 10) secs = '0' + secs;
+                    time.innerText = mins + ':' + secs;
+                 }
+            };
+
+            window.resetAudio = function(id) {
+                var btn = document.getElementById('btn-' + id);
+                var prog = document.getElementById('prog-' + id);
+                btn.innerHTML = ICONS.play;
+                btn.style.boxShadow = "none";
+                prog.style.width = "0%";
+            };
+
+            window.seekAudio = function(e, id) {
+                var audio = document.getElementById('audio-' + id);
+                var track = e.currentTarget;
+                var clickX = e.offsetX;
+                var width = track.clientWidth;
+                var duration = audio.duration;
+                
+                audio.currentTime = (clickX / width) * duration;
+            };
 
             function deleteMessage(id) {
                 if(confirm("Удалить сообщение?")) ws.send(JSON.stringify({type: "delete", message_id: id}));
