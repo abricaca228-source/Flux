@@ -27,6 +27,14 @@
                 display: flex; height: 100vh; margin: 0; overflow: hidden; 
             }
             
+            /* --- SVG ИКОНКИ --- */
+            .icon { width: 20px; height: 20px; fill: currentColor; vertical-align: middle; transition: 0.2s; }
+            .icon-btn { cursor: pointer; color: var(--text-dim); display: inline-flex; align-items: center; justify-content: center; padding: 5px; border-radius: 5px; }
+            .icon-btn:hover { color: var(--accent-primary); background: var(--glass); }
+            
+            .icon-danger:hover { color: var(--danger); background: rgba(255, 65, 108, 0.1); }
+            .icon-success:hover { color: var(--success); background: rgba(0, 242, 96, 0.1); }
+            
             #login-screen { 
                 display: flex; flex-direction: column; align-items: center; justify-content: center; 
                 height: 100%; width: 100%; 
@@ -87,7 +95,7 @@
                 color: var(--text-dim); font-size: 12px; letter-spacing: 2px;
                 text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; 
             }
-            .add-btn { cursor: pointer; font-size: 20px; color: var(--accent-primary); transition: 0.2s; }
+            .add-btn { cursor: pointer; color: var(--accent-primary); transition: 0.2s; display: flex; align-items: center;}
             .add-btn:hover { text-shadow: 0 0 10px var(--accent-primary); transform: scale(1.1); }
 
             .channel { 
@@ -101,17 +109,16 @@
                 color: var(--accent-primary); border-left: 3px solid var(--accent-primary);
             }
             
-            .sidebar-ban-btn { display: none; margin-left: auto; color: var(--danger); font-weight: bold; padding: 2px 6px; border-radius: 4px; font-size: 14px; }
+            .sidebar-ban-btn { display: none; margin-left: auto; color: var(--danger); }
             .channel:hover .sidebar-ban-btn { display: block; }
 
             .hashtag { display: none; } 
             .dm-avatar { width: 32px; height: 32px; border-radius: 10px; margin-right: 10px; background: linear-gradient(135deg, #667eea, #764ba2); flex-shrink: 0; object-fit: cover;}
             
-            /* --- ИСПРАВЛЕНИЕ ПАНЕЛИ ЮЗЕРА --- */
             .user-panel { 
                 background: rgba(0,0,0,0.4); padding: 15px; display: flex; align-items: center; cursor: pointer; 
                 margin-top: auto; border-top: 1px solid var(--glass-border);
-                position: relative; z-index: 50; /* Поднимаем слой выше всех */
+                position: relative; z-index: 50; 
             }
             .user-panel:hover { background: rgba(0,0,0,0.6); }
 
@@ -119,7 +126,9 @@
             .my-info { flex-grow: 1; overflow: hidden; }
             .my-name { font-weight: bold; font-size: 16px; color: white; display: flex; align-items: center;}
             .my-bio { font-size: 12px; color: var(--accent-primary); }
-            .settings-icon { color: var(--text-dim); font-size: 18px; cursor: pointer; }
+            
+            .settings-btn { color: var(--text-dim); cursor: pointer; transition: 0.2s; }
+            .settings-btn:hover { color: white; transform: rotate(90deg); }
 
             .chat-area { 
                 flex-grow: 1; display: flex; flex-direction: column; 
@@ -153,7 +162,9 @@
             .content { flex-grow: 1; min-width: 0; display: flex; flex-direction: column; }
             .username-row { display: flex; align-items: center; margin-bottom: 4px; flex-wrap: wrap; }
             .username { font-weight: 700; color: var(--accent-primary); font-size: 16px; margin-right: 8px; }
-            .admin-crown { margin-left: 2px; font-size: 16px; margin-right: 8px; filter: drop-shadow(0 0 5px gold);}
+            
+            .admin-crown { margin-left: 2px; width: 16px; height: 16px; fill: gold; filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.5)); vertical-align: middle; }
+            
             .timestamp { color: var(--text-dim); font-size: 11px; font-weight: 400; margin-left: 5px; }
             .bio-tag { font-size: 10px; color: rgba(255,255,255,0.7); margin-left: 8px; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; }
             .text { color: #e0e0e0; font-size: 15px; line-height: 1.5; word-break: break-word; font-weight: 400; }
@@ -161,7 +172,7 @@
             .chat-image { max-width: 100%; height: auto; max-height: 300px; border-radius: 12px; margin-top: 8px; cursor: pointer; object-fit: cover; display: block; border: 1px solid var(--glass-border); }
             audio { margin-top: 5px; height: 32px; width: 100%; max-width: 300px; filter: invert(0.9); }
 
-            .delete-btn { opacity: 0; cursor: pointer; font-size: 18px; padding: 8px; color: var(--danger); flex-shrink: 0; margin-left: auto; transition: opacity 0.2s; }
+            .delete-btn { opacity: 0; cursor: pointer; flex-shrink: 0; margin-left: auto; transition: opacity 0.2s; }
             .message:hover .delete-btn { opacity: 1; }
 
             .system-msg { text-align: center; color: var(--danger); font-weight: bold; margin: 10px 0; border: 1px solid var(--danger); background: rgba(255, 65, 108, 0.1); padding: 8px; border-radius: 8px; font-size: 13px; }
@@ -182,9 +193,11 @@
             .input-wrapper:focus-within { border-color: var(--accent-primary); box-shadow: 0 0 15px rgba(0, 210, 255, 0.15); }
             
             input[type="text"] { flex-grow: 1; padding: 12px; border: none; background: transparent; color: white; outline: none; font-size: 16px; width: 100%; font-family: 'Exo 2', sans-serif;}
-            .file-btn, .mic-btn { cursor: pointer; color: var(--text-dim); padding: 10px; font-size: 22px; flex-shrink: 0; transition: 0.2s; }
+            
+            /* КНОПКИ ФОРМЫ */
+            .file-btn, .mic-btn { cursor: pointer; color: var(--text-dim); padding: 10px; flex-shrink: 0; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
             .file-btn:hover, .mic-btn:hover { color: white; }
-            .mic-btn.recording { color: var(--danger); animation: pulse 1s infinite; text-shadow: 0 0 10px var(--danger); }
+            .mic-btn.recording { color: var(--danger); animation: pulse 1s infinite; filter: drop-shadow(0 0 5px var(--danger)); }
             @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
 
             .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); backdrop-filter: blur(5px); justify-content: center; align-items: center; }
@@ -262,7 +275,6 @@
                 <div class="logo-f">F</div>
                 <div class="logo-text">Flux</div>
             </div>
-            
             <div class="login-box">
                 <input type="text" id="usernameInput" class="login-input" placeholder="Никнейм" />
                 <input type="password" id="passwordInput" class="login-input" placeholder="Пароль" />
@@ -279,13 +291,17 @@
             <div class="sidebar" id="sidebar">
                 <div class="sidebar-title">
                     Группы
-                    <span class="add-btn" onclick="document.getElementById('create-group-modal').style.display='flex'">+</span>
+                    <span class="add-btn icon-btn" onclick="document.getElementById('create-group-modal').style.display='flex'">
+                        <svg class="icon" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                    </span>
                 </div>
                 <div id="groups-list"></div>
 
                 <div class="sidebar-title">
                     Личные сообщения
-                    <span class="add-btn" onclick="document.getElementById('dm-modal').style.display='flex'">+</span>
+                    <span class="add-btn icon-btn" onclick="document.getElementById('dm-modal').style.display='flex'">
+                        <svg class="icon" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                    </span>
                 </div>
                 <div id="dm-list"></div>
                 
@@ -300,7 +316,9 @@
                         <div id="my-name-text" class="my-name">User</div>
                         <div id="my-bio-text" class="my-bio">Online</div>
                     </div>
-                    <div class="settings-icon">⚙️</div>
+                    <div class="settings-btn">
+                        <svg class="icon" viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.48.48 0 0 0-.59.22L2.04 8.53a.488.488 0 0 0 .12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.48.48 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.48.48 0 0 0-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+                    </div>
                 </div>
             </div>
 
@@ -317,22 +335,31 @@
                     <div class="input-wrapper">
                         <label class="file-btn">+<input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleFileSelect(this)"></label>
                         <input type="text" id="messageText" autocomplete="off" placeholder="Написать сообщение..."/>
-                        <div id="mic-btn" class="mic-btn" onclick="toggleMic()">🎤</div>
+                        <div id="mic-btn" class="mic-btn" onclick="toggleMic()">
+                            <svg class="icon" viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+                        </div>
                     </div>
                 </form>
             </div>
         </div>
 
         <script>
+            // --- SVG CONSTANTS ---
+            const ICONS = {
+                crown: `<svg class="admin-crown" viewBox="0 0 24 24"><path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/></svg>`,
+                ban: `<svg class="icon icon-danger" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11H7v-2h10v2z"/></svg>`,
+                trash: `<svg class="icon icon-danger" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>`,
+                check: `<svg class="icon icon-success" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>`,
+                cross: `<svg class="icon icon-danger" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>`
+            };
+
             var ws = null;
             var username = "";
             var currentUserAvatar = ""; 
             var currentUserBio = "";
             var myIsAdmin = false;
-
             var currentChannel = ""; 
             var currentGroupId = null; 
-
             var mediaRecorder = null;
             var audioChunks = [];
             var isRecording = false;
@@ -351,8 +378,6 @@
                 overlay.classList.toggle("show");
             }
             function closeSidebarOnMobile() { if (window.innerWidth <= 768) toggleSidebar(); }
-            
-            // ОТКРЫТИЕ НАСТРОЕК
             function openSettings() {
                 document.getElementById("settings-modal").style.display = 'flex';
                 document.getElementById("settings-bio").value = currentUserBio;
@@ -452,7 +477,8 @@
                         var div = document.createElement("div");
                         div.className = "channel"; 
                         div.style.cursor = "default";
-                        div.innerHTML = `${req.sender} <span style="margin-left:auto; cursor:pointer;" onclick="respondRequest(${req.id}, 'accept')">✅</span> <span style="margin-left:5px; cursor:pointer;" onclick="respondRequest(${req.id}, 'reject')">❌</span>`;
+                        // ИКОНКИ ГАЛОЧКИ И КРЕСТИКА
+                        div.innerHTML = `${req.sender} <span class="icon-btn" style="margin-left:auto;" onclick="respondRequest(${req.id}, 'accept')">${ICONS.check}</span> <span class="icon-btn" style="margin-left:5px;" onclick="respondRequest(${req.id}, 'reject')">${ICONS.cross}</span>`;
                         list.appendChild(div);
                     });
                 } else {
@@ -496,7 +522,8 @@
                 
                 var banBtnHtml = "";
                 if (myIsAdmin) {
-                    banBtnHtml = `<span class="sidebar-ban-btn" onclick="event.stopPropagation(); banUser('${friendName}')" title="ЗАБАНИТЬ">⛔</span>`;
+                    // ИКОНКА БАНА
+                    banBtnHtml = `<span class="sidebar-ban-btn icon-btn" onclick="event.stopPropagation(); banUser('${friendName}')" title="ЗАБАНИТЬ">${ICONS.ban}</span>`;
                 }
                 
                 var avatarUrl = getDefaultAvatar(friendName);
@@ -507,19 +534,15 @@
             }
 
             function updateMyProfileUI(avatar, bio) {
-                // ИСПРАВЛЕНИЕ: Если аватарка с дискорда или пустая - заменяем
                 if (!avatar || avatar.includes("discordapp")) {
                     currentUserAvatar = getDefaultAvatar(username);
                 } else {
                     currentUserAvatar = avatar;
                 }
-                
                 currentUserBio = bio || "Нет статуса";
                 
                 var nameHtml = username;
-                if (myIsAdmin) {
-                    nameHtml += `<span class="admin-crown" title="Admin">👑</span>`;
-                }
+                if (myIsAdmin) nameHtml += ICONS.crown;
                 
                 document.getElementById("my-name-text").innerHTML = nameHtml;
                 document.getElementById("my-name-text").classList.remove("admin-name"); 
@@ -662,13 +685,12 @@
 
                 var deleteBtn = "";
                 if (data.username === username || myIsAdmin) {
-                    deleteBtn = `<div class="delete-btn" onclick="deleteMessage(${data.id})">🗑️</div>`;
+                    // ИКОНКА МУСОРКИ
+                    deleteBtn = `<div class="delete-btn icon-btn icon-danger" onclick="deleteMessage(${data.id})">${ICONS.trash}</div>`;
                 }
                 
                 var nameHtml = `<span class="username">${data.username}</span>`;
-                if (data.is_admin) {
-                    nameHtml += `<span class="admin-crown" title="Admin">👑</span>`;
-                }
+                if (data.is_admin) nameHtml += ICONS.crown;
 
                 var avatarSrc = data.avatar_url;
                 if (!avatarSrc || avatarSrc.includes("discordapp")) {
