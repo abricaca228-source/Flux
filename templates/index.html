@@ -157,7 +157,8 @@
             .message { display: flex; align-items: flex-start; width: 100%; padding: 5px 10px; border-radius: 8px; transition: 0.2s; }
             .message:hover { background: var(--glass); }
             
-            .avatar { width: 42px; height: 42px; border-radius: 14px; background-color: #5865f2; margin-right: 15px; flex-shrink: 0; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+            .avatar { width: 42px; height: 42px; border-radius: 14px; background-color: #5865f2; margin-right: 15px; flex-shrink: 0; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer; transition: 0.2s;}
+            .avatar:hover { transform: scale(1.1); box-shadow: 0 0 10px var(--accent-primary); }
             
             .content { flex-grow: 1; min-width: 0; display: flex; flex-direction: column; }
             .username-row { display: flex; align-items: center; margin-bottom: 4px; flex-wrap: wrap; }
@@ -238,8 +239,14 @@
             .settings-input { width: 100%; padding: 12px; margin-bottom: 15px; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); color: white; border-radius: 8px; outline: none; font-family: 'Exo 2', sans-serif;}
             .settings-input:focus { border-color: var(--accent-secondary); }
             
-            /* Стили для маленьких лейблов над инпутами */
             .input-label { text-align: left; color: var(--text-dim); font-size: 12px; margin-bottom: 5px; display: block; margin-left: 2px; }
+            
+            /* СТИЛИ ДЛЯ ПРОСМОТРА ПРОФИЛЯ */
+            .view-profile-info { text-align: left; margin-top: 15px; }
+            .view-profile-item { margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 5px; }
+            .view-label { font-size: 11px; color: var(--accent-secondary); text-transform: uppercase; font-weight: bold; }
+            .view-value { font-size: 15px; color: white; margin-top: 2px; }
+            .profile-header-name { font-size: 22px; font-weight: 800; color: white; display: flex; align-items: center; justify-content: center; gap: 5px;}
             
             @media (max-width: 768px) {
                 .sidebar { position: absolute; z-index: 100; height: 100%; width: 280px; transform: translateX(-100%); box-shadow: 10px 0 30px rgba(0,0,0,0.8); }
@@ -256,6 +263,34 @@
         <div id="image-modal" class="modal" onclick="this.style.display='none'">
             <span class="close-btn">&times;</span>
             <img id="modal-img">
+        </div>
+        
+        <div id="user-profile-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-btn" onclick="document.getElementById('user-profile-modal').style.display='none'">&times;</span>
+                <img id="view-avatar" class="profile-preview" src="">
+                <div id="view-username" class="profile-header-name">Username</div>
+                <div id="view-bio" style="color: var(--text-dim); margin-bottom: 20px; font-style: italic;">Bio</div>
+                
+                <div class="view-profile-info">
+                    <div class="view-profile-item">
+                        <div class="view-label">Имя</div>
+                        <div id="view-realname" class="view-value"></div>
+                    </div>
+                    <div class="view-profile-item">
+                        <div class="view-label">Город</div>
+                        <div id="view-location" class="view-value"></div>
+                    </div>
+                    <div class="view-profile-item">
+                        <div class="view-label">Дата Рождения</div>
+                        <div id="view-birthdate" class="view-value"></div>
+                    </div>
+                    <div class="view-profile-item" style="border:none;">
+                        <div class="view-label">Соцсети</div>
+                        <div id="view-social" class="view-value" style="color: var(--accent-primary);"></div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div id="settings-modal" class="modal">
@@ -402,8 +437,6 @@
             var username = "";
             var currentUserAvatar = ""; 
             var currentUserBio = "";
-            
-            // НОВЫЕ ПЕРЕМЕННЫЕ ПРОФИЛЯ
             var currentUserRealName = "";
             var currentUserLocation = "";
             var currentUserBirthDate = "";
@@ -431,16 +464,41 @@
             }
             function closeSidebarOnMobile() { if (window.innerWidth <= 768) toggleSidebar(); }
             
-            // ОТКРЫТИЕ НАСТРОЕК (ЗАПОЛНЯЕМ ПОЛЯ)
             function openSettings() {
                 document.getElementById("settings-modal").style.display = 'flex';
                 document.getElementById("settings-avatar-preview").src = currentUserAvatar;
-                
                 document.getElementById("settings-bio").value = currentUserBio;
                 document.getElementById("settings-realname").value = currentUserRealName;
                 document.getElementById("settings-location").value = currentUserLocation;
                 document.getElementById("settings-birthdate").value = currentUserBirthDate;
                 document.getElementById("settings-social").value = currentUserSocial;
+            }
+
+            // НОВАЯ ФУНКЦИЯ: ПРОСМОТР ЧУЖОГО ПРОФИЛЯ
+            async function viewUserProfile(targetUser) {
+                try {
+                    let response = await fetch("/get_profile?username=" + targetUser);
+                    if (!response.ok) return; // Юзер не найден
+                    
+                    let data = await response.json();
+                    
+                    // Заполняем модалку
+                    let avatarSrc = data.avatar_url || getDefaultAvatar(data.username);
+                    document.getElementById("view-avatar").src = avatarSrc;
+                    
+                    let nameHtml = data.username;
+                    if (data.is_admin) nameHtml += ICONS.crown;
+                    document.getElementById("view-username").innerHTML = nameHtml;
+                    
+                    document.getElementById("view-bio").innerText = data.bio || "Нет статуса";
+                    
+                    document.getElementById("view-realname").innerText = data.real_name || "—";
+                    document.getElementById("view-location").innerText = data.location || "—";
+                    document.getElementById("view-birthdate").innerText = data.birth_date || "—";
+                    document.getElementById("view-social").innerText = data.social_link || "—";
+                    
+                    document.getElementById("user-profile-modal").style.display = "flex";
+                } catch(e) { console.error(e); }
             }
 
             async function auth(type) {
@@ -456,13 +514,10 @@
                         let data = await response.json();
                         username = user;
                         myIsAdmin = data.is_admin;
-                        
-                        // СОХРАНЯЕМ ДАННЫЕ ПРОФИЛЯ
                         currentUserRealName = data.real_name;
                         currentUserLocation = data.location;
                         currentUserBirthDate = data.birth_date;
                         currentUserSocial = data.social_link;
-                        
                         updateMyProfileUI(data.avatar_url, data.bio);
                         loadDMs(); 
                         loadGroups();
@@ -478,7 +533,6 @@
                 } catch (e) { alert("Ошибка соединения"); }
             }
 
-            // ... ОСТАЛЬНЫЕ ФУНКЦИИ (ГРУППЫ, ДРУЗЬЯ) БЕЗ ИЗМЕНЕНИЙ ...
             async function loadGroups() {
                 let response = await fetch("/get_my_groups?username=" + username);
                 let groups = await response.json();
@@ -589,7 +643,9 @@
                     banBtnHtml = `<span class="sidebar-ban-btn icon-btn" onclick="event.stopPropagation(); banUser('${friendName}')" title="ЗАБАНИТЬ">${ICONS.ban}</span>`;
                 }
                 var avatarUrl = getDefaultAvatar(friendName);
-                div.innerHTML = `<img src="${avatarUrl}" class="dm-avatar"> <span style="flex-grow:1;">${friendName}</span> ${banBtnHtml}`;
+                
+                // ТЕПЕРЬ АВАТАРКА КЛИКАБЕЛЬНА (event.stopPropagation чтобы не открывался чат)
+                div.innerHTML = `<img src="${avatarUrl}" class="dm-avatar" onclick="event.stopPropagation(); viewUserProfile('${friendName}')"> <span style="flex-grow:1;">${friendName}</span> ${banBtnHtml}`;
                 var channelID = getDMChannelID(username, friendName);
                 div.onclick = function() { switchChannel(channelID, friendName, true); };
                 dmList.appendChild(div);
@@ -745,7 +801,6 @@
                     var btnId = "btn-" + data.id;
                     var progId = "prog-" + data.id;
                     var timeId = "time-" + data.id;
-                    
                     contentHtml = `
                     <div class="audio-player">
                         <audio id="${audioId}" src="${data.content}" preload="metadata" ontimeupdate="updateAudioProgress(${data.id})" onended="resetAudio(${data.id})" onloadedmetadata="setAudioDuration(${data.id})"></audio>
@@ -775,8 +830,9 @@
                     avatarSrc = getDefaultAvatar(data.username);
                 }
                 
+                // АВАТАРКА В ЧАТЕ ТОЖЕ КЛИКАБЕЛЬНА
                 li.innerHTML = `
-                    <img class="avatar" src="${avatarSrc}">
+                    <img class="avatar" src="${avatarSrc}" onclick="viewUserProfile('${data.username}')">
                     <div class="content">
                         <div class="username-row">
                             ${nameHtml}
@@ -791,7 +847,7 @@
                 messages.scrollTop = messages.scrollHeight;
             }
 
-            // --- АУДИО ФУНКЦИИ ---
+            // ... ОСТАЛЬНЫЕ ФУНКЦИИ (AUDIO, ETC) БЕЗ ИЗМЕНЕНИЙ ...
             window.toggleAudio = function(id) {
                 var audio = document.getElementById('audio-' + id);
                 var btn = document.getElementById('btn-' + id);
@@ -877,13 +933,10 @@
                     input.value = '';
                 }
             }
-            
-            // СОХРАНЕНИЕ ПРОФИЛЯ
             async function saveProfile() {
                 var newBio = document.getElementById("settings-bio").value;
                 var newAvatar = tempAvatarBase64 || currentUserAvatar;
                 
-                // СОБИРАЕМ НОВЫЕ ПОЛЯ
                 var realName = document.getElementById("settings-realname").value;
                 var location = document.getElementById("settings-location").value;
                 var birthDate = document.getElementById("settings-birthdate").value;
@@ -906,13 +959,10 @@
                     let data = await response.json();
                     myIsAdmin = data.is_admin;
                     currentUserBio = data.bio;
-                    
-                    // Обновляем локальные переменные
                     currentUserRealName = data.real_name;
                     currentUserLocation = data.location;
                     currentUserBirthDate = data.birth_date;
                     currentUserSocial = data.social_link;
-                    
                     updateMyProfileUI(newAvatar, data.bio);
                     document.getElementById("settings-modal").style.display = "none";
                     loadDMs();

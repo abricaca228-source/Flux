@@ -14,12 +14,10 @@ class AuthModel(BaseModel):
     username: str
     password: str
 
-# ОБНОВЛЕННАЯ МОДЕЛЬ ПРОФИЛЯ
 class ProfileUpdateModel(BaseModel):
     username: str
     bio: str
     avatar_url: str
-    # Новые поля (по умолчанию пустые строки, чтобы не ломалось, если не передали)
     real_name: str = ""
     location: str = ""
     birth_date: str = ""
@@ -96,19 +94,14 @@ async def register(user: AuthModel):
             {"u": user.username, "p": user.password, "a": False}
         )
         await session.commit()
-    # При регистрации возвращаем пустые новые поля
     return {
-        "message": "Success", 
-        "avatar_url": "", 
-        "bio": "Новичок", 
-        "is_admin": False,
+        "message": "Success", "avatar_url": "", "bio": "Новичок", "is_admin": False,
         "real_name": "", "location": "", "birth_date": "", "social_link": ""
     }
 
 @app.post("/login")
 async def login(user: AuthModel):
     async with AsyncSessionLocal() as session:
-        # ЗАПРАШИВАЕМ НОВЫЕ ПОЛЯ ИЗ БАЗЫ
         result = await session.execute(
             text("SELECT avatar_url, bio, is_admin, real_name, location, birth_date, social_link FROM users WHERE username = :u AND password = :p"), 
             {"u": user.username, "p": user.password}
@@ -121,7 +114,6 @@ async def login(user: AuthModel):
         "avatar_url": row[0], 
         "bio": row[1], 
         "is_admin": row[2],
-        # Если в базе NULL, возвращаем пустую строку
         "real_name": row[3] or "",
         "location": row[4] or "",
         "birth_date": row[5] or "",
@@ -133,16 +125,13 @@ async def update_profile(data: ProfileUpdateModel):
     async with AsyncSessionLocal() as session:
         new_bio = data.bio
         make_admin = False
-        
         if "#admin" in new_bio:
             make_admin = True
             new_bio = new_bio.replace("#admin", "").strip()
 
-        # ОБНОВЛЯЕМ ВСЕ НОВЫЕ ПОЛЯ
         if make_admin:
             await session.execute(text("""
-                UPDATE users SET 
-                avatar_url = :a, bio = :b, is_admin = TRUE,
+                UPDATE users SET avatar_url = :a, bio = :b, is_admin = TRUE,
                 real_name = :rn, location = :l, birth_date = :bd, social_link = :sl
                 WHERE username = :u
             """), {
@@ -151,32 +140,46 @@ async def update_profile(data: ProfileUpdateModel):
             })
         else:
             await session.execute(text("""
-                UPDATE users SET 
-                avatar_url = :a, bio = :b,
+                UPDATE users SET avatar_url = :a, bio = :b,
                 real_name = :rn, location = :l, birth_date = :bd, social_link = :sl
                 WHERE username = :u
             """), {
                 "a": data.avatar_url, "b": new_bio, "u": data.username,
                 "rn": data.real_name, "l": data.location, "bd": data.birth_date, "sl": data.social_link
             })
-        
         await session.commit()
-        
-        # Получаем обновленный статус админа, чтобы вернуть его
         res = await session.execute(text("SELECT is_admin FROM users WHERE username = :u"), {"u": data.username})
         is_admin = res.scalar()
 
     return {
-        "message": "Updated", 
-        "bio": new_bio, 
-        "is_admin": is_admin,
-        "real_name": data.real_name,
-        "location": data.location,
-        "birth_date": data.birth_date,
-        "social_link": data.social_link
+        "message": "Updated", "bio": new_bio, "is_admin": is_admin,
+        "real_name": data.real_name, "location": data.location,
+        "birth_date": data.birth_date, "social_link": data.social_link
     }
 
-# --- ДРУЗЬЯ И ГРУППЫ (БЕЗ ИЗМЕНЕНИЙ) ---
+# --- НОВЫЙ РОУТ: ПОЛУЧИТЬ ЧУЖОЙ ПРОФИЛЬ ---
+@app.get("/get_profile")
+async def get_profile(username: str):
+    async with AsyncSessionLocal() as session:
+        row = await session.execute(
+            text("SELECT username, bio, avatar_url, is_admin, real_name, location, birth_date, social_link FROM users WHERE username = :u"), 
+            {"u": username}
+        )
+        user = row.fetchone()
+        if not user: raise HTTPException(status_code=404, detail="User not found")
+        
+        return {
+            "username": user[0], 
+            "bio": user[1], 
+            "avatar_url": user[2], 
+            "is_admin": user[3],
+            "real_name": user[4] or "", 
+            "location": user[5] or "", 
+            "birth_date": user[6] or "", 
+            "social_link": user[7] or ""
+        }
+
+# --- ОСТАЛЬНЫЕ РОУТЫ ---
 @app.post("/send_request")
 async def send_request(data: FriendRequestModel):
     async with AsyncSessionLocal() as session:
