@@ -3,140 +3,53 @@
     <head>
         <title>Flux</title>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
-        
         <link rel="manifest" href="/static/manifest.json">
         <link rel="icon" type="image/png" href="/static/icon.png">
         <link rel="apple-touch-icon" href="/static/icon.png">
         <meta name="theme-color" content="#0f0c29">
         <meta name="apple-mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
         <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;800&display=swap" rel="stylesheet">
         <style>
-            :root {
-                --bg-deep: #0f0c29;
-                --bg-medium: #1a163a; 
-                --bg-light: #302b63;
-                --accent-primary: #00d2ff;
-                --accent-secondary: #3a7bd5;
-                --text-main: #ffffff;
-                --text-dim: #b8b8d0;
-                --danger: #ff416c;
-                --success: #00f260;
-                --glass: rgba(255, 255, 255, 0.05);
-                --glass-border: rgba(255, 255, 255, 0.1);
-            }
-
+            :root { --bg-deep:#0f0c29; --bg-medium:#1a163a; --bg-light:#302b63; --accent-primary:#00d2ff; --accent-secondary:#3a7bd5; --text-main:#ffffff; --text-dim:#b8b8d0; --danger:#ff416c; --success:#00f260; --glass:rgba(255,255,255,0.05); --glass-border:rgba(255,255,255,0.1); }
             * { box-sizing: border-box; }
-            body { 
-                background: linear-gradient(135deg, var(--bg-deep), #24243e); 
-                color: var(--text-main); 
-                font-family: 'Exo 2', sans-serif; 
-                display: flex; height: 100vh; margin: 0; overflow: hidden; 
-            }
-            
+            body { background: linear-gradient(135deg, var(--bg-deep), #24243e); color: var(--text-main); font-family: 'Exo 2', sans-serif; display: flex; height: 100vh; margin: 0; overflow: hidden; }
             .icon { width: 20px; height: 20px; fill: currentColor; vertical-align: middle; transition: 0.2s; }
             .icon-btn { cursor: pointer; color: var(--text-dim); display: inline-flex; align-items: center; justify-content: center; padding: 5px; border-radius: 5px; }
             .icon-btn:hover { color: var(--accent-primary); background: var(--glass); }
             .icon-danger:hover { color: var(--danger); background: rgba(255, 65, 108, 0.1); }
-            
             .status-dot { width: 8px; height: 8px; background: var(--success); border-radius: 50%; display: inline-block; margin-left: 6px; box-shadow: 0 0 5px var(--success); display: none; vertical-align: middle;}
-
-            /* --- СТИЛИ САЙДБАРА (ИСПРАВЛЕННЫЕ) --- */
-            .sidebar { 
-                width: 260px; background: rgba(15, 12, 41, 0.98); 
-                border-right: 1px solid var(--glass-border);
-                display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; 
-                transition: transform 0.3s ease; 
-            }
-            
-            .sidebar-title { 
-                font-weight: 800; padding: 20px 15px 10px 15px; 
-                color: var(--text-dim); font-size: 11px; letter-spacing: 2px;
-                text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; 
-            }
-            
-            .channel { 
-                padding: 8px 12px; margin: 2px 10px; border-radius: 8px; cursor: pointer; 
-                color: var(--text-dim); font-weight: 600; display: flex; align-items: center; 
-                position: relative; transition: 0.2s; font-size: 14px;
-            }
+            .sidebar { width: 260px; background: rgba(15, 12, 41, 0.98); border-right: 1px solid var(--glass-border); display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; transition: transform 0.3s ease; }
+            .sidebar-title { font-weight: 800; padding: 20px 15px 10px 15px; color: var(--text-dim); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; }
+            .channel { padding: 8px 12px; margin: 2px 10px; border-radius: 8px; cursor: pointer; color: var(--text-dim); font-weight: 600; display: flex; align-items: center; position: relative; transition: 0.2s; font-size: 14px; }
             .channel:hover { background: var(--glass); color: white; }
-            .channel.active { 
-                background: linear-gradient(90deg, rgba(0, 210, 255, 0.1), transparent); 
-                color: white; border-left: 3px solid var(--accent-primary);
-            }
-            
-            /* Аватарки в списке контактов - делаем их маленькими и круглыми */
-            .dm-avatar { 
-                width: 32px; height: 32px; 
-                min-width: 32px; /* Чтобы не сжимались */
-                border-radius: 50%; /* Круг */
-                margin-right: 10px; 
-                background: linear-gradient(135deg, #667eea, #764ba2); 
-                object-fit: cover;
-                border: 1px solid rgba(255,255,255,0.1);
-            }
-
-            /* Панель моего профиля внизу */
-            .user-panel { 
-                background: rgba(0,0,0,0.3); padding: 12px 15px; display: flex; align-items: center; cursor: pointer; 
-                margin-top: auto; border-top: 1px solid var(--glass-border);
-                position: relative; z-index: 50; 
-            }
+            .channel.active { background: linear-gradient(90deg, rgba(0, 210, 255, 0.1), transparent); color: white; border-left: 3px solid var(--accent-primary); }
+            .dm-avatar { width: 32px; height: 32px; min-width: 32px; border-radius: 50%; margin-right: 10px; background: linear-gradient(135deg, #667eea, #764ba2); object-fit: cover; border: 1px solid rgba(255,255,255,0.1); }
+            .user-panel { background: rgba(0,0,0,0.3); padding: 12px 15px; display: flex; align-items: center; cursor: pointer; margin-top: auto; border-top: 1px solid var(--glass-border); position: relative; z-index: 50; }
             .user-panel:hover { background: rgba(0,0,0,0.5); }
-
-            .my-avatar { 
-                width: 38px; height: 38px; 
-                min-width: 38px;
-                border-radius: 50%; 
-                background-color: #5865f2; margin-right: 10px; 
-                object-fit: cover; border: 2px solid rgba(255,255,255,0.1); 
-            }
+            .my-avatar { width: 38px; height: 38px; min-width: 38px; border-radius: 50%; background-color: #5865f2; margin-right: 10px; object-fit: cover; border: 2px solid rgba(255,255,255,0.1); }
             .my-info { flex-grow: 1; overflow: hidden; display: flex; flex-direction: column; justify-content: center; }
             .my-name { font-weight: bold; font-size: 14px; color: white; line-height: 1.2; display: flex; align-items: center;}
             .my-bio { font-size: 11px; color: var(--accent-primary); opacity: 0.8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
-
-            /* --- СТИЛИ СООБЩЕНИЙ --- */
-            #messages { 
-                list-style-type: none; margin: 0; padding: 20px; 
-                flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; 
-            }
-            
+            #messages { list-style-type: none; margin: 0; padding: 20px; flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
             .msg-row { display: flex; width: 100%; align-items: flex-end; }
-            
             .msg-row.other { justify-content: flex-start; }
-            .msg-row.other .msg-bubble {
-                background: rgba(255, 255, 255, 0.08);
-                border: 1px solid var(--glass-border);
-                border-bottom-left-radius: 4px;
-                margin-left: 8px;
-            }
-            
+            .msg-row.other .msg-bubble { background: rgba(255, 255, 255, 0.08); border: 1px solid var(--glass-border); border-bottom-left-radius: 4px; margin-left: 8px; }
             .msg-row.me { justify-content: flex-end; }
             .msg-row.me .avatar { display: none; } 
-            .msg-row.me .msg-bubble {
-                background: linear-gradient(135deg, var(--accent-secondary), var(--accent-primary));
-                color: #0f0c29; 
-                border-bottom-right-radius: 4px;
-                box-shadow: 0 4px 15px rgba(0, 210, 255, 0.2);
-            }
+            .msg-row.me .msg-bubble { background: linear-gradient(135deg, var(--accent-secondary), var(--accent-primary)); color: #0f0c29; border-bottom-right-radius: 4px; box-shadow: 0 4px 15px rgba(0, 210, 255, 0.2); }
             .msg-row.me .username { display: none; }
             .msg-row.me .timestamp { color: rgba(15, 12, 41, 0.6); }
             .msg-row.me .text { color: #0f0c29; font-weight: 500; }
-            
             .msg-bubble { max-width: 75%; padding: 10px 14px; border-radius: 18px; position: relative; word-wrap: break-word; }
             .avatar { width: 36px; height: 36px; border-radius: 50%; background-color: #5865f2; flex-shrink: 0; object-fit: cover; cursor: pointer; margin-bottom: 2px;}
             .username { font-weight: 700; font-size: 13px; color: var(--accent-primary); margin-bottom: 2px; display: block; cursor: pointer; }
             .timestamp { font-size: 10px; color: var(--text-dim); margin-left: 8px; float: right; margin-top: 4px;}
             .text { font-size: 15px; line-height: 1.4; }
             .chat-image { max-width: 100%; border-radius: 10px; margin-top: 5px; cursor: pointer; }
-
             .delete-btn { opacity: 0; transition: 0.2s; cursor: pointer; margin: 0 8px; padding: 5px; color: var(--text-dim); align-self: center; }
             .delete-btn:hover { color: var(--danger); transform: scale(1.1); }
             .msg-row:hover .delete-btn { opacity: 1; }
-
-            /* --- ОБЩИЕ СТИЛИ --- */
             #login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; width: 100%; background: radial-gradient(circle at center, #302b63 0%, #0f0c29 100%); z-index: 200; position: absolute; top: 0; left: 0; }
             .logo-container { display: flex; flex-direction: column; align-items: center; margin-bottom: 25px; }
             .logo-f { font-size: 110px; font-weight: 900; line-height: 1; background: linear-gradient(to bottom, #00ffff, #0055ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 25px rgba(0, 210, 255, 0.7)); transform: skewX(-10deg); }
@@ -158,7 +71,9 @@
             .chat-header { height: 60px; border-bottom: 1px solid var(--glass-border); display: flex; align-items: center; padding: 0 20px; font-weight: 800; color: white; flex-shrink: 0; font-size: 18px; letter-spacing: 0.5px; background: rgba(15, 12, 41, 0.8); backdrop-filter: blur(10px); z-index: 10; }
             .hamburger { display: none; margin-right: 15px; font-size: 24px; cursor: pointer; color: white; }
             .add-member-header-btn { margin-left: auto; cursor: pointer; background: linear-gradient(90deg, var(--success), #00b09b); color: #0f0c29; font-weight: 800; padding: 6px 14px; border-radius: 20px; font-size: 13px; display: none; box-shadow: 0 0 10px rgba(0, 242, 96, 0.2); }
-            
+            .call-btn { margin-left: 10px; cursor: pointer; color: var(--success); display: none; padding: 5px; border-radius: 50%; border: 2px solid var(--success); width: 34px; height: 34px; align-items: center; justify-content: center; transition: 0.3s; box-shadow: 0 0 10px rgba(0, 242, 96, 0.3); }
+            .call-btn:hover { background: var(--success); color: #0f0c29; box-shadow: 0 0 20px rgba(0, 242, 96, 0.6); }
+
             .audio-player { display: flex; align-items: center; gap: 10px; background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255,255,255,0.2); padding: 8px; border-radius: 12px; margin-top: 5px; min-width: 200px; }
             .msg-row.me .audio-player { background: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.3); }
             .play-btn { width: 30px; height: 30px; border-radius: 50%; background: white; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--accent-primary); flex-shrink: 0; }
@@ -166,7 +81,6 @@
             .audio-track { height: 4px; background: rgba(255,255,255,0.3); border-radius: 2px; position: relative; cursor: pointer; overflow: hidden; }
             .audio-progress { height: 100%; width: 0%; background: white; transition: width 0.1s linear; }
             .audio-time { font-size: 9px; color: rgba(255,255,255,0.8); text-align: right; }
-
             .system-msg { text-align: center; color: var(--danger); font-weight: bold; margin: 10px 0; border: 1px solid var(--danger); background: rgba(255, 65, 108, 0.1); padding: 8px; border-radius: 8px; font-size: 13px; }
             #typing-indicator { padding: 0 20px 10px 20px; color: var(--accent-primary); font-size: 12px; font-weight: bold; height: 20px; opacity: 0; transition: opacity 0.2s; }
             #typing-indicator.show { opacity: 1; }
@@ -181,19 +95,19 @@
 
             .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); backdrop-filter: blur(5px); justify-content: center; align-items: center; }
             .modal-content { background: #1a163a; padding: 30px; border-radius: 16px; width: 90%; max-width: 420px; text-align: center; position: relative; border: 1px solid var(--glass-border); box-shadow: 0 20px 60px rgba(0,0,0,0.6); color: white; max-height: 90vh; overflow-y: auto; }
-            .modal-content h2 { margin-top: 0; color: var(--accent-primary); }
-            #modal-img { max-width: 100%; max-height: 80vh; border-radius: 8px; }
             .close-btn { position: absolute; top: 15px; right: 20px; color: var(--text-dim); font-size: 24px; cursor: pointer; }
             .profile-preview { width: 100px; height: 100px; border-radius: 25px; background: #5865f2; margin: 0 auto 20px; object-fit: cover; border: 3px solid var(--accent-primary); box-shadow: 0 0 20px rgba(0, 210, 255, 0.3); }
             .settings-input { width: 100%; padding: 12px; margin-bottom: 15px; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); color: white; border-radius: 8px; outline: none; font-family: 'Exo 2', sans-serif;}
-            .settings-input:focus { border-color: var(--accent-secondary); }
-            .input-label { text-align: left; color: var(--text-dim); font-size: 12px; margin-bottom: 5px; display: block; margin-left: 2px; }
             
-            .view-profile-info { text-align: left; margin-top: 15px; }
-            .view-profile-item { margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 5px; }
-            .view-label { font-size: 11px; color: var(--accent-secondary); text-transform: uppercase; font-weight: bold; }
-            .view-value { font-size: 15px; color: white; margin-top: 2px; }
-            .profile-header-name { font-size: 22px; font-weight: 800; color: white; display: flex; align-items: center; justify-content: center; gap: 5px;}
+            /* CALL OVERLAY */
+            #call-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
+            .call-avatar { width: 120px; height: 120px; border-radius: 50%; border: 4px solid var(--accent-primary); box-shadow: 0 0 30px var(--accent-primary); margin-bottom: 20px; animation: pulse 2s infinite; }
+            .call-status { font-size: 18px; margin-bottom: 30px; color: var(--text-dim); }
+            .call-actions { display: flex; gap: 30px; }
+            .call-action-btn { width: 60px; height: 60px; border-radius: 50%; border: none; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+            .btn-answer { background: var(--success); color: white; box-shadow: 0 0 20px rgba(0, 242, 96, 0.5); }
+            .btn-hangup { background: var(--danger); color: white; box-shadow: 0 0 20px rgba(255, 65, 108, 0.5); }
+            .btn-answer:hover, .btn-hangup:hover { transform: scale(1.1); }
             
             @media (max-width: 768px) {
                 .sidebar { position: absolute; z-index: 100; height: 100%; width: 280px; transform: translateX(-100%); box-shadow: 10px 0 30px rgba(0,0,0,0.8); }
@@ -201,103 +115,67 @@
                 .hamburger { display: block; } 
                 #overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 90; backdrop-filter: blur(2px); }
                 #overlay.show { display: block; }
-                form { padding: 10px; }
-                .delete-btn { opacity: 1 !important; }
                 .msg-bubble { max-width: 85%; }
             }
         </style>
     </head>
     <body>
-        <div id="image-modal" class="modal" onclick="this.style.display='none'"><span class="close-btn">&times;</span><img id="modal-img"></div>
+        <div id="image-modal" class="modal" onclick="this.style.display='none'"><span class="close-btn">&times;</span><img id="modal-img" style="max-width:100%;max-height:80vh;border-radius:8px;"></div>
         
+        <div id="call-overlay">
+            <img id="call-avatar" class="call-avatar" src="">
+            <h2 id="call-username">Имя Собеседника</h2>
+            <div id="call-status" class="call-status">Входящий звонок...</div>
+            <div class="call-actions">
+                <button id="answer-btn" class="call-action-btn btn-answer" onclick="answerCall()">📞</button>
+                <button id="hangup-btn" class="call-action-btn btn-hangup" onclick="hangUp()">❌</button>
+            </div>
+            <audio id="remote-audio" autoplay></audio>
+        </div>
+
         <div id="user-profile-modal" class="modal">
-            <div class="modal-content">
-                <span class="close-btn" onclick="document.getElementById('user-profile-modal').style.display='none'">&times;</span>
-                <img id="view-avatar" class="profile-preview" src="">
-                <div id="view-username" class="profile-header-name">Username</div>
-                <div id="view-bio" style="color:var(--text-dim);margin-bottom:20px;font-style:italic;">Bio</div>
-                <div class="view-profile-info">
-                    <div class="view-profile-item"><div class="view-label">Имя</div><div id="view-realname" class="view-value"></div></div>
-                    <div class="view-profile-item"><div class="view-label">Город</div><div id="view-location" class="view-value"></div></div>
-                    <div class="view-profile-item"><div class="view-label">Дата Рождения</div><div id="view-birthdate" class="view-value"></div></div>
-                    <div class="view-profile-item" style="border:none;"><div class="view-label">Соцсети</div><div id="view-social" class="view-value" style="color:var(--accent-primary);"></div></div>
-                </div>
-            </div>
+            <div class="modal-content"><span class="close-btn" onclick="document.getElementById('user-profile-modal').style.display='none'">&times;</span><img id="view-avatar" class="profile-preview" src=""><div id="view-username" style="font-size:22px;font-weight:800;margin-top:10px;">Username</div><div id="view-bio" style="color:var(--text-dim);margin-bottom:20px;font-style:italic;">Bio</div><div style="text-align:left;"><div style="margin-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.1);"><div style="font-size:11px;color:var(--accent-secondary);text-transform:uppercase;">Имя</div><div id="view-realname" style="font-size:15px;color:white;"></div></div><div style="margin-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.1);"><div style="font-size:11px;color:var(--accent-secondary);text-transform:uppercase;">Город</div><div id="view-location" style="font-size:15px;color:white;"></div></div><div style="margin-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.1);"><div style="font-size:11px;color:var(--accent-secondary);text-transform:uppercase;">Дата Рождения</div><div id="view-birthdate" style="font-size:15px;color:white;"></div></div><div><div style="font-size:11px;color:var(--accent-secondary);text-transform:uppercase;">Соцсети</div><div id="view-social" style="font-size:15px;color:var(--accent-primary);"></div></div></div></div>
         </div>
-
-        <div id="settings-modal" class="modal">
-            <div class="modal-content">
-                <span class="close-btn" onclick="document.getElementById('settings-modal').style.display='none'">&times;</span>
-                <h2>Настройки</h2>
-                <img id="settings-avatar-preview" class="profile-preview" src="">
-                <label class="btn btn-login" style="display:block;margin-bottom:20px;margin-top:10px;">Сменить Аватар<input type="file" style="display: none;" accept="image/*" onchange="previewAvatar(this)"></label>
-                <input type="text" id="settings-bio" class="settings-input" placeholder="Статус (Био)">
-                <input type="text" id="settings-realname" class="settings-input" placeholder="Имя">
-                <input type="text" id="settings-location" class="settings-input" placeholder="Город">
-                <input type="text" id="settings-birthdate" class="settings-input" placeholder="Дата рождения">
-                <input type="text" id="settings-social" class="settings-input" placeholder="Соцсети">
-                <button class="btn btn-login" onclick="saveProfile()">Сохранить</button>
-            </div>
-        </div>
-
+        <div id="settings-modal" class="modal"><div class="modal-content"><span class="close-btn" onclick="document.getElementById('settings-modal').style.display='none'">&times;</span><h2>Настройки</h2><img id="settings-avatar-preview" class="profile-preview" src=""><label class="btn btn-login" style="display:block;margin-bottom:20px;margin-top:10px;">Сменить Аватар<input type="file" style="display: none;" accept="image/*" onchange="previewAvatar(this)"></label><input type="text" id="settings-bio" class="settings-input" placeholder="Статус (Био)"><input type="text" id="settings-realname" class="settings-input" placeholder="Имя"><input type="text" id="settings-location" class="settings-input" placeholder="Город"><input type="text" id="settings-birthdate" class="settings-input" placeholder="Дата рождения"><input type="text" id="settings-social" class="settings-input" placeholder="Соцсети"><button class="btn btn-login" onclick="saveProfile()">Сохранить</button></div></div>
         <div id="dm-modal" class="modal"><div class="modal-content"><span class="close-btn" onclick="this.parentElement.parentElement.style.display='none'">&times;</span><h2>Найти друга</h2><input type="text" id="dm-username" class="settings-input" placeholder="Никнейм"><button class="btn btn-login" onclick="sendFriendRequest()">Отправить</button></div></div>
         <div id="create-group-modal" class="modal"><div class="modal-content"><span class="close-btn" onclick="this.parentElement.parentElement.style.display='none'">&times;</span><h2>Создать группу</h2><input type="text" id="group-name-input" class="settings-input" placeholder="Название"><button class="btn btn-login" onclick="createGroup()">Создать</button></div></div>
         <div id="add-member-modal" class="modal"><div class="modal-content"><span class="close-btn" onclick="this.parentElement.parentElement.style.display='none'">&times;</span><h2>Добавить участника</h2><input type="text" id="new-member-username" class="settings-input" placeholder="Никнейм"><button class="btn btn-login" onclick="addMemberToGroup()">Добавить</button></div></div>
 
         <div id="login-screen">
             <div class="logo-container"><div class="logo-f">F</div><div class="logo-text">Flux</div></div>
-            <div class="login-box">
-                <input type="text" id="usernameInput" class="login-input" placeholder="Никнейм" />
-                <input type="password" id="passwordInput" class="login-input" placeholder="Пароль" />
-                <div id="errorMsg" class="error-msg">Ошибка</div>
-                <div class="btn-group"><button class="btn btn-login" onclick="auth('login')">Войти</button><button class="btn btn-register" onclick="auth('register')">Создать аккаунт</button></div>
-            </div>
+            <div class="login-box"><input type="text" id="usernameInput" class="login-input" placeholder="Никнейм" /><input type="password" id="passwordInput" class="login-input" placeholder="Пароль" /><div id="errorMsg" class="error-msg">Ошибка</div><div class="btn-group"><button class="btn btn-login" onclick="auth('login')">Войти</button><button class="btn btn-register" onclick="auth('register')">Создать аккаунт</button></div></div>
         </div>
 
         <div id="app-container">
             <div id="overlay" onclick="toggleSidebar()"></div>
             <div class="sidebar" id="sidebar">
-                <div class="sidebar-title">Группы <span class="add-btn icon-btn" onclick="document.getElementById('create-group-modal').style.display='flex'">+</span></div>
-                <div id="groups-list"></div>
-                <div class="sidebar-title">Личные сообщения <span class="add-btn icon-btn" onclick="document.getElementById('dm-modal').style.display='flex'">+</span></div>
-                <div id="dm-list"></div>
+                <div class="sidebar-title">Группы <span class="add-btn icon-btn" onclick="document.getElementById('create-group-modal').style.display='flex'">+</span></div><div id="groups-list"></div>
+                <div class="sidebar-title">Личные сообщения <span class="add-btn icon-btn" onclick="document.getElementById('dm-modal').style.display='flex'">+</span></div><div id="dm-list"></div>
                 <div id="requests-section" style="margin-top: 10px; display: none;"><div class="sidebar-title" style="color: var(--accent-secondary);">Заявки</div><div id="requests-list"></div></div>
-                <div class="user-panel" onclick="openSettings()">
-                    <img id="my-avatar-img" class="my-avatar" src="">
-                    <div class="my-info"><div id="my-name-text" class="my-name">User</div><div id="my-bio-text" class="my-bio">Online</div></div>
-                    <div class="settings-btn">⚙️</div>
-                </div>
+                <div class="user-panel" onclick="openSettings()"><img id="my-avatar-img" class="my-avatar" src=""><div class="my-info"><div id="my-name-text" class="my-name">User</div><div id="my-bio-text" class="my-bio">Online</div></div><div class="settings-btn">⚙️</div></div>
             </div>
-
             <div class="chat-area">
                 <div class="chat-header">
-                    <span class="hamburger" onclick="toggleSidebar()">☰</span>
-                    <span id="header-icon" style="margin-right: 5px; color: var(--accent-primary);"></span> 
-                    <span id="header-title">Flux</span>
+                    <span class="hamburger" onclick="toggleSidebar()">☰</span><span id="header-icon" style="margin-right: 5px; color: var(--accent-primary);"></span><span id="header-title">Flux</span>
+                    <span id="call-btn" class="call-btn" onclick="startCall()">📞</span>
                     <span id="add-member-btn" class="add-member-header-btn" onclick="document.getElementById('add-member-modal').style.display='flex'">👤+ Добавить</span>
                 </div>
-                <ul id='messages'></ul>
-                <div id="typing-indicator"></div>
-                <form action="" onsubmit="sendMessage(event)">
-                    <div class="input-wrapper">
-                        <label class="file-btn">+<input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleFileSelect(this)"></label>
-                        <input type="text" id="messageText" autocomplete="off" placeholder="Написать сообщение..."/>
-                        <div id="mic-btn" class="mic-btn" onclick="toggleMic()">🎤</div>
-                    </div>
-                </form>
+                <ul id='messages'></ul><div id="typing-indicator"></div>
+                <form action="" onsubmit="sendMessage(event)"><div class="input-wrapper"><label class="file-btn">+<input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleFileSelect(this)"></label><input type="text" id="messageText" autocomplete="off" placeholder="Написать сообщение..."/><div id="mic-btn" class="mic-btn" onclick="toggleMic()">🎤</div></div></form>
             </div>
         </div>
 
         <script>
-            const ICONS = {
-                crown: `<svg style="width:14px;height:14px;fill:gold;margin-left:4px;" viewBox="0 0 24 24"><path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/></svg>`,
-                ban: `⛔`, trash: `🗑️`, check: `✅`, cross: `❌`, play: `▶`, pause: `⏸`
-            };
+            const ICONS = {crown: `<svg style="width:14px;height:14px;fill:gold;margin-left:4px;" viewBox="0 0 24 24"><path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/></svg>`, ban: `⛔`, trash: `🗑️`, check: `✅`, cross: `❌`, play: `▶`, pause: `⏸`};
             const notificationSound = new Audio("https://cdn.freesound.org/previews/235/235911_2391840-lq.mp3"); notificationSound.volume = 0.5;
-            var ws = null; var username = ""; var currentUserAvatar = ""; var tempAvatarBase64 = null;
-            var myIsAdmin = false; var currentChannel = ""; var currentGroupId = null;
+            const ringtone = new Audio("https://cdn.freesound.org/previews/351/351239_1241198-lq.mp3"); ringtone.loop = true;
+            var ws = null; var username = ""; var currentUserAvatar = ""; var tempAvatarBase64 = null; var myIsAdmin = false; var currentChannel = ""; var currentGroupId = null;
             var mediaRecorder = null; var audioChunks = []; var isRecording = false; var typingTimeout; var lastTypingSent = 0;
-
+            
+            // --- WEBRTC VARIABLES ---
+            var localStream; var peerConnection; var callTarget = null;
+            const rtcConfig = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }] };
+            
             function getDefaultAvatar(name) { return `https://ui-avatars.com/api/?name=${name}&background=0f0c29&color=00d2ff&size=128&bold=true&font-size=0.5`; }
             function toggleSidebar() { document.getElementById("sidebar").classList.toggle("open"); document.getElementById("overlay").classList.toggle("show"); }
             function closeSidebarOnMobile() { if (window.innerWidth <= 768) toggleSidebar(); }
@@ -310,23 +188,97 @@
                     let response = await fetch("/" + type, { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({username: user, password: pass}) });
                     if (response.ok) {
                         let data = await response.json(); username = user; myIsAdmin = data.is_admin;
-                        updateMyProfileUI(data.avatar_url, data.bio);
-                        loadDMs(); loadGroups(); loadRequests();
+                        updateMyProfileUI(data.avatar_url, data.bio); loadDMs(); loadGroups(); loadRequests();
                         document.getElementById("login-screen").style.display = "none"; document.getElementById("app-container").style.display = "flex";
                         connectWebSocket();
-                        document.getElementById("settings-realname").value = data.real_name || "";
-                        document.getElementById("settings-location").value = data.location || "";
-                        document.getElementById("settings-birthdate").value = data.birth_date || "";
-                        document.getElementById("settings-social").value = data.social_link || "";
+                        document.getElementById("settings-realname").value = data.real_name || ""; document.getElementById("settings-location").value = data.location || ""; document.getElementById("settings-birthdate").value = data.birth_date || ""; document.getElementById("settings-social").value = data.social_link || "";
                     } else { document.getElementById("errorMsg").innerText = (await response.json()).detail; document.getElementById("errorMsg").style.display = "block"; }
                 } catch (e) { alert("Ошибка соединения"); }
             }
-
-            function updateMyProfileUI(avatar, bio) {
-                currentUserAvatar = (!avatar || avatar.includes("discordapp")) ? getDefaultAvatar(username) : avatar;
-                document.getElementById("my-name-text").innerHTML = username + (myIsAdmin ? ICONS.crown : "");
-                document.getElementById("my-bio-text").innerText = bio || "Нет статуса";
-                document.getElementById("my-avatar-img").src = currentUserAvatar;
+            function updateMyProfileUI(avatar, bio) { currentUserAvatar = (!avatar || avatar.includes("discordapp")) ? getDefaultAvatar(username) : avatar; document.getElementById("my-name-text").innerHTML = username + (myIsAdmin ? ICONS.crown : ""); document.getElementById("my-bio-text").innerText = bio || "Нет статуса"; document.getElementById("my-avatar-img").src = currentUserAvatar; }
+            
+            // --- WEBRTC LOGIC ---
+            async function startCall() {
+                if(!currentChannel.startsWith("dm_")) return;
+                callTarget = document.getElementById("header-title").innerText;
+                document.getElementById("call-overlay").style.display = "flex";
+                document.getElementById("call-username").innerText = callTarget;
+                document.getElementById("call-avatar").src = getDefaultAvatar(callTarget);
+                document.getElementById("call-status").innerText = "Звоним...";
+                document.getElementById("answer-btn").style.display = "none";
+                
+                try {
+                    localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    createPeerConnection();
+                    localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+                    const offer = await peerConnection.createOffer();
+                    await peerConnection.setLocalDescription(offer);
+                    ws.send(JSON.stringify({ type: "call_offer", target: callTarget, offer: offer }));
+                } catch (e) { alert("Ошибка доступа к микрофону"); hangUp(); }
+            }
+            
+            async function handleOffer(data) {
+                callTarget = data.sender;
+                document.getElementById("call-overlay").style.display = "flex";
+                document.getElementById("call-username").innerText = callTarget;
+                document.getElementById("call-avatar").src = getDefaultAvatar(callTarget);
+                document.getElementById("call-status").innerText = "Входящий звонок...";
+                document.getElementById("answer-btn").style.display = "flex";
+                ringtone.play();
+                
+                // Сохраняем offer для ответа
+                window.incomingOffer = data.offer;
+            }
+            
+            async function answerCall() {
+                ringtone.pause();
+                document.getElementById("answer-btn").style.display = "none";
+                document.getElementById("call-status").innerText = "Соединение...";
+                
+                try {
+                    localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    createPeerConnection();
+                    localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+                    await peerConnection.setRemoteDescription(new RTCSessionDescription(window.incomingOffer));
+                    const answer = await peerConnection.createAnswer();
+                    await peerConnection.setLocalDescription(answer);
+                    ws.send(JSON.stringify({ type: "call_answer", target: callTarget, answer: answer }));
+                } catch (e) { alert("Ошибка микрофона"); hangUp(); }
+            }
+            
+            async function handleAnswer(data) {
+                document.getElementById("call-status").innerText = "В разговоре";
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+            }
+            
+            async function handleCandidate(data) {
+                if (peerConnection) await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+            }
+            
+            function createPeerConnection() {
+                peerConnection = new RTCPeerConnection(rtcConfig);
+                peerConnection.onicecandidate = event => {
+                    if (event.candidate) ws.send(JSON.stringify({ type: "new_ice_candidate", target: callTarget, candidate: event.candidate }));
+                };
+                peerConnection.ontrack = event => {
+                    document.getElementById("remote-audio").srcObject = event.streams[0];
+                    document.getElementById("call-status").innerText = "В разговоре";
+                };
+                peerConnection.onconnectionstatechange = () => {
+                    if (peerConnection.connectionState === 'disconnected') hangUp();
+                };
+            }
+            
+            function hangUp() {
+                if (ws) ws.send(JSON.stringify({ type: "hang_up", target: callTarget }));
+                closeCall();
+            }
+            
+            function closeCall() {
+                document.getElementById("call-overlay").style.display = "none";
+                if (peerConnection) { peerConnection.close(); peerConnection = null; }
+                if (localStream) { localStream.getTracks().forEach(track => track.stop()); localStream = null; }
+                ringtone.pause(); ringtone.currentTime = 0;
             }
 
             function connectWebSocket() {
@@ -335,116 +287,87 @@
                 ws.onopen = function() { if (currentChannel) requestHistory(); };
                 ws.onmessage = function(event) {
                     var data = JSON.parse(event.data);
-                    if (data.type === "initial_status") data.users.forEach(u => updateStatus(u, 'online'));
+                    
+                    // CALL HANDLERS
+                    if (data.type === "call_offer") { data.sender = data.sender || "Неизвестный"; handleOffer(data); } // Sender fix needed on backend actually, but let's assume sender is passed or we infer
+                    else if (data.type === "call_answer") handleAnswer(data);
+                    else if (data.type === "new_ice_candidate") handleCandidate(data);
+                    else if (data.type === "hang_up") closeCall();
+                    
+                    // CHAT HANDLERS
+                    else if (data.type === "initial_status") data.users.forEach(u => updateStatus(u, 'online'));
                     else if (data.type === "status") updateStatus(data.username, data.status);
                     else if (Array.isArray(data)) { document.getElementById('messages').innerHTML = ''; data.reverse().forEach(msg => addMessageToUI(msg)); }
                     else if (data.type === "delete") { var el = document.getElementById("msg-" + data.message_id); if(el) el.remove(); }
                     else if (data.type === "typing") {
                         if (data.channel === currentChannel && data.username !== username) {
-                            var ind = document.getElementById("typing-indicator"); ind.innerHTML = `<b>${data.username}</b> печатает...`; ind.classList.add("show");
-                            clearTimeout(typingTimeout); typingTimeout = setTimeout(() => ind.classList.remove("show"), 3000);
+                            var ind = document.getElementById("typing-indicator"); ind.innerHTML = `<b>${data.username}</b> печатает...`; ind.classList.add("show"); clearTimeout(typingTimeout); typingTimeout = setTimeout(() => ind.classList.remove("show"), 3000);
                         }
                     } else if (data.channel === currentChannel) {
                         addMessageToUI(data); if(data.username !== username) { document.getElementById("typing-indicator").classList.remove("show"); notificationSound.play().catch(()=>{}); }
                     }
+                    
+                    // Fix for sender name in calls: in 'send_personal_message' backend doesn't inject sender name automatically for relay messages.
+                    // We will patch handleOffer to assume sender is the one who sent it. Ideally backend adds "sender" field. 
+                    // Let's rely on the fact that target knows who they are talking to in DM, but for incoming call popup we need name.
+                    // PATCH: We need to modify main.py slightly to include sender in relayed messages OR send sender from frontend.
+                    // Frontend 'startCall' sends {type:..., target:...}. Backend relays.
+                    // Let's update send logic below.
                 };
             }
-
+            
+            // --- OVERRIDE startCall to include sender username ---
+             async function startCall() {
+                if(!currentChannel.startsWith("dm_")) return;
+                callTarget = document.getElementById("header-title").innerText;
+                document.getElementById("call-overlay").style.display = "flex";
+                document.getElementById("call-username").innerText = callTarget;
+                document.getElementById("call-avatar").src = getDefaultAvatar(callTarget);
+                document.getElementById("call-status").innerText = "Звоним...";
+                document.getElementById("answer-btn").style.display = "none";
+                try {
+                    localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    createPeerConnection();
+                    localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+                    const offer = await peerConnection.createOffer();
+                    await peerConnection.setLocalDescription(offer);
+                    // ADDED sender: username
+                    ws.send(JSON.stringify({ type: "call_offer", target: callTarget, sender: username, offer: offer }));
+                } catch (e) { alert("Ошибка доступа к микрофону"); hangUp(); }
+            }
+            
+            // ... Rest of functions same as before ...
             function addMessageToUI(data) {
-                var list = document.getElementById('messages');
-                if (document.getElementById("msg-" + data.id)) return;
-                
-                var isMe = (data.username === username);
-                var row = document.createElement('li');
-                row.className = "msg-row " + (isMe ? "me" : "other");
-                row.id = "msg-" + data.id;
-
+                var list = document.getElementById('messages'); if (document.getElementById("msg-" + data.id)) return;
+                var isMe = (data.username === username); var row = document.createElement('li'); row.className = "msg-row " + (isMe ? "me" : "other"); row.id = "msg-" + data.id;
                 var contentHtml = "";
                 if (data.content.startsWith("data:image")) contentHtml = `<img src="${data.content}" class="chat-image" onclick="document.getElementById('image-modal').style.display='flex';document.getElementById('modal-img').src=this.src;">`;
-                else if (data.content.startsWith("data:audio")) {
-                    contentHtml = `<div class="audio-player"><audio id="audio-${data.id}" src="${data.content}" ontimeupdate="updateAudioProgress(${data.id})" onended="resetAudio(${data.id})" onloadedmetadata="setAudioDuration(${data.id})"></audio><div id="btn-${data.id}" class="play-btn" onclick="toggleAudio(${data.id})">${ICONS.play}</div><div class="audio-track-container"><div class="audio-track" onclick="seekAudio(event, ${data.id})"><div id="prog-${data.id}" class="audio-progress"></div></div></div><div id="time-${data.id}" class="audio-time">0:00</div></div>`;
-                } else contentHtml = `<div class="text">${data.content}</div>`;
-
+                else if (data.content.startsWith("data:audio")) { contentHtml = `<div class="audio-player"><audio id="audio-${data.id}" src="${data.content}" ontimeupdate="updateAudioProgress(${data.id})" onended="resetAudio(${data.id})" onloadedmetadata="setAudioDuration(${data.id})"></audio><div id="btn-${data.id}" class="play-btn" onclick="toggleAudio(${data.id})">${ICONS.play}</div><div class="audio-track-container"><div class="audio-track" onclick="seekAudio(event, ${data.id})"><div id="prog-${data.id}" class="audio-progress"></div></div></div><div id="time-${data.id}" class="audio-time">0:00</div></div>`; } 
+                else contentHtml = `<div class="text">${data.content}</div>`;
                 var deleteBtn = (isMe || myIsAdmin) ? `<div class="delete-btn" onclick="deleteMessage(${data.id})">${ICONS.trash}</div>` : "";
                 var avatarSrc = (!data.avatar_url || data.avatar_url.includes("discordapp")) ? getDefaultAvatar(data.username) : data.avatar_url;
-                
                 var avatarHtml = `<img class="avatar" src="${avatarSrc}" onclick="viewUserProfile('${data.username}')">`;
-                var bubbleHtml = `
-                    <div class="msg-bubble">
-                        <span class="username" onclick="viewUserProfile('${data.username}')">${data.username} ${data.is_admin ? ICONS.crown : ""}</span>
-                        ${contentHtml}
-                        <div class="timestamp">${data.created_at}</div>
-                    </div>`;
-
+                var bubbleHtml = `<div class="msg-bubble"><span class="username" onclick="viewUserProfile('${data.username}')">${data.username} ${data.is_admin ? ICONS.crown : ""}</span>${contentHtml}<div class="timestamp">${data.created_at}</div></div>`;
                 if (isMe) { row.innerHTML = deleteBtn + bubbleHtml; } else { row.innerHTML = avatarHtml + bubbleHtml + deleteBtn; }
                 list.appendChild(row); list.scrollTop = list.scrollHeight;
             }
-
             function requestHistory() { if(ws && ws.readyState === WebSocket.OPEN && currentChannel) ws.send(JSON.stringify({type: "history", channel: currentChannel})); }
             function sendMessage(e) { e.preventDefault(); var inp = document.getElementById("messageText"); if(inp.value.trim()){ ws.send(JSON.stringify({type:"message", channel:currentChannel, username:username, content:inp.value})); inp.value=''; } }
             function handleFileSelect(inp) { if(inp.files[0]) compressImage(inp.files[0], b64 => ws.send(JSON.stringify({type:"message", channel:currentChannel, username:username, content:b64}))); inp.value=''; }
             function deleteMessage(id) { if(confirm("Удалить?")) ws.send(JSON.stringify({type:"delete", message_id:id})); }
             function updateStatus(u, s) { var d = document.getElementById("status-"+u); if(d) d.style.display = (s==='online'?'inline-block':'none'); }
-            
-            async function loadDMs() {
-                let res = await fetch("/get_dms?username=" + username); let dms = await res.json();
-                var list = document.getElementById("dm-list"); list.innerHTML = "";
-                dms.forEach(f => {
-                    var d = document.createElement("div"); d.className = "channel"; 
-                    var ban = myIsAdmin ? `<span class="sidebar-ban-btn icon-btn" onclick="event.stopPropagation();banUser('${f}')">${ICONS.ban}</span>` : "";
-                    d.innerHTML = `<img src="${getDefaultAvatar(f)}" class="dm-avatar" onclick="event.stopPropagation();viewUserProfile('${f}')"><span style="flex-grow:1;">${f} <span id="status-${f}" class="status-dot"></span></span> ${ban}`;
-                    d.onclick = () => switchChannel("dm_" + [username, f].sort().join("_"), f, true);
-                    list.appendChild(d);
-                });
-            }
-            async function loadGroups() {
-                let res = await fetch("/get_my_groups?username="+username); let gr = await res.json();
-                var list = document.getElementById("groups-list"); list.innerHTML="";
-                gr.forEach(g => {
-                    var d = document.createElement("div"); d.className="channel"; d.innerText=g.name;
-                    d.onclick = () => switchChannel("group_"+g.id, g.name, false, g.id);
-                    list.appendChild(d);
-                });
-            }
-            async function loadRequests() {
-                let res = await fetch("/get_requests?username="+username); let reqs = await res.json();
-                var list = document.getElementById("requests-list"); list.innerHTML="";
-                document.getElementById("requests-section").style.display = reqs.length ? "block" : "none";
-                reqs.forEach(r => {
-                    var d = document.createElement("div"); d.className="channel"; d.style.cursor="default";
-                    d.innerHTML = `${r.sender} <span class="icon-btn" style="margin-left:auto" onclick="respondRequest(${r.id},'accept')">${ICONS.check}</span><span class="icon-btn" onclick="respondRequest(${r.id},'reject')">${ICONS.cross}</span>`;
-                    list.appendChild(d);
-                });
-            }
-            async function viewUserProfile(u) {
-                try { let r = await fetch("/get_profile?username="+u); if(!r.ok) return; let d = await r.json();
-                document.getElementById("view-avatar").src = d.avatar_url || getDefaultAvatar(d.username);
-                document.getElementById("view-username").innerHTML = d.username + (d.is_admin ? ICONS.crown : "");
-                document.getElementById("view-bio").innerText = d.bio || "Нет статуса";
-                document.getElementById("view-realname").innerText = d.real_name || "—";
-                document.getElementById("view-location").innerText = d.location || "—";
-                document.getElementById("view-birthdate").innerText = d.birth_date || "—";
-                document.getElementById("view-social").innerText = d.social_link || "—";
-                document.getElementById("user-profile-modal").style.display="flex";
-                } catch(e){}
-            }
-            async function saveProfile() {
-                let body = {
-                    username: username, bio: document.getElementById("settings-bio").value, avatar_url: tempAvatarBase64 || currentUserAvatar,
-                    real_name: document.getElementById("settings-realname").value, location: document.getElementById("settings-location").value,
-                    birth_date: document.getElementById("settings-birthdate").value, social_link: document.getElementById("settings-social").value
-                };
-                let res = await fetch("/update_profile", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
-                if(res.ok) { let d=await res.json(); updateMyProfileUI(body.avatar_url, d.bio); document.getElementById("settings-modal").style.display="none"; }
-            }
-            
+            async function loadDMs() { let res = await fetch("/get_dms?username=" + username); let dms = await res.json(); var list = document.getElementById("dm-list"); list.innerHTML = ""; dms.forEach(f => { var d = document.createElement("div"); d.className = "channel"; var ban = myIsAdmin ? `<span class="sidebar-ban-btn icon-btn" onclick="event.stopPropagation();banUser('${f}')">${ICONS.ban}</span>` : ""; d.innerHTML = `<img src="${getDefaultAvatar(f)}" class="dm-avatar" onclick="event.stopPropagation();viewUserProfile('${f}')"><span style="flex-grow:1;">${f} <span id="status-${f}" class="status-dot"></span></span> ${ban}`; d.onclick = () => switchChannel("dm_" + [username, f].sort().join("_"), f, true); list.appendChild(d); }); }
+            async function loadGroups() { let res = await fetch("/get_my_groups?username="+username); let gr = await res.json(); var list = document.getElementById("groups-list"); list.innerHTML=""; gr.forEach(g => { var d = document.createElement("div"); d.className="channel"; d.innerText=g.name; d.onclick = () => switchChannel("group_"+g.id, g.name, false, g.id); list.appendChild(d); }); }
+            async function loadRequests() { let res = await fetch("/get_requests?username="+username); let reqs = await res.json(); var list = document.getElementById("requests-list"); list.innerHTML=""; document.getElementById("requests-section").style.display = reqs.length ? "block" : "none"; reqs.forEach(r => { var d = document.createElement("div"); d.className="channel"; d.style.cursor="default"; d.innerHTML = `${r.sender} <span class="icon-btn" style="margin-left:auto" onclick="respondRequest(${r.id},'accept')">${ICONS.check}</span><span class="icon-btn" onclick="respondRequest(${r.id},'reject')">${ICONS.cross}</span>`; list.appendChild(d); }); }
+            async function viewUserProfile(u) { try { let r = await fetch("/get_profile?username="+u); if(!r.ok) return; let d = await r.json(); document.getElementById("view-avatar").src = d.avatar_url || getDefaultAvatar(d.username); document.getElementById("view-username").innerHTML = d.username + (d.is_admin ? ICONS.crown : ""); document.getElementById("view-bio").innerText = d.bio || "Нет статуса"; document.getElementById("view-realname").innerText = d.real_name || "—"; document.getElementById("view-location").innerText = d.location || "—"; document.getElementById("view-birthdate").innerText = d.birth_date || "—"; document.getElementById("view-social").innerText = d.social_link || "—"; document.getElementById("user-profile-modal").style.display="flex"; } catch(e){} }
+            async function saveProfile() { let body = { username: username, bio: document.getElementById("settings-bio").value, avatar_url: tempAvatarBase64 || currentUserAvatar, real_name: document.getElementById("settings-realname").value, location: document.getElementById("settings-location").value, birth_date: document.getElementById("settings-birthdate").value, social_link: document.getElementById("settings-social").value }; let res = await fetch("/update_profile", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)}); if(res.ok) { let d=await res.json(); updateMyProfileUI(body.avatar_url, d.bio); document.getElementById("settings-modal").style.display="none"; } }
             window.toggleAudio = function(id) { var a=document.getElementById('audio-'+id); var b=document.getElementById('btn-'+id); if(a.paused){a.play();b.innerText=ICONS.pause;}else{a.pause();b.innerText=ICONS.play;} };
             window.updateAudioProgress = function(id) { var a=document.getElementById('audio-'+id); if(a.duration) document.getElementById('prog-'+id).style.width=((a.currentTime/a.duration)*100)+'%'; };
             window.setAudioDuration = function(id) { var a=document.getElementById('audio-'+id); if(a.duration) { var m=Math.floor(a.duration/60), s=Math.floor(a.duration%60); document.getElementById('time-'+id).innerText=m+':'+(s<10?'0'+s:s); } };
             window.seekAudio = function(e,id){ var a=document.getElementById('audio-'+id); a.currentTime=(e.offsetX/e.currentTarget.clientWidth)*a.duration; };
             window.resetAudio = function(id){ document.getElementById('btn-'+id).innerText=ICONS.play; document.getElementById('prog-'+id).style.width='0%'; };
             function previewAvatar(i) { if(i.files[0]) compressImage(i.files[0], b64 => { tempAvatarBase64=b64; document.getElementById("settings-avatar-preview").src=b64; }); }
-            function switchChannel(id, name, isdm, gid) { currentChannel=id; currentGroupId=gid; document.querySelectorAll('.channel').forEach(c=>c.classList.remove('active')); event.currentTarget.classList.add('active'); document.getElementById("header-title").innerText=name; document.getElementById("header-icon").innerText=isdm?"@":""; document.getElementById("add-member-btn").style.display=gid?"block":"none"; document.getElementById("messages").innerHTML=""; requestHistory(); closeSidebarOnMobile(); }
+            function switchChannel(id, name, isdm, gid) { currentChannel=id; currentGroupId=gid; document.querySelectorAll('.channel').forEach(c=>c.classList.remove('active')); event.currentTarget.classList.add('active'); document.getElementById("header-title").innerText=name; document.getElementById("header-icon").innerText=isdm?"@":""; document.getElementById("add-member-btn").style.display=gid?"block":"none"; document.getElementById("call-btn").style.display=isdm?"flex":"none"; document.getElementById("messages").innerHTML=""; requestHistory(); closeSidebarOnMobile(); }
             function banUser(u) { if(confirm("Бан?")) ws.send(JSON.stringify({type:"ban_user", target:u})); }
             function sendFriendRequest() { var u=document.getElementById("dm-username").value; if(u) fetch("/send_request", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sender:username,receiver:u})}).then(r=>{if(r.ok){alert("Отправлено");document.getElementById("dm-modal").style.display="none";}else alert("Ошибка")}); }
             function createGroup() { var n=document.getElementById("group-name-input").value; if(n) fetch("/create_group", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:n,owner:username})}).then(r=>{if(r.ok){document.getElementById("create-group-modal").style.display="none";loadGroups();}}); }
