@@ -12,10 +12,9 @@ from passlib.context import CryptContext
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 
-# Настройка шифрования (Bcrypt)
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# !!! ИЗМЕНЕНИЕ: ИСПОЛЬЗУЕМ ARGON2 ВМЕСТО BCRYPT !!!
+pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
-# ФУНКЦИИ БЕЗОПАСНОСТИ
 def get_password_hash(password):
     return pwd_context.hash(password)
 
@@ -99,20 +98,22 @@ manager = ConnectionManager()
 async def get(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
-# !!! ИСПРАВЛЕННАЯ СЕКРЕТНАЯ КНОПКА СБРОСА !!!
+# !!! НЕУБИВАЕМАЯ КНОПКА СБРОСА БАЗЫ !!!
 @app.get("/secret_reset_database_123")
 async def reset_database():
     async with AsyncSessionLocal() as session:
-        # Аккуратно удаляем таблицы по одной
-        tables = ["users", "messages", "dms", "friend_requests", "groups", "group_members"]
+        # Удаляем таблицы по одной и игнорируем ошибки, если таблицы нет
+        tables = ["group_members", "groups", "friend_requests", "dms", "messages", "users"]
         for table in tables:
-            await session.execute(text(f"DROP TABLE IF EXISTS {table} CASCADE"))
+            try:
+                await session.execute(text(f"DROP TABLE IF EXISTS {table} CASCADE"))
+            except Exception as e:
+                print(f"Ошибка при удалении {table}: {e}")
         await session.commit()
     
-    # Заново создаем пустые таблицы
+    # Создаем заново
     await init_db()
-    
-    return {"status": "БАЗА ДАННЫХ УСПЕШНО ОЧИЩЕНА! ТЕПЕРЬ РЕГИСТРИРУЙСЯ ЗАНОВО."}
+    return {"status": "БАЗА УСПЕШНО СБРОШЕНА. Теперь регистрируйся!"}
 
 @app.post("/register")
 async def register(user: AuthModel):
@@ -120,7 +121,7 @@ async def register(user: AuthModel):
         result = await session.execute(text("SELECT id FROM users WHERE username = :u"), {"u": user.username})
         if result.scalar(): raise HTTPException(status_code=400, detail="Ник занят!")
         
-        # ШИФРУЕМ ПАРОЛЬ
+        # Argon2 хеширование
         hashed_password = get_password_hash(user.password)
         
         await session.execute(
@@ -146,7 +147,7 @@ async def login(user: AuthModel):
         
         stored_password_hash = row[0]
         
-        # ПРОВЕРЯЕМ ХЕШ
+        # Проверка хеша
         if not verify_password(user.password, stored_password_hash):
             raise HTTPException(status_code=400, detail="Неверный пароль")
     
