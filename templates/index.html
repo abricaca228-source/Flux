@@ -88,6 +88,10 @@
             .input-wrapper { background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); border-radius: 12px; display: flex; align-items: center; padding: 5px 15px; width: 100%; backdrop-filter: blur(5px); transition: 0.3s; }
             .input-wrapper:focus-within { border-color: var(--accent-primary); box-shadow: 0 0 15px rgba(0, 210, 255, 0.15); }
             input[type="text"] { flex-grow: 1; padding: 12px; border: none; background: transparent; color: white; outline: none; font-size: 16px; width: 100%; font-family: 'Exo 2', sans-serif;}
+            /* УВЕЛИЧИЛИ ШРИФТ ДЛЯ МОБИЛКИ, ЧТОБЫ НЕ ЗУМИЛОСЬ */
+            @media (max-width: 768px) {
+                input[type="text"], input[type="password"], .settings-input, .login-input { font-size: 16px !important; }
+            }
             .file-btn, .mic-btn { cursor: pointer; color: var(--text-dim); padding: 10px; flex-shrink: 0; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
             .file-btn:hover, .mic-btn:hover { color: white; }
             .mic-btn.recording { color: var(--danger); animation: pulse 1s infinite; filter: drop-shadow(0 0 5px var(--danger)); }
@@ -130,7 +134,7 @@
                 <button id="answer-btn" class="call-action-btn btn-answer" onclick="answerCall()">📞</button>
                 <button id="hangup-btn" class="call-action-btn btn-hangup" onclick="hangUp()">❌</button>
             </div>
-            <audio id="remote-audio" autoplay></audio>
+            <audio id="remote-audio" autoplay playsinline></audio>
         </div>
 
         <div id="user-profile-modal" class="modal">
@@ -206,14 +210,14 @@
                 document.getElementById("call-avatar").src = getDefaultAvatar(callTarget);
                 document.getElementById("call-status").innerText = "Звоним...";
                 document.getElementById("answer-btn").style.display = "none";
-                
                 try {
                     localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
                     createPeerConnection();
                     localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
                     const offer = await peerConnection.createOffer();
                     await peerConnection.setLocalDescription(offer);
-                    ws.send(JSON.stringify({ type: "call_offer", target: callTarget, offer: offer }));
+                    // ADDED sender: username
+                    ws.send(JSON.stringify({ type: "call_offer", target: callTarget, sender: username, offer: offer }));
                 } catch (e) { alert("Ошибка доступа к микрофону"); hangUp(); }
             }
             
@@ -225,8 +229,6 @@
                 document.getElementById("call-status").innerText = "Входящий звонок...";
                 document.getElementById("answer-btn").style.display = "flex";
                 ringtone.play();
-                
-                // Сохраняем offer для ответа
                 window.incomingOffer = data.offer;
             }
             
@@ -261,7 +263,10 @@
                     if (event.candidate) ws.send(JSON.stringify({ type: "new_ice_candidate", target: callTarget, candidate: event.candidate }));
                 };
                 peerConnection.ontrack = event => {
-                    document.getElementById("remote-audio").srcObject = event.streams[0];
+                    const remoteAudio = document.getElementById("remote-audio");
+                    remoteAudio.srcObject = event.streams[0];
+                    // !!! ПРИНУДИТЕЛЬНЫЙ ЗАПУСК ДЛЯ IPHONE !!!
+                    remoteAudio.play().catch(e => console.log("Auto-play error:", e));
                     document.getElementById("call-status").innerText = "В разговоре";
                 };
                 peerConnection.onconnectionstatechange = () => {
@@ -288,13 +293,11 @@
                 ws.onmessage = function(event) {
                     var data = JSON.parse(event.data);
                     
-                    // CALL HANDLERS
-                    if (data.type === "call_offer") { data.sender = data.sender || "Неизвестный"; handleOffer(data); } // Sender fix needed on backend actually, but let's assume sender is passed or we infer
+                    if (data.type === "call_offer") { data.sender = data.sender || "Неизвестный"; handleOffer(data); } 
                     else if (data.type === "call_answer") handleAnswer(data);
                     else if (data.type === "new_ice_candidate") handleCandidate(data);
                     else if (data.type === "hang_up") closeCall();
                     
-                    // CHAT HANDLERS
                     else if (data.type === "initial_status") data.users.forEach(u => updateStatus(u, 'online'));
                     else if (data.type === "status") updateStatus(data.username, data.status);
                     else if (Array.isArray(data)) { document.getElementById('messages').innerHTML = ''; data.reverse().forEach(msg => addMessageToUI(msg)); }
@@ -306,37 +309,10 @@
                     } else if (data.channel === currentChannel) {
                         addMessageToUI(data); if(data.username !== username) { document.getElementById("typing-indicator").classList.remove("show"); notificationSound.play().catch(()=>{}); }
                     }
-                    
-                    // Fix for sender name in calls: in 'send_personal_message' backend doesn't inject sender name automatically for relay messages.
-                    // We will patch handleOffer to assume sender is the one who sent it. Ideally backend adds "sender" field. 
-                    // Let's rely on the fact that target knows who they are talking to in DM, but for incoming call popup we need name.
-                    // PATCH: We need to modify main.py slightly to include sender in relayed messages OR send sender from frontend.
-                    // Frontend 'startCall' sends {type:..., target:...}. Backend relays.
-                    // Let's update send logic below.
                 };
             }
             
-            // --- OVERRIDE startCall to include sender username ---
-             async function startCall() {
-                if(!currentChannel.startsWith("dm_")) return;
-                callTarget = document.getElementById("header-title").innerText;
-                document.getElementById("call-overlay").style.display = "flex";
-                document.getElementById("call-username").innerText = callTarget;
-                document.getElementById("call-avatar").src = getDefaultAvatar(callTarget);
-                document.getElementById("call-status").innerText = "Звоним...";
-                document.getElementById("answer-btn").style.display = "none";
-                try {
-                    localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    createPeerConnection();
-                    localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-                    const offer = await peerConnection.createOffer();
-                    await peerConnection.setLocalDescription(offer);
-                    // ADDED sender: username
-                    ws.send(JSON.stringify({ type: "call_offer", target: callTarget, sender: username, offer: offer }));
-                } catch (e) { alert("Ошибка доступа к микрофону"); hangUp(); }
-            }
-            
-            // ... Rest of functions same as before ...
+            // ... Остальные функции без изменений ...
             function addMessageToUI(data) {
                 var list = document.getElementById('messages'); if (document.getElementById("msg-" + data.id)) return;
                 var isMe = (data.username === username); var row = document.createElement('li'); row.className = "msg-row " + (isMe ? "me" : "other"); row.id = "msg-" + data.id;
