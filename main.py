@@ -12,7 +12,7 @@ from passlib.context import CryptContext
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 
-# !!! ИЗМЕНЕНИЕ: ИСПОЛЬЗУЕМ ARGON2 ВМЕСТО BCRYPT !!!
+# Настройка шифрования (Argon2)
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
 def get_password_hash(password):
@@ -65,7 +65,15 @@ class ConnectionManager:
 
     async def connect(self, websocket: WebSocket, username: str):
         await websocket.accept()
+        # 1. Сообщаем новому пользователю, кто УЖЕ онлайн
+        online_users = list(self.active_connections.keys())
+        await websocket.send_text(json.dumps({"type": "initial_status", "users": online_users}))
+        
+        # 2. Добавляем нового пользователя в список
         self.active_connections[username] = websocket
+        
+        # 3. Сообщаем ВСЕМ остальным, что он теперь онлайн
+        await self.broadcast({"type": "status", "username": username, "status": "online"})
 
     def disconnect(self, username: str):
         if username in self.active_connections:
@@ -98,20 +106,15 @@ manager = ConnectionManager()
 async def get(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
-# !!! НЕУБИВАЕМАЯ КНОПКА СБРОСА БАЗЫ !!!
+# НЕУБИВАЕМАЯ КНОПКА СБРОСА БАЗЫ
 @app.get("/secret_reset_database_123")
 async def reset_database():
     async with AsyncSessionLocal() as session:
-        # Удаляем таблицы по одной и игнорируем ошибки, если таблицы нет
         tables = ["group_members", "groups", "friend_requests", "dms", "messages", "users"]
         for table in tables:
-            try:
-                await session.execute(text(f"DROP TABLE IF EXISTS {table} CASCADE"))
-            except Exception as e:
-                print(f"Ошибка при удалении {table}: {e}")
+            try: await session.execute(text(f"DROP TABLE IF EXISTS {table} CASCADE"))
+            except: pass
         await session.commit()
-    
-    # Создаем заново
     await init_db()
     return {"status": "БАЗА УСПЕШНО СБРОШЕНА. Теперь регистрируйся!"}
 
@@ -121,7 +124,6 @@ async def register(user: AuthModel):
         result = await session.execute(text("SELECT id FROM users WHERE username = :u"), {"u": user.username})
         if result.scalar(): raise HTTPException(status_code=400, detail="Ник занят!")
         
-        # Argon2 хеширование
         hashed_password = get_password_hash(user.password)
         
         await session.execute(
@@ -129,10 +131,7 @@ async def register(user: AuthModel):
             {"u": user.username, "p": hashed_password, "a": False}
         )
         await session.commit()
-    return {
-        "message": "Success", "avatar_url": "", "bio": "Новичок", "is_admin": False,
-        "real_name": "", "location": "", "birth_date": "", "social_link": ""
-    }
+    return {"message": "Success", "avatar_url": "", "bio": "Новичок", "is_admin": False}
 
 @app.post("/login")
 async def login(user: AuthModel):
@@ -142,13 +141,9 @@ async def login(user: AuthModel):
             {"u": user.username}
         )
         row = result.fetchone()
-        
         if not row: raise HTTPException(status_code=400, detail="Пользователь не найден")
         
-        stored_password_hash = row[0]
-        
-        # Проверка хеша
-        if not verify_password(user.password, stored_password_hash):
+        if not verify_password(user.password, row[0]):
             raise HTTPException(status_code=400, detail="Неверный пароль")
     
     return {
@@ -328,7 +323,6 @@ async def websocket_endpoint(websocket: WebSocket, username: str):
                         {"u": data['username'], "c": data['content'], "ch": data['channel'], "t": now})
                     new_id = res.scalar()
                     await session.commit()
-                    
                     user_res = await session.execute(text("SELECT avatar_url, bio, is_admin FROM users WHERE username = :u"), {"u": data['username']})
                     user_row = user_res.fetchone()
                 
@@ -371,3 +365,5 @@ async def websocket_endpoint(websocket: WebSocket, username: str):
 
     except WebSocketDisconnect:
         manager.disconnect(username)
+        # 4. Сообщаем всем, что пользователь ушел
+        await manager.broadcast({"type": "status", "username": username, "status": "offline"})

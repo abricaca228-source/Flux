@@ -27,7 +27,6 @@
                 display: flex; height: 100vh; margin: 0; overflow: hidden; 
             }
             
-            /* --- SVG ИКОНКИ --- */
             .icon { width: 20px; height: 20px; fill: currentColor; vertical-align: middle; transition: 0.2s; }
             .icon-btn { cursor: pointer; color: var(--text-dim); display: inline-flex; align-items: center; justify-content: center; padding: 5px; border-radius: 5px; }
             .icon-btn:hover { color: var(--accent-primary); background: var(--glass); }
@@ -35,6 +34,17 @@
             .icon-danger:hover { color: var(--danger); background: rgba(255, 65, 108, 0.1); }
             .icon-success:hover { color: var(--success); background: rgba(0, 242, 96, 0.1); }
             
+            /* --- СТАТУС ОНЛАЙН --- */
+            .status-dot {
+                width: 10px; height: 10px; 
+                background: var(--success); 
+                border-radius: 50%; 
+                display: inline-block; 
+                margin-left: 8px;
+                box-shadow: 0 0 8px var(--success);
+                display: none; /* Скрыт по умолчанию */
+            }
+
             #login-screen { 
                 display: flex; flex-direction: column; align-items: center; justify-content: center; 
                 height: 100%; width: 100%; 
@@ -112,7 +122,6 @@
             .sidebar-ban-btn { display: none; margin-left: auto; color: var(--danger); }
             .channel:hover .sidebar-ban-btn { display: block; }
 
-            .hashtag { display: none; } 
             .dm-avatar { width: 32px; height: 32px; border-radius: 10px; margin-right: 10px; background: linear-gradient(135deg, #667eea, #764ba2); flex-shrink: 0; object-fit: cover;}
             
             .user-panel { 
@@ -172,31 +181,12 @@
             
             .chat-image { max-width: 100%; height: auto; max-height: 300px; border-radius: 12px; margin-top: 8px; cursor: pointer; object-fit: cover; display: block; border: 1px solid var(--glass-border); }
 
-            /* --- КАСТОМНЫЙ АУДИО ПЛЕЕР --- */
-            .audio-player {
-                display: flex; align-items: center; gap: 10px;
-                background: rgba(0, 0, 0, 0.3); 
-                border: 1px solid var(--glass-border);
-                padding: 10px; border-radius: 12px; margin-top: 5px; width: 280px;
-                backdrop-filter: blur(5px);
-            }
-            .play-btn {
-                width: 36px; height: 36px; border-radius: 50%; 
-                background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-                display: flex; align-items: center; justify-content: center; cursor: pointer;
-                color: #0f0c29; flex-shrink: 0; transition: 0.2s;
-                box-shadow: 0 0 10px rgba(0, 210, 255, 0.3);
-            }
+            .audio-player { display: flex; align-items: center; gap: 10px; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--glass-border); padding: 10px; border-radius: 12px; margin-top: 5px; width: 280px; backdrop-filter: blur(5px); }
+            .play-btn { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); display: flex; align-items: center; justify-content: center; cursor: pointer; color: #0f0c29; flex-shrink: 0; transition: 0.2s; box-shadow: 0 0 10px rgba(0, 210, 255, 0.3); }
             .play-btn:hover { transform: scale(1.1); box-shadow: 0 0 15px rgba(0, 210, 255, 0.5); }
             .audio-track-container { flex-grow: 1; display: flex; flex-direction: column; gap: 4px; }
-            .audio-track {
-                height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px;
-                position: relative; cursor: pointer; overflow: hidden;
-            }
-            .audio-progress {
-                height: 100%; width: 0%; background: var(--accent-primary);
-                box-shadow: 0 0 10px var(--accent-primary); transition: width 0.1s linear;
-            }
+            .audio-track { height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; position: relative; cursor: pointer; overflow: hidden; }
+            .audio-progress { height: 100%; width: 0%; background: var(--accent-primary); box-shadow: 0 0 10px var(--accent-primary); transition: width 0.1s linear; }
             .audio-time { font-size: 10px; color: var(--text-dim); text-align: right; }
 
             .delete-btn { opacity: 0; cursor: pointer; flex-shrink: 0; margin-left: auto; transition: opacity 0.2s; }
@@ -212,36 +202,24 @@
             @keyframes blink { 0% {opacity: .2;} 20% {opacity: 1;} 100% {opacity: .2;} }
 
             form { padding: 0 20px 20px 20px; margin: 0; width: 100%; flex-shrink: 0; background: transparent; }
-            .input-wrapper { 
-                background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border);
-                border-radius: 12px; display: flex; align-items: center; padding: 5px 15px; width: 100%; 
-                backdrop-filter: blur(5px); transition: 0.3s;
-            }
+            .input-wrapper { background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); border-radius: 12px; display: flex; align-items: center; padding: 5px 15px; width: 100%; backdrop-filter: blur(5px); transition: 0.3s; }
             .input-wrapper:focus-within { border-color: var(--accent-primary); box-shadow: 0 0 15px rgba(0, 210, 255, 0.15); }
-            
             input[type="text"] { flex-grow: 1; padding: 12px; border: none; background: transparent; color: white; outline: none; font-size: 16px; width: 100%; font-family: 'Exo 2', sans-serif;}
-            
             .file-btn, .mic-btn { cursor: pointer; color: var(--text-dim); padding: 10px; flex-shrink: 0; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
             .file-btn:hover, .mic-btn:hover { color: white; }
             .mic-btn.recording { color: var(--danger); animation: pulse 1s infinite; filter: drop-shadow(0 0 5px var(--danger)); }
             @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
 
             .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); backdrop-filter: blur(5px); justify-content: center; align-items: center; }
-            .modal-content { 
-                background: #1a163a; padding: 30px; border-radius: 16px; width: 90%; max-width: 420px; text-align: center; position: relative; 
-                border: 1px solid var(--glass-border); box-shadow: 0 20px 60px rgba(0,0,0,0.6); color: white;
-                max-height: 90vh; overflow-y: auto;
-            }
+            .modal-content { background: #1a163a; padding: 30px; border-radius: 16px; width: 90%; max-width: 420px; text-align: center; position: relative; border: 1px solid var(--glass-border); box-shadow: 0 20px 60px rgba(0,0,0,0.6); color: white; max-height: 90vh; overflow-y: auto; }
             .modal-content h2 { margin-top: 0; color: var(--accent-primary); }
             #modal-img { max-width: 100%; max-height: 80vh; border-radius: 8px; }
             .close-btn { position: absolute; top: 15px; right: 20px; color: var(--text-dim); font-size: 24px; cursor: pointer; }
             .profile-preview { width: 100px; height: 100px; border-radius: 25px; background: #5865f2; margin: 0 auto 20px; object-fit: cover; border: 3px solid var(--accent-primary); box-shadow: 0 0 20px rgba(0, 210, 255, 0.3); }
             .settings-input { width: 100%; padding: 12px; margin-bottom: 15px; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); color: white; border-radius: 8px; outline: none; font-family: 'Exo 2', sans-serif;}
             .settings-input:focus { border-color: var(--accent-secondary); }
-            
             .input-label { text-align: left; color: var(--text-dim); font-size: 12px; margin-bottom: 5px; display: block; margin-left: 2px; }
             
-            /* СТИЛИ ДЛЯ ПРОСМОТРА ПРОФИЛЯ */
             .view-profile-info { text-align: left; margin-top: 15px; }
             .view-profile-item { margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 5px; }
             .view-label { font-size: 11px; color: var(--accent-secondary); text-transform: uppercase; font-weight: bold; }
@@ -271,24 +249,11 @@
                 <img id="view-avatar" class="profile-preview" src="">
                 <div id="view-username" class="profile-header-name">Username</div>
                 <div id="view-bio" style="color: var(--text-dim); margin-bottom: 20px; font-style: italic;">Bio</div>
-                
                 <div class="view-profile-info">
-                    <div class="view-profile-item">
-                        <div class="view-label">Имя</div>
-                        <div id="view-realname" class="view-value"></div>
-                    </div>
-                    <div class="view-profile-item">
-                        <div class="view-label">Город</div>
-                        <div id="view-location" class="view-value"></div>
-                    </div>
-                    <div class="view-profile-item">
-                        <div class="view-label">Дата Рождения</div>
-                        <div id="view-birthdate" class="view-value"></div>
-                    </div>
-                    <div class="view-profile-item" style="border:none;">
-                        <div class="view-label">Соцсети</div>
-                        <div id="view-social" class="view-value" style="color: var(--accent-primary);"></div>
-                    </div>
+                    <div class="view-profile-item"><div class="view-label">Имя</div><div id="view-realname" class="view-value"></div></div>
+                    <div class="view-profile-item"><div class="view-label">Город</div><div id="view-location" class="view-value"></div></div>
+                    <div class="view-profile-item"><div class="view-label">Дата Рождения</div><div id="view-birthdate" class="view-value"></div></div>
+                    <div class="view-profile-item" style="border:none;"><div class="view-label">Соцсети</div><div id="view-social" class="view-value" style="color: var(--accent-primary);"></div></div>
                 </div>
             </div>
         </div>
@@ -298,26 +263,12 @@
                 <span class="close-btn" onclick="document.getElementById('settings-modal').style.display='none'">&times;</span>
                 <h2>Настройки Профиля</h2>
                 <img id="settings-avatar-preview" class="profile-preview" src="">
-                <label class="btn btn-login" style="display:block; margin-bottom:20px;">
-                    Сменить Аватар
-                    <input type="file" style="display: none;" accept="image/*" onchange="previewAvatar(this)">
-                </label>
-                
-                <span class="input-label">Статус (Био)</span>
-                <input type="text" id="settings-bio" class="settings-input" placeholder="Напиши что-нибудь крутое...">
-                
-                <span class="input-label">Настоящее Имя</span>
-                <input type="text" id="settings-realname" class="settings-input" placeholder="Как тебя зовут?">
-
-                <span class="input-label">Город</span>
-                <input type="text" id="settings-location" class="settings-input" placeholder="Где ты живешь?">
-
-                <span class="input-label">Дата Рождения</span>
-                <input type="text" id="settings-birthdate" class="settings-input" placeholder="ДД.ММ.ГГГГ">
-
-                <span class="input-label">Соцсети (Telegram/Insta)</span>
-                <input type="text" id="settings-social" class="settings-input" placeholder="@username">
-
+                <label class="btn btn-login" style="display:block; margin-bottom:20px;">Сменить Аватар<input type="file" style="display: none;" accept="image/*" onchange="previewAvatar(this)"></label>
+                <span class="input-label">Статус (Био)</span><input type="text" id="settings-bio" class="settings-input" placeholder="Напиши что-нибудь крутое...">
+                <span class="input-label">Настоящее Имя</span><input type="text" id="settings-realname" class="settings-input" placeholder="Как тебя зовут?">
+                <span class="input-label">Город</span><input type="text" id="settings-location" class="settings-input" placeholder="Где ты живешь?">
+                <span class="input-label">Дата Рождения</span><input type="text" id="settings-birthdate" class="settings-input" placeholder="ДД.ММ.ГГГГ">
+                <span class="input-label">Соцсети (Telegram/Insta)</span><input type="text" id="settings-social" class="settings-input" placeholder="@username">
                 <button class="btn btn-login" onclick="saveProfile()" style="margin-top: 10px;">Сохранить Изменения</button>
             </div>
         </div>
@@ -350,10 +301,7 @@
         </div>
 
         <div id="login-screen">
-            <div class="logo-container">
-                <div class="logo-f">F</div>
-                <div class="logo-text">Flux</div>
-            </div>
+            <div class="logo-container"><div class="logo-f">F</div><div class="logo-text">Flux</div></div>
             <div class="login-box">
                 <input type="text" id="usernameInput" class="login-input" placeholder="Никнейм" />
                 <input type="password" id="passwordInput" class="login-input" placeholder="Пароль" />
@@ -433,39 +381,19 @@
                 pause: `<svg style="width:16px; height:16px; fill:currentColor;" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`
             };
             
-            // ЗВУКОВОЙ ФАЙЛ
             const notificationSound = new Audio("https://cdn.freesound.org/previews/235/235911_2391840-lq.mp3");
             notificationSound.volume = 0.5;
 
             var ws = null;
             var username = "";
-            var currentUserAvatar = ""; 
-            var currentUserBio = "";
-            var currentUserRealName = "";
-            var currentUserLocation = "";
-            var currentUserBirthDate = "";
-            var currentUserSocial = "";
-
+            var currentUserAvatar = ""; var currentUserBio = ""; var currentUserRealName = ""; var currentUserLocation = ""; var currentUserBirthDate = ""; var currentUserSocial = "";
             var myIsAdmin = false;
-            var currentChannel = ""; 
-            var currentGroupId = null; 
-            var mediaRecorder = null;
-            var audioChunks = [];
-            var isRecording = false;
-            var typingTimeout;
-            var lastTypingSent = 0;
-            var tempAvatarBase64 = null;
+            var currentChannel = ""; var currentGroupId = null; 
+            var mediaRecorder = null; var audioChunks = []; var isRecording = false;
+            var typingTimeout; var lastTypingSent = 0; var tempAvatarBase64 = null;
 
-            function getDefaultAvatar(name) {
-                return `https://ui-avatars.com/api/?name=${name}&background=0f0c29&color=00d2ff&size=128&bold=true&font-size=0.5`;
-            }
-
-            function toggleSidebar() {
-                var sidebar = document.getElementById("sidebar");
-                var overlay = document.getElementById("overlay");
-                sidebar.classList.toggle("open");
-                overlay.classList.toggle("show");
-            }
+            function getDefaultAvatar(name) { return `https://ui-avatars.com/api/?name=${name}&background=0f0c29&color=00d2ff&size=128&bold=true&font-size=0.5`; }
+            function toggleSidebar() { document.getElementById("sidebar").classList.toggle("open"); document.getElementById("overlay").classList.toggle("show"); }
             function closeSidebarOnMobile() { if (window.innerWidth <= 768) toggleSidebar(); }
             
             function openSettings() {
@@ -478,29 +406,21 @@
                 document.getElementById("settings-social").value = currentUserSocial;
             }
 
-            // НОВАЯ ФУНКЦИЯ: ПРОСМОТР ЧУЖОГО ПРОФИЛЯ
             async function viewUserProfile(targetUser) {
                 try {
                     let response = await fetch("/get_profile?username=" + targetUser);
-                    if (!response.ok) return; // Юзер не найден
-                    
+                    if (!response.ok) return;
                     let data = await response.json();
-                    
-                    // Заполняем модалку
                     let avatarSrc = data.avatar_url || getDefaultAvatar(data.username);
                     document.getElementById("view-avatar").src = avatarSrc;
-                    
                     let nameHtml = data.username;
                     if (data.is_admin) nameHtml += ICONS.crown;
                     document.getElementById("view-username").innerHTML = nameHtml;
-                    
                     document.getElementById("view-bio").innerText = data.bio || "Нет статуса";
-                    
                     document.getElementById("view-realname").innerText = data.real_name || "—";
                     document.getElementById("view-location").innerText = data.location || "—";
                     document.getElementById("view-birthdate").innerText = data.birth_date || "—";
                     document.getElementById("view-social").innerText = data.social_link || "—";
-                    
                     document.getElementById("user-profile-modal").style.display = "flex";
                 } catch(e) { console.error(e); }
             }
@@ -510,10 +430,7 @@
                 var pass = document.getElementById("passwordInput").value;
                 if (!user || !pass) return;
                 try {
-                    let response = await fetch("/" + type, {
-                        method: "POST", headers: {"Content-Type": "application/json"},
-                        body: JSON.stringify({username: user, password: pass})
-                    });
+                    let response = await fetch("/" + type, { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({username: user, password: pass}) });
                     if (response.ok) {
                         let data = await response.json();
                         username = user;
@@ -523,9 +440,7 @@
                         currentUserBirthDate = data.birth_date;
                         currentUserSocial = data.social_link;
                         updateMyProfileUI(data.avatar_url, data.bio);
-                        loadDMs(); 
-                        loadGroups();
-                        loadRequests();
+                        loadDMs(); loadGroups(); loadRequests();
                         document.getElementById("login-screen").style.display = "none";
                         document.getElementById("app-container").style.display = "flex";
                         connectWebSocket();
@@ -543,9 +458,7 @@
                 var list = document.getElementById("groups-list");
                 list.innerHTML = "";
                 groups.forEach(g => {
-                    var div = document.createElement("div");
-                    div.className = "channel";
-                    div.innerHTML = `${g.name}`;
+                    var div = document.createElement("div"); div.className = "channel"; div.innerHTML = `${g.name}`;
                     div.onclick = function() { switchChannel("group_" + g.id, g.name, false, g.id); };
                     list.appendChild(div);
                 });
@@ -554,32 +467,16 @@
             async function createGroup() {
                 var name = document.getElementById("group-name-input").value;
                 if (!name) return;
-                let response = await fetch("/create_group", {
-                    method: "POST", headers: {"Content-Type": "application/json"},
-                    body: JSON.stringify({name: name, owner: username})
-                });
-                if (response.ok) {
-                    document.getElementById("create-group-modal").style.display = "none";
-                    document.getElementById("group-name-input").value = "";
-                    loadGroups();
-                }
+                let response = await fetch("/create_group", { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({name: name, owner: username}) });
+                if (response.ok) { document.getElementById("create-group-modal").style.display = "none"; document.getElementById("group-name-input").value = ""; loadGroups(); }
             }
 
             async function addMemberToGroup() {
                 var memberName = document.getElementById("new-member-username").value;
                 if (!memberName || !currentGroupId) return;
-                let response = await fetch("/add_member", {
-                    method: "POST", headers: {"Content-Type": "application/json"},
-                    body: JSON.stringify({group_id: currentGroupId, username: memberName})
-                });
-                if (response.ok) {
-                    alert("Пользователь добавлен!");
-                    document.getElementById("add-member-modal").style.display = "none";
-                    document.getElementById("new-member-username").value = "";
-                } else {
-                    let res = await response.json();
-                    alert("Ошибка: " + res.detail);
-                }
+                let response = await fetch("/add_member", { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({group_id: currentGroupId, username: memberName}) });
+                if (response.ok) { alert("Пользователь добавлен!"); document.getElementById("add-member-modal").style.display = "none"; document.getElementById("new-member-username").value = ""; } 
+                else { let res = await response.json(); alert("Ошибка: " + res.detail); }
             }
 
             async function loadDMs() {
@@ -599,42 +496,26 @@
                 if (reqs.length > 0) {
                     section.style.display = "block";
                     reqs.forEach(req => {
-                        var div = document.createElement("div");
-                        div.className = "channel"; 
-                        div.style.cursor = "default";
+                        var div = document.createElement("div"); div.className = "channel"; div.style.cursor = "default";
                         div.innerHTML = `${req.sender} <span class="icon-btn" style="margin-left:auto;" onclick="respondRequest(${req.id}, 'accept')">${ICONS.check}</span> <span class="icon-btn" style="margin-left:5px;" onclick="respondRequest(${req.id}, 'reject')">${ICONS.cross}</span>`;
                         list.appendChild(div);
                     });
-                } else {
-                    section.style.display = "none";
-                }
+                } else { section.style.display = "none"; }
             }
 
             async function sendFriendRequest() {
                 var friendName = document.getElementById("dm-username").value;
                 if(!friendName) return;
-                let response = await fetch("/send_request", {
-                    method: "POST", headers: {"Content-Type": "application/json"},
-                    body: JSON.stringify({sender: username, receiver: friendName})
-                });
-                if(response.ok) {
-                    document.getElementById("dm-modal").style.display = "none";
-                    alert("Заявка отправлена!");
-                } else { alert("Ошибка при отправке"); }
+                let response = await fetch("/send_request", { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({sender: username, receiver: friendName}) });
+                if(response.ok) { document.getElementById("dm-modal").style.display = "none"; alert("Заявка отправлена!"); } else { alert("Ошибка при отправке"); }
             }
 
             async function respondRequest(reqId, action) {
-                let response = await fetch("/respond_request", {
-                    method: "POST", headers: {"Content-Type": "application/json"},
-                    body: JSON.stringify({request_id: reqId, action: action})
-                });
+                let response = await fetch("/respond_request", { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({request_id: reqId, action: action}) });
                 if (response.ok) { loadRequests(); if (action === 'accept') loadDMs(); }
             }
 
-            function getDMChannelID(u1, u2) {
-                var sorted = [u1, u2].sort();
-                return "dm_" + sorted[0] + "_" + sorted[1];
-            }
+            function getDMChannelID(u1, u2) { var sorted = [u1, u2].sort(); return "dm_" + sorted[0] + "_" + sorted[1]; }
 
             function addDMToSidebar(friendName) {
                 var dmList = document.getElementById("dm-list");
@@ -642,69 +523,51 @@
                 if (existing) return;
                 var div = document.createElement("div");
                 div.className = "channel";
-                var banBtnHtml = "";
-                if (myIsAdmin) {
-                    banBtnHtml = `<span class="sidebar-ban-btn icon-btn" onclick="event.stopPropagation(); banUser('${friendName}')" title="ЗАБАНИТЬ">${ICONS.ban}</span>`;
-                }
+                div.id = "dm-item-" + friendName; // ID для поиска
+                var banBtnHtml = myIsAdmin ? `<span class="sidebar-ban-btn icon-btn" onclick="event.stopPropagation(); banUser('${friendName}')" title="ЗАБАНИТЬ">${ICONS.ban}</span>` : "";
                 var avatarUrl = getDefaultAvatar(friendName);
                 
-                div.innerHTML = `<img src="${avatarUrl}" class="dm-avatar" onclick="event.stopPropagation(); viewUserProfile('${friendName}')"> <span style="flex-grow:1;">${friendName}</span> ${banBtnHtml}`;
+                // Добавляем ЗЕЛЕНУЮ ТОЧКУ (hidden по умолчанию)
+                div.innerHTML = `<img src="${avatarUrl}" class="dm-avatar" onclick="event.stopPropagation(); viewUserProfile('${friendName}')"> 
+                                 <span style="flex-grow:1;">${friendName} <span id="status-${friendName}" class="status-dot"></span></span> ${banBtnHtml}`;
+                
                 var channelID = getDMChannelID(username, friendName);
                 div.onclick = function() { switchChannel(channelID, friendName, true); };
                 dmList.appendChild(div);
             }
 
             function updateMyProfileUI(avatar, bio) {
-                if (!avatar || avatar.includes("discordapp")) {
-                    currentUserAvatar = getDefaultAvatar(username);
-                } else {
-                    currentUserAvatar = avatar;
-                }
+                if (!avatar || avatar.includes("discordapp")) currentUserAvatar = getDefaultAvatar(username);
+                else currentUserAvatar = avatar;
                 currentUserBio = bio || "Нет статуса";
-                var nameHtml = username;
-                if (myIsAdmin) nameHtml += ICONS.crown;
+                var nameHtml = username + (myIsAdmin ? ICONS.crown : "");
                 document.getElementById("my-name-text").innerHTML = nameHtml;
-                document.getElementById("my-name-text").classList.remove("admin-name"); 
                 document.getElementById("my-bio-text").innerText = currentUserBio;
                 document.getElementById("my-avatar-img").src = currentUserAvatar;
             }
 
             function switchChannel(channelID, displayName, isDM = false, groupId = null) {
-                currentChannel = channelID;
-                currentGroupId = groupId; 
+                currentChannel = channelID; currentGroupId = groupId;
                 document.querySelectorAll('.channel').forEach(el => el.classList.remove('active'));
                 event.currentTarget.classList.add('active');
-                var title = isDM ? displayName : displayName;
-                var icon = isDM ? "@" : ""; 
-                document.getElementById("header-title").innerText = title;
-                document.getElementById("header-icon").innerText = icon;
-                if (groupId) {
-                    document.getElementById("add-member-btn").style.display = "block";
-                } else {
-                    document.getElementById("add-member-btn").style.display = "none";
-                }
+                document.getElementById("header-title").innerText = displayName;
+                document.getElementById("header-icon").innerText = isDM ? "@" : "";
+                document.getElementById("add-member-btn").style.display = groupId ? "block" : "none";
                 document.getElementById('messages').innerHTML = '';
-                document.getElementById('typing-indicator').className = ""; 
-                closeSidebarOnMobile(); 
-                requestHistory();
+                document.getElementById('typing-indicator').className = "";
+                closeSidebarOnMobile(); requestHistory();
             }
 
             function compressImage(file, callback) {
                 var reader = new FileReader();
                 reader.onload = function(event) {
-                    var img = new Image();
-                    img.src = event.target.result;
+                    var img = new Image(); img.src = event.target.result;
                     img.onload = function() {
-                        var canvas = document.createElement("canvas");
-                        var ctx = canvas.getContext("2d");
-                        var maxWidth = 800;
-                        var scale = maxWidth / img.width;
-                        if (scale > 1) scale = 1;
-                        canvas.width = img.width * scale;
-                        canvas.height = img.height * scale;
+                        var canvas = document.createElement("canvas"); var ctx = canvas.getContext("2d");
+                        var maxWidth = 800; var scale = maxWidth / img.width; if (scale > 1) scale = 1;
+                        canvas.width = img.width * scale; canvas.height = img.height * scale;
                         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                        var dataUrl = canvas.toDataURL("image/jpeg", 0.7);
-                        callback(dataUrl);
+                        callback(canvas.toDataURL("image/jpeg", 0.7));
                     }
                 }
                 reader.readAsDataURL(file);
@@ -714,285 +577,111 @@
                 if (!isRecording) {
                     try {
                         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                        mediaRecorder = new MediaRecorder(stream);
-                        audioChunks = [];
+                        mediaRecorder = new MediaRecorder(stream); audioChunks = [];
                         mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
                         mediaRecorder.onstop = () => {
                             const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
-                            const reader = new FileReader();
-                            reader.readAsDataURL(audioBlob);
-                            reader.onloadend = () => {
-                                if (ws && currentChannel) ws.send(JSON.stringify({type: "message", channel: currentChannel, username: username, content: reader.result}));
-                            };
+                            const reader = new FileReader(); reader.readAsDataURL(audioBlob);
+                            reader.onloadend = () => { if (ws && currentChannel) ws.send(JSON.stringify({type: "message", channel: currentChannel, username: username, content: reader.result})); };
                             stream.getTracks().forEach(track => track.stop());
                         };
-                        mediaRecorder.start();
-                        isRecording = true;
-                        document.getElementById("mic-btn").classList.add("recording");
+                        mediaRecorder.start(); isRecording = true; document.getElementById("mic-btn").classList.add("recording");
                     } catch(err) { alert("Ошибка микрофона"); }
-                } else {
-                    mediaRecorder.stop();
-                    isRecording = false;
-                    document.getElementById("mic-btn").classList.remove("recording");
-                }
+                } else { mediaRecorder.stop(); isRecording = false; document.getElementById("mic-btn").classList.remove("recording"); }
             }
             
-            // ФУНКЦИЯ ВОСПРОИЗВЕДЕНИЯ ЗВУКА
-            function playNotification() {
-                notificationSound.currentTime = 0;
-                notificationSound.play().catch(e => console.log("Сначала кликни по сайту, чтобы включить звук"));
-            }
+            function playNotification() { notificationSound.currentTime = 0; notificationSound.play().catch(e => console.log("Сначала кликни по сайту")); }
 
             function connectWebSocket() {
                 var protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
                 ws = new WebSocket(protocol + "//" + window.location.host + "/ws/" + username);
-                ws.onopen = function() { 
-                    if (currentChannel) requestHistory(); 
-                };
+                ws.onopen = function() { if (currentChannel) requestHistory(); };
                 ws.onmessage = function(event) {
                     var data = JSON.parse(event.data);
-                    if (Array.isArray(data)) {
-                        document.getElementById('messages').innerHTML = '';
-                        data.reverse().forEach(msg => addMessageToUI(msg));
-                    } 
-                    else if (data.type === "delete") {
-                        var msgElement = document.getElementById("msg-" + data.message_id);
-                        if (msgElement) msgElement.remove();
+                    
+                    if (data.type === "initial_status") {
+                        // КТО УЖЕ ОНЛАЙН
+                        data.users.forEach(u => updateStatus(u, 'online'));
                     }
+                    else if (data.type === "status") {
+                        // КТО-ТО ЗАШЕЛ ИЛИ ВЫШЕЛ
+                        updateStatus(data.username, data.status);
+                    }
+                    else if (Array.isArray(data)) {
+                        document.getElementById('messages').innerHTML = ''; data.reverse().forEach(msg => addMessageToUI(msg));
+                    } 
+                    else if (data.type === "delete") { var msgElement = document.getElementById("msg-" + data.message_id); if (msgElement) msgElement.remove(); }
                     else if (data.type === "new_request") loadRequests(); 
                     else if (data.type === "request_accepted") loadDMs(); 
-                    else if (data.type === "ban") {
-                        alert("ВАС ЗАБАНИЛИ!");
-                        location.reload(); 
-                    }
+                    else if (data.type === "ban") { alert("ВАС ЗАБАНИЛИ!"); location.reload(); }
                     else if (data.type === "system") {
-                        var li = document.createElement('li');
-                        li.className = "system-msg";
-                        li.innerText = data.content;
-                        document.getElementById('messages').appendChild(li);
-                        loadDMs();
+                        var li = document.createElement('li'); li.className = "system-msg"; li.innerText = data.content;
+                        document.getElementById('messages').appendChild(li); loadDMs();
                     }
                     else if (data.type === "typing") {
                         if (data.channel === currentChannel && data.username !== username) {
                             var indicator = document.getElementById("typing-indicator");
                             indicator.innerHTML = `<b>${data.username}</b> печатает<span class="typing-dots">.</span><span class="typing-dots">.</span><span class="typing-dots">.</span>`;
                             indicator.classList.add("show");
-                            clearTimeout(typingTimeout);
-                            typingTimeout = setTimeout(() => { indicator.classList.remove("show"); }, 3000);
+                            clearTimeout(typingTimeout); typingTimeout = setTimeout(() => { indicator.classList.remove("show"); }, 3000);
                         }
                     }
                     else if (data.channel === currentChannel) {
                         addMessageToUI(data);
-                        if(data.username !== username) {
-                            document.getElementById("typing-indicator").classList.remove("show");
-                            // !!! ВКЛЮЧАЕМ ЗВУК, ЕСЛИ ЭТО НЕ МЫ !!!
-                            playNotification();
-                        }
+                        if(data.username !== username) { document.getElementById("typing-indicator").classList.remove("show"); playNotification(); }
                     }
                 };
             }
-
-            function requestHistory() {
-                if(ws && ws.readyState === WebSocket.OPEN && currentChannel) {
-                    ws.send(JSON.stringify({type: "history", channel: currentChannel}));
+            
+            // НОВАЯ ФУНКЦИЯ: ОБНОВИТЬ СТАТУС
+            function updateStatus(targetUsername, status) {
+                var dot = document.getElementById("status-" + targetUsername);
+                if (dot) {
+                    dot.style.display = (status === 'online') ? 'inline-block' : 'none';
                 }
             }
+
+            function requestHistory() { if(ws && ws.readyState === WebSocket.OPEN && currentChannel) ws.send(JSON.stringify({type: "history", channel: currentChannel})); }
 
             function addMessageToUI(data) {
                 var messages = document.getElementById('messages');
                 if (document.getElementById("msg-" + data.id)) return;
-                var li = document.createElement('li');
-                li.className = "message";
-                li.id = "msg-" + data.id;
+                var li = document.createElement('li'); li.className = "message"; li.id = "msg-" + data.id;
                 var contentHtml = "";
-
-                if (data.content.startsWith("data:image")) {
-                    contentHtml = `<img src="${data.content}" class="chat-image" onclick="document.getElementById('image-modal').style.display='flex';document.getElementById('modal-img').src=this.src;">`;
-                } 
+                if (data.content.startsWith("data:image")) contentHtml = `<img src="${data.content}" class="chat-image" onclick="document.getElementById('image-modal').style.display='flex';document.getElementById('modal-img').src=this.src;">`;
                 else if (data.content.startsWith("data:audio")) {
-                    var audioId = "audio-" + data.id;
-                    var btnId = "btn-" + data.id;
-                    var progId = "prog-" + data.id;
-                    var timeId = "time-" + data.id;
-                    contentHtml = `
-                    <div class="audio-player">
-                        <audio id="${audioId}" src="${data.content}" preload="metadata" ontimeupdate="updateAudioProgress(${data.id})" onended="resetAudio(${data.id})" onloadedmetadata="setAudioDuration(${data.id})"></audio>
-                        <div id="${btnId}" class="play-btn" onclick="toggleAudio(${data.id})">${ICONS.play}</div>
-                        <div class="audio-track-container">
-                            <div class="audio-track" onclick="seekAudio(event, ${data.id})">
-                                <div id="${progId}" class="audio-progress"></div>
-                            </div>
-                        </div>
-                        <div id="${timeId}" class="audio-time">0:00</div>
-                    </div>`;
-                }
-                else {
-                    contentHtml = `<div class="text">${data.content}</div>`;
-                }
+                    contentHtml = `<div class="audio-player"><audio id="audio-${data.id}" src="${data.content}" preload="metadata" ontimeupdate="updateAudioProgress(${data.id})" onended="resetAudio(${data.id})" onloadedmetadata="setAudioDuration(${data.id})"></audio><div id="btn-${data.id}" class="play-btn" onclick="toggleAudio(${data.id})">${ICONS.play}</div><div class="audio-track-container"><div class="audio-track" onclick="seekAudio(event, ${data.id})"><div id="prog-${data.id}" class="audio-progress"></div></div></div><div id="time-${data.id}" class="audio-time">0:00</div></div>`;
+                } else contentHtml = `<div class="text">${data.content}</div>`;
 
-                var deleteBtn = "";
-                if (data.username === username || myIsAdmin) {
-                    deleteBtn = `<div class="delete-btn icon-btn icon-danger" onclick="deleteMessage(${data.id})">${ICONS.trash}</div>`;
-                }
+                var deleteBtn = (data.username === username || myIsAdmin) ? `<div class="delete-btn icon-btn icon-danger" onclick="deleteMessage(${data.id})">${ICONS.trash}</div>` : "";
+                var nameHtml = `<span class="username">${data.username}</span>` + (data.is_admin ? ICONS.crown : "");
+                var avatarSrc = (!data.avatar_url || data.avatar_url.includes("discordapp")) ? getDefaultAvatar(data.username) : data.avatar_url;
                 
-                var nameHtml = `<span class="username">${data.username}</span>`;
-                if (data.is_admin) nameHtml += ICONS.crown;
-
-                var avatarSrc = data.avatar_url;
-                if (!avatarSrc || avatarSrc.includes("discordapp")) {
-                    avatarSrc = getDefaultAvatar(data.username);
-                }
-                
-                li.innerHTML = `
-                    <img class="avatar" src="${avatarSrc}" onclick="viewUserProfile('${data.username}')">
-                    <div class="content">
-                        <div class="username-row">
-                            ${nameHtml}
-                            <span class="timestamp">${data.created_at}</span>
-                            <span class="bio-tag">${data.bio || ""}</span>
-                        </div>
-                        ${contentHtml}
-                    </div>
-                    ${deleteBtn}
-                `;
-                messages.appendChild(li);
-                messages.scrollTop = messages.scrollHeight;
+                li.innerHTML = `<img class="avatar" src="${avatarSrc}" onclick="viewUserProfile('${data.username}')"><div class="content"><div class="username-row">${nameHtml}<span class="timestamp">${data.created_at}</span><span class="bio-tag">${data.bio || ""}</span></div>${contentHtml}</div>${deleteBtn}`;
+                messages.appendChild(li); messages.scrollTop = messages.scrollHeight;
             }
 
-            // ... ОСТАЛЬНЫЕ ФУНКЦИИ (AUDIO, ETC) БЕЗ ИЗМЕНЕНИЙ ...
             window.toggleAudio = function(id) {
-                var audio = document.getElementById('audio-' + id);
-                var btn = document.getElementById('btn-' + id);
-                document.querySelectorAll('audio').forEach(a => {
-                    if(a.id !== 'audio-'+id) {
-                        a.pause();
-                        var otherId = a.id.split('-')[1];
-                        document.getElementById('btn-'+otherId).innerHTML = ICONS.play;
-                    }
-                });
-                if (audio.paused) {
-                    audio.play();
-                    btn.innerHTML = ICONS.pause;
-                    btn.style.boxShadow = "0 0 15px var(--accent-primary)";
-                } else {
-                    audio.pause();
-                    btn.innerHTML = ICONS.play;
-                    btn.style.boxShadow = "none";
-                }
+                var audio = document.getElementById('audio-' + id); var btn = document.getElementById('btn-' + id);
+                document.querySelectorAll('audio').forEach(a => { if(a.id !== 'audio-'+id) { a.pause(); document.getElementById('btn-'+a.id.split('-')[1]).innerHTML = ICONS.play; } });
+                if (audio.paused) { audio.play(); btn.innerHTML = ICONS.pause; btn.style.boxShadow = "0 0 15px var(--accent-primary)"; } else { audio.pause(); btn.innerHTML = ICONS.play; btn.style.boxShadow = "none"; }
             };
-
-            window.updateAudioProgress = function(id) {
-                var audio = document.getElementById('audio-' + id);
-                var prog = document.getElementById('prog-' + id);
-                var time = document.getElementById('time-' + id);
-                if (audio.duration) {
-                    var percent = (audio.currentTime / audio.duration) * 100;
-                    prog.style.width = percent + "%";
-                    var mins = Math.floor(audio.currentTime / 60);
-                    var secs = Math.floor(audio.currentTime % 60);
-                    if (secs < 10) secs = '0' + secs;
-                    time.innerText = mins + ':' + secs;
-                }
-            };
-            
-            window.setAudioDuration = function(id) {
-                 var audio = document.getElementById('audio-' + id);
-                 var time = document.getElementById('time-' + id);
-                 if(audio.duration && !isNaN(audio.duration)) {
-                    var mins = Math.floor(audio.duration / 60);
-                    var secs = Math.floor(audio.duration % 60);
-                    if (secs < 10) secs = '0' + secs;
-                    time.innerText = mins + ':' + secs;
-                 }
-            };
-
-            window.resetAudio = function(id) {
-                var btn = document.getElementById('btn-' + id);
-                var prog = document.getElementById('prog-' + id);
-                btn.innerHTML = ICONS.play;
-                btn.style.boxShadow = "none";
-                prog.style.width = "0%";
-            };
-
-            window.seekAudio = function(e, id) {
-                var audio = document.getElementById('audio-' + id);
-                var track = e.currentTarget;
-                var clickX = e.offsetX;
-                var width = track.clientWidth;
-                var duration = audio.duration;
-                audio.currentTime = (clickX / width) * duration;
-            };
-
-            function deleteMessage(id) {
-                if(confirm("Удалить сообщение?")) ws.send(JSON.stringify({type: "delete", message_id: id}));
-            }
-            
-            function banUser(targetName) {
-                if(confirm(`ВЫ ТОЧНО ХОТИТЕ ЗАБАНИТЬ ${targetName} НАВСЕГДА?`)) {
-                    ws.send(JSON.stringify({type: "ban_user", target: targetName}));
-                }
-            }
-            
-            function handleFileSelect(input) {
-                if (input.files[0]) compressImage(input.files[0], base64 => { if (ws) ws.send(JSON.stringify({type: "message", channel: currentChannel, username: username, content: base64})); });
-                input.value = '';
-            }
-            function sendMessage(event) {
-                event.preventDefault();
-                var input = document.getElementById("messageText");
-                if (input.value.trim() !== "" && ws && currentChannel) {
-                    ws.send(JSON.stringify({type: "message", channel: currentChannel, username: username, content: input.value}));
-                    input.value = '';
-                }
-            }
+            window.updateAudioProgress = function(id) { var audio = document.getElementById('audio-' + id); if (audio.duration) document.getElementById('prog-' + id).style.width = ((audio.currentTime / audio.duration) * 100) + "%"; var m=Math.floor(audio.currentTime/60); var s=Math.floor(audio.currentTime%60); document.getElementById('time-' + id).innerText = m+':'+(s<10?'0'+s:s); };
+            window.setAudioDuration = function(id) { var audio = document.getElementById('audio-' + id); if(audio.duration) { var m=Math.floor(audio.duration/60); var s=Math.floor(audio.duration%60); document.getElementById('time-' + id).innerText = m+':'+(s<10?'0'+s:s); } };
+            window.resetAudio = function(id) { document.getElementById('btn-' + id).innerHTML = ICONS.play; document.getElementById('btn-' + id).style.boxShadow = "none"; document.getElementById('prog-' + id).style.width = "0%"; };
+            window.seekAudio = function(e, id) { var audio = document.getElementById('audio-' + id); audio.currentTime = (e.offsetX / e.currentTarget.clientWidth) * audio.duration; };
+            function deleteMessage(id) { if(confirm("Удалить сообщение?")) ws.send(JSON.stringify({type: "delete", message_id: id})); }
+            function banUser(targetName) { if(confirm(`ВЫ ТОЧНО ХОТИТЕ ЗАБАНИТЬ ${targetName} НАВСЕГДА?`)) ws.send(JSON.stringify({type: "ban_user", target: targetName})); }
+            function handleFileSelect(input) { if (input.files[0]) compressImage(input.files[0], base64 => { if (ws) ws.send(JSON.stringify({type: "message", channel: currentChannel, username: username, content: base64})); }); input.value = ''; }
+            function sendMessage(event) { event.preventDefault(); var input = document.getElementById("messageText"); if (input.value.trim() !== "" && ws && currentChannel) { ws.send(JSON.stringify({type: "message", channel: currentChannel, username: username, content: input.value})); input.value = ''; } }
             async function saveProfile() {
-                var newBio = document.getElementById("settings-bio").value;
-                var newAvatar = tempAvatarBase64 || currentUserAvatar;
-                
-                var realName = document.getElementById("settings-realname").value;
-                var location = document.getElementById("settings-location").value;
-                var birthDate = document.getElementById("settings-birthdate").value;
-                var socialLink = document.getElementById("settings-social").value;
-                
-                let response = await fetch("/update_profile", {
-                    method: "POST", headers: {"Content-Type": "application/json"}, 
-                    body: JSON.stringify({
-                        username: username, 
-                        bio: newBio, 
-                        avatar_url: newAvatar,
-                        real_name: realName,
-                        location: location,
-                        birth_date: birthDate,
-                        social_link: socialLink
-                    })
-                });
-                
-                if (response.ok) {
-                    let data = await response.json();
-                    myIsAdmin = data.is_admin;
-                    currentUserBio = data.bio;
-                    currentUserRealName = data.real_name;
-                    currentUserLocation = data.location;
-                    currentUserBirthDate = data.birth_date;
-                    currentUserSocial = data.social_link;
-                    updateMyProfileUI(newAvatar, data.bio);
-                    document.getElementById("settings-modal").style.display = "none";
-                    loadDMs();
-                    if(currentChannel) requestHistory(); 
-                } else { alert("Ошибка при сохранении!"); }
+                var newBio = document.getElementById("settings-bio").value; var newAvatar = tempAvatarBase64 || currentUserAvatar;
+                let response = await fetch("/update_profile", { method: "POST", headers: {"Content-Type": "application/json"}, 
+                    body: JSON.stringify({ username: username, bio: newBio, avatar_url: newAvatar, real_name: document.getElementById("settings-realname").value, location: document.getElementById("settings-location").value, birth_date: document.getElementById("settings-birthdate").value, social_link: document.getElementById("settings-social").value }) });
+                if (response.ok) { let data = await response.json(); myIsAdmin = data.is_admin; currentUserBio = data.bio; updateMyProfileUI(newAvatar, data.bio); document.getElementById("settings-modal").style.display = "none"; loadDMs(); if(currentChannel) requestHistory(); } else { alert("Ошибка при сохранении!"); }
             }
-            
-            function previewAvatar(input) {
-                if (input.files[0]) compressImage(input.files[0], base64 => { tempAvatarBase64 = base64; document.getElementById("settings-avatar-preview").src = tempAvatarBase64; });
-            }
-
-            document.getElementById("messageText").addEventListener("input", function() {
-                var now = Date.now();
-                if (now - lastTypingSent > 2000 && ws && currentChannel) {
-                    ws.send(JSON.stringify({type: "typing", channel: currentChannel, username: username}));
-                    lastTypingSent = now;
-                }
-            });
+            function previewAvatar(input) { if (input.files[0]) compressImage(input.files[0], base64 => { tempAvatarBase64 = base64; document.getElementById("settings-avatar-preview").src = tempAvatarBase64; }); }
+            document.getElementById("messageText").addEventListener("input", function() { var now = Date.now(); if (now - lastTypingSent > 2000 && ws && currentChannel) { ws.send(JSON.stringify({type: "typing", channel: currentChannel, username: username})); lastTypingSent = now; } });
         </script>
     </body>
 </html>
