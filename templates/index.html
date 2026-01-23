@@ -40,19 +40,71 @@
             .icon-btn:hover { color: var(--accent-primary); background: var(--glass); }
             .icon-danger:hover { color: var(--danger); background: rgba(255, 65, 108, 0.1); }
             
-            .status-dot { width: 10px; height: 10px; background: var(--success); border-radius: 50%; display: inline-block; margin-left: 8px; box-shadow: 0 0 8px var(--success); display: none; }
+            .status-dot { width: 8px; height: 8px; background: var(--success); border-radius: 50%; display: inline-block; margin-left: 6px; box-shadow: 0 0 5px var(--success); display: none; vertical-align: middle;}
 
-            /* --- НОВЫЕ СТИЛИ СООБЩЕНИЙ (ПУЗЫРИ) --- */
+            /* --- СТИЛИ САЙДБАРА (ИСПРАВЛЕННЫЕ) --- */
+            .sidebar { 
+                width: 260px; background: rgba(15, 12, 41, 0.98); 
+                border-right: 1px solid var(--glass-border);
+                display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; 
+                transition: transform 0.3s ease; 
+            }
+            
+            .sidebar-title { 
+                font-weight: 800; padding: 20px 15px 10px 15px; 
+                color: var(--text-dim); font-size: 11px; letter-spacing: 2px;
+                text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; 
+            }
+            
+            .channel { 
+                padding: 8px 12px; margin: 2px 10px; border-radius: 8px; cursor: pointer; 
+                color: var(--text-dim); font-weight: 600; display: flex; align-items: center; 
+                position: relative; transition: 0.2s; font-size: 14px;
+            }
+            .channel:hover { background: var(--glass); color: white; }
+            .channel.active { 
+                background: linear-gradient(90deg, rgba(0, 210, 255, 0.1), transparent); 
+                color: white; border-left: 3px solid var(--accent-primary);
+            }
+            
+            /* Аватарки в списке контактов - делаем их маленькими и круглыми */
+            .dm-avatar { 
+                width: 32px; height: 32px; 
+                min-width: 32px; /* Чтобы не сжимались */
+                border-radius: 50%; /* Круг */
+                margin-right: 10px; 
+                background: linear-gradient(135deg, #667eea, #764ba2); 
+                object-fit: cover;
+                border: 1px solid rgba(255,255,255,0.1);
+            }
+
+            /* Панель моего профиля внизу */
+            .user-panel { 
+                background: rgba(0,0,0,0.3); padding: 12px 15px; display: flex; align-items: center; cursor: pointer; 
+                margin-top: auto; border-top: 1px solid var(--glass-border);
+                position: relative; z-index: 50; 
+            }
+            .user-panel:hover { background: rgba(0,0,0,0.5); }
+
+            .my-avatar { 
+                width: 38px; height: 38px; 
+                min-width: 38px;
+                border-radius: 50%; 
+                background-color: #5865f2; margin-right: 10px; 
+                object-fit: cover; border: 2px solid rgba(255,255,255,0.1); 
+            }
+            .my-info { flex-grow: 1; overflow: hidden; display: flex; flex-direction: column; justify-content: center; }
+            .my-name { font-weight: bold; font-size: 14px; color: white; line-height: 1.2; display: flex; align-items: center;}
+            .my-bio { font-size: 11px; color: var(--accent-primary); opacity: 0.8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+
+            /* --- СТИЛИ СООБЩЕНИЙ --- */
             #messages { 
                 list-style-type: none; margin: 0; padding: 20px; 
                 flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; 
             }
             
-            .msg-row {
-                display: flex; width: 100%; align-items: flex-end;
-            }
+            .msg-row { display: flex; width: 100%; align-items: flex-end; }
             
-            /* Чужие сообщения (Слева) */
             .msg-row.other { justify-content: flex-start; }
             .msg-row.other .msg-bubble {
                 background: rgba(255, 255, 255, 0.08);
@@ -61,42 +113,30 @@
                 margin-left: 8px;
             }
             
-            /* Мои сообщения (Справа) */
             .msg-row.me { justify-content: flex-end; }
-            .msg-row.me .avatar { display: none; } /* Скрываем аватарку у себя */
+            .msg-row.me .avatar { display: none; } 
             .msg-row.me .msg-bubble {
                 background: linear-gradient(135deg, var(--accent-secondary), var(--accent-primary));
-                color: #0f0c29; /* Темный текст на ярком фоне */
+                color: #0f0c29; 
                 border-bottom-right-radius: 4px;
                 box-shadow: 0 4px 15px rgba(0, 210, 255, 0.2);
             }
-            .msg-row.me .username { display: none; } /* Скрываем имя у себя */
+            .msg-row.me .username { display: none; }
             .msg-row.me .timestamp { color: rgba(15, 12, 41, 0.6); }
             .msg-row.me .text { color: #0f0c29; font-weight: 500; }
             
-            .msg-bubble {
-                max-width: 75%;
-                padding: 10px 14px;
-                border-radius: 18px;
-                position: relative;
-                word-wrap: break-word;
-            }
-            
-            .avatar { width: 36px; height: 36px; border-radius: 12px; background-color: #5865f2; flex-shrink: 0; object-fit: cover; cursor: pointer; margin-bottom: 2px;}
-            
+            .msg-bubble { max-width: 75%; padding: 10px 14px; border-radius: 18px; position: relative; word-wrap: break-word; }
+            .avatar { width: 36px; height: 36px; border-radius: 50%; background-color: #5865f2; flex-shrink: 0; object-fit: cover; cursor: pointer; margin-bottom: 2px;}
             .username { font-weight: 700; font-size: 13px; color: var(--accent-primary); margin-bottom: 2px; display: block; cursor: pointer; }
             .timestamp { font-size: 10px; color: var(--text-dim); margin-left: 8px; float: right; margin-top: 4px;}
             .text { font-size: 15px; line-height: 1.4; }
             .chat-image { max-width: 100%; border-radius: 10px; margin-top: 5px; cursor: pointer; }
 
-            .delete-btn { 
-                opacity: 0; transition: 0.2s; cursor: pointer; margin: 0 8px; padding: 5px;
-                color: var(--text-dim); align-self: center;
-            }
+            .delete-btn { opacity: 0; transition: 0.2s; cursor: pointer; margin: 0 8px; padding: 5px; color: var(--text-dim); align-self: center; }
             .delete-btn:hover { color: var(--danger); transform: scale(1.1); }
             .msg-row:hover .delete-btn { opacity: 1; }
 
-            /* --- СТАРЫЕ СТИЛИ ИНТЕРФЕЙСА --- */
+            /* --- ОБЩИЕ СТИЛИ --- */
             #login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; width: 100%; background: radial-gradient(circle at center, #302b63 0%, #0f0c29 100%); z-index: 200; position: absolute; top: 0; left: 0; }
             .logo-container { display: flex; flex-direction: column; align-items: center; margin-bottom: 25px; }
             .logo-f { font-size: 110px; font-weight: 900; line-height: 1; background: linear-gradient(to bottom, #00ffff, #0055ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 25px rgba(0, 210, 255, 0.7)); transform: skewX(-10deg); }
@@ -109,14 +149,10 @@
             .btn-register { background: transparent; border: 1px solid var(--glass-border); }
             .error-msg { color: var(--danger); font-size: 14px; margin-bottom: 15px; display: none; }
             #app-container { display: none; width: 100%; height: 100%; }
-            .sidebar { width: 260px; background: rgba(15, 12, 41, 0.95); border-right: 1px solid var(--glass-border); display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; transition: transform 0.3s ease; }
-            .sidebar-title { font-weight: 800; padding: 20px 15px 10px 15px; color: var(--text-dim); font-size: 12px; letter-spacing: 2px; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; }
-            .channel { padding: 12px 15px; margin: 4px 10px; border-radius: 8px; cursor: pointer; color: var(--text-dim); font-weight: 600; display: flex; align-items: center; position: relative; transition: 0.2s; font-size: 15px; }
-            .channel:hover { background: var(--glass); color: white; }
-            .channel.active { background: linear-gradient(90deg, rgba(0, 210, 255, 0.1), transparent); color: var(--accent-primary); border-left: 3px solid var(--accent-primary); }
+            .add-btn { cursor: pointer; color: var(--accent-primary); transition: 0.2s; display: flex; align-items: center;}
+            .add-btn:hover { text-shadow: 0 0 10px var(--accent-primary); transform: scale(1.1); }
             .sidebar-ban-btn { display: none; margin-left: auto; color: var(--danger); }
             .channel:hover .sidebar-ban-btn { display: block; }
-            .user-panel { background: rgba(0,0,0,0.4); padding: 15px; display: flex; align-items: center; cursor: pointer; margin-top: auto; border-top: 1px solid var(--glass-border); position: relative; z-index: 50; }
             .settings-btn { color: var(--text-dim); cursor: pointer; transition: 0.2s; margin-left: auto;}
             .chat-area { flex-grow: 1; display: flex; flex-direction: column; background: radial-gradient(circle at top right, #1a163a 0%, #0f0c29 60%); min-width: 0; width: 100%; position: relative; }
             .chat-header { height: 60px; border-bottom: 1px solid var(--glass-border); display: flex; align-items: center; padding: 0 20px; font-weight: 800; color: white; flex-shrink: 0; font-size: 18px; letter-spacing: 0.5px; background: rgba(15, 12, 41, 0.8); backdrop-filter: blur(10px); z-index: 10; }
@@ -139,14 +175,25 @@
             .input-wrapper:focus-within { border-color: var(--accent-primary); box-shadow: 0 0 15px rgba(0, 210, 255, 0.15); }
             input[type="text"] { flex-grow: 1; padding: 12px; border: none; background: transparent; color: white; outline: none; font-size: 16px; width: 100%; font-family: 'Exo 2', sans-serif;}
             .file-btn, .mic-btn { cursor: pointer; color: var(--text-dim); padding: 10px; flex-shrink: 0; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
-            .mic-btn.recording { color: var(--danger); animation: pulse 1s infinite; }
-            
-            /* Модалки и прочее без изменений */
+            .file-btn:hover, .mic-btn:hover { color: white; }
+            .mic-btn.recording { color: var(--danger); animation: pulse 1s infinite; filter: drop-shadow(0 0 5px var(--danger)); }
+            @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
+
             .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); backdrop-filter: blur(5px); justify-content: center; align-items: center; }
             .modal-content { background: #1a163a; padding: 30px; border-radius: 16px; width: 90%; max-width: 420px; text-align: center; position: relative; border: 1px solid var(--glass-border); box-shadow: 0 20px 60px rgba(0,0,0,0.6); color: white; max-height: 90vh; overflow-y: auto; }
+            .modal-content h2 { margin-top: 0; color: var(--accent-primary); }
+            #modal-img { max-width: 100%; max-height: 80vh; border-radius: 8px; }
             .close-btn { position: absolute; top: 15px; right: 20px; color: var(--text-dim); font-size: 24px; cursor: pointer; }
-            .profile-preview { width: 100px; height: 100px; border-radius: 25px; background: #5865f2; margin: 0 auto 20px; object-fit: cover; border: 3px solid var(--accent-primary); }
+            .profile-preview { width: 100px; height: 100px; border-radius: 25px; background: #5865f2; margin: 0 auto 20px; object-fit: cover; border: 3px solid var(--accent-primary); box-shadow: 0 0 20px rgba(0, 210, 255, 0.3); }
             .settings-input { width: 100%; padding: 12px; margin-bottom: 15px; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); color: white; border-radius: 8px; outline: none; font-family: 'Exo 2', sans-serif;}
+            .settings-input:focus { border-color: var(--accent-secondary); }
+            .input-label { text-align: left; color: var(--text-dim); font-size: 12px; margin-bottom: 5px; display: block; margin-left: 2px; }
+            
+            .view-profile-info { text-align: left; margin-top: 15px; }
+            .view-profile-item { margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 5px; }
+            .view-label { font-size: 11px; color: var(--accent-secondary); text-transform: uppercase; font-weight: bold; }
+            .view-value { font-size: 15px; color: white; margin-top: 2px; }
+            .profile-header-name { font-size: 22px; font-weight: 800; color: white; display: flex; align-items: center; justify-content: center; gap: 5px;}
             
             @media (max-width: 768px) {
                 .sidebar { position: absolute; z-index: 100; height: 100%; width: 280px; transform: translateX(-100%); box-shadow: 10px 0 30px rgba(0,0,0,0.8); }
@@ -154,24 +201,26 @@
                 .hamburger { display: block; } 
                 #overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 90; backdrop-filter: blur(2px); }
                 #overlay.show { display: block; }
+                form { padding: 10px; }
+                .delete-btn { opacity: 1 !important; }
                 .msg-bubble { max-width: 85%; }
             }
         </style>
     </head>
     <body>
-        <div id="image-modal" class="modal" onclick="this.style.display='none'"><span class="close-btn">&times;</span><img id="modal-img" style="max-width:100%;max-height:80vh;border-radius:8px;"></div>
+        <div id="image-modal" class="modal" onclick="this.style.display='none'"><span class="close-btn">&times;</span><img id="modal-img"></div>
         
         <div id="user-profile-modal" class="modal">
             <div class="modal-content">
                 <span class="close-btn" onclick="document.getElementById('user-profile-modal').style.display='none'">&times;</span>
                 <img id="view-avatar" class="profile-preview" src="">
-                <div id="view-username" style="font-size:22px;font-weight:800;margin-top:10px;">Username</div>
+                <div id="view-username" class="profile-header-name">Username</div>
                 <div id="view-bio" style="color:var(--text-dim);margin-bottom:20px;font-style:italic;">Bio</div>
-                <div style="text-align:left;">
-                    <div style="margin-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.1);"><div style="font-size:11px;color:var(--accent-secondary);text-transform:uppercase;">Имя</div><div id="view-realname" style="font-size:15px;color:white;"></div></div>
-                    <div style="margin-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.1);"><div style="font-size:11px;color:var(--accent-secondary);text-transform:uppercase;">Город</div><div id="view-location" style="font-size:15px;color:white;"></div></div>
-                    <div style="margin-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.1);"><div style="font-size:11px;color:var(--accent-secondary);text-transform:uppercase;">Дата Рождения</div><div id="view-birthdate" style="font-size:15px;color:white;"></div></div>
-                    <div><div style="font-size:11px;color:var(--accent-secondary);text-transform:uppercase;">Соцсети</div><div id="view-social" style="font-size:15px;color:var(--accent-primary);"></div></div>
+                <div class="view-profile-info">
+                    <div class="view-profile-item"><div class="view-label">Имя</div><div id="view-realname" class="view-value"></div></div>
+                    <div class="view-profile-item"><div class="view-label">Город</div><div id="view-location" class="view-value"></div></div>
+                    <div class="view-profile-item"><div class="view-label">Дата Рождения</div><div id="view-birthdate" class="view-value"></div></div>
+                    <div class="view-profile-item" style="border:none;"><div class="view-label">Соцсети</div><div id="view-social" class="view-value" style="color:var(--accent-primary);"></div></div>
                 </div>
             </div>
         </div>
@@ -254,7 +303,6 @@
             function closeSidebarOnMobile() { if (window.innerWidth <= 768) toggleSidebar(); }
             function openSettings() { document.getElementById("settings-modal").style.display = 'flex'; document.getElementById("settings-avatar-preview").src = currentUserAvatar; document.getElementById("settings-bio").value = document.getElementById("my-bio-text").innerText; }
             
-            // --- ОСНОВНАЯ ЛОГИКА ---
             async function auth(type) {
                 var user = document.getElementById("usernameInput").value; var pass = document.getElementById("passwordInput").value;
                 if (!user || !pass) return;
@@ -266,7 +314,6 @@
                         loadDMs(); loadGroups(); loadRequests();
                         document.getElementById("login-screen").style.display = "none"; document.getElementById("app-container").style.display = "flex";
                         connectWebSocket();
-                        // Заполняем поля настроек
                         document.getElementById("settings-realname").value = data.real_name || "";
                         document.getElementById("settings-location").value = data.location || "";
                         document.getElementById("settings-birthdate").value = data.birth_date || "";
@@ -329,26 +376,16 @@
                         <div class="timestamp">${data.created_at}</div>
                     </div>`;
 
-                if (isMe) {
-                    // Моё сообщение: сначала удаление, потом пузырь
-                    row.innerHTML = deleteBtn + bubbleHtml; 
-                } else {
-                    // Чужое: аватар, пузырь, удаление
-                    row.innerHTML = avatarHtml + bubbleHtml + deleteBtn;
-                }
-                
-                list.appendChild(row);
-                list.scrollTop = list.scrollHeight;
+                if (isMe) { row.innerHTML = deleteBtn + bubbleHtml; } else { row.innerHTML = avatarHtml + bubbleHtml + deleteBtn; }
+                list.appendChild(row); list.scrollTop = list.scrollHeight;
             }
 
-            // Вспомогательные функции (без изменений логики)
             function requestHistory() { if(ws && ws.readyState === WebSocket.OPEN && currentChannel) ws.send(JSON.stringify({type: "history", channel: currentChannel})); }
             function sendMessage(e) { e.preventDefault(); var inp = document.getElementById("messageText"); if(inp.value.trim()){ ws.send(JSON.stringify({type:"message", channel:currentChannel, username:username, content:inp.value})); inp.value=''; } }
             function handleFileSelect(inp) { if(inp.files[0]) compressImage(inp.files[0], b64 => ws.send(JSON.stringify({type:"message", channel:currentChannel, username:username, content:b64}))); inp.value=''; }
             function deleteMessage(id) { if(confirm("Удалить?")) ws.send(JSON.stringify({type:"delete", message_id:id})); }
             function updateStatus(u, s) { var d = document.getElementById("status-"+u); if(d) d.style.display = (s==='online'?'inline-block':'none'); }
             
-            // Загрузка списков (DMs, Groups)
             async function loadDMs() {
                 let res = await fetch("/get_dms?username=" + username); let dms = await res.json();
                 var list = document.getElementById("dm-list"); list.innerHTML = "";
@@ -379,7 +416,6 @@
                     list.appendChild(d);
                 });
             }
-            // Просмотр профиля
             async function viewUserProfile(u) {
                 try { let r = await fetch("/get_profile?username="+u); if(!r.ok) return; let d = await r.json();
                 document.getElementById("view-avatar").src = d.avatar_url || getDefaultAvatar(d.username);
@@ -392,7 +428,6 @@
                 document.getElementById("user-profile-modal").style.display="flex";
                 } catch(e){}
             }
-            // Сохранение профиля
             async function saveProfile() {
                 let body = {
                     username: username, bio: document.getElementById("settings-bio").value, avatar_url: tempAvatarBase64 || currentUserAvatar,
@@ -403,7 +438,6 @@
                 if(res.ok) { let d=await res.json(); updateMyProfileUI(body.avatar_url, d.bio); document.getElementById("settings-modal").style.display="none"; }
             }
             
-            // Аудио плеер логика
             window.toggleAudio = function(id) { var a=document.getElementById('audio-'+id); var b=document.getElementById('btn-'+id); if(a.paused){a.play();b.innerText=ICONS.pause;}else{a.pause();b.innerText=ICONS.play;} };
             window.updateAudioProgress = function(id) { var a=document.getElementById('audio-'+id); if(a.duration) document.getElementById('prog-'+id).style.width=((a.currentTime/a.duration)*100)+'%'; };
             window.setAudioDuration = function(id) { var a=document.getElementById('audio-'+id); if(a.duration) { var m=Math.floor(a.duration/60), s=Math.floor(a.duration%60); document.getElementById('time-'+id).innerText=m+':'+(s<10?'0'+s:s); } };
