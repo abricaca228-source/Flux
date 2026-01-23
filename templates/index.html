@@ -3,6 +3,14 @@
     <head>
         <title>Flux</title>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+        
+        <link rel="manifest" href="/static/manifest.json">
+        <link rel="icon" type="image/png" href="/static/icon.png">
+        <link rel="apple-touch-icon" href="/static/icon.png">
+        <meta name="theme-color" content="#0f0c29">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
         <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;800&display=swap" rel="stylesheet">
         <style>
             :root {
@@ -34,16 +42,7 @@
             .icon-danger:hover { color: var(--danger); background: rgba(255, 65, 108, 0.1); }
             .icon-success:hover { color: var(--success); background: rgba(0, 242, 96, 0.1); }
             
-            /* --- СТАТУС ОНЛАЙН --- */
-            .status-dot {
-                width: 10px; height: 10px; 
-                background: var(--success); 
-                border-radius: 50%; 
-                display: inline-block; 
-                margin-left: 8px;
-                box-shadow: 0 0 8px var(--success);
-                display: none; /* Скрыт по умолчанию */
-            }
+            .status-dot { width: 10px; height: 10px; background: var(--success); border-radius: 50%; display: inline-block; margin-left: 8px; box-shadow: 0 0 8px var(--success); display: none; }
 
             #login-screen { 
                 display: flex; flex-direction: column; align-items: center; justify-content: center; 
@@ -527,7 +526,7 @@
                 var banBtnHtml = myIsAdmin ? `<span class="sidebar-ban-btn icon-btn" onclick="event.stopPropagation(); banUser('${friendName}')" title="ЗАБАНИТЬ">${ICONS.ban}</span>` : "";
                 var avatarUrl = getDefaultAvatar(friendName);
                 
-                // Добавляем ЗЕЛЕНУЮ ТОЧКУ (hidden по умолчанию)
+                // ЗЕЛЕНАЯ ТОЧКА
                 div.innerHTML = `<img src="${avatarUrl}" class="dm-avatar" onclick="event.stopPropagation(); viewUserProfile('${friendName}')"> 
                                  <span style="flex-grow:1;">${friendName} <span id="status-${friendName}" class="status-dot"></span></span> ${banBtnHtml}`;
                 
@@ -600,11 +599,9 @@
                     var data = JSON.parse(event.data);
                     
                     if (data.type === "initial_status") {
-                        // КТО УЖЕ ОНЛАЙН
                         data.users.forEach(u => updateStatus(u, 'online'));
                     }
                     else if (data.type === "status") {
-                        // КТО-ТО ЗАШЕЛ ИЛИ ВЫШЕЛ
                         updateStatus(data.username, data.status);
                     }
                     else if (Array.isArray(data)) {
@@ -633,7 +630,6 @@
                 };
             }
             
-            // НОВАЯ ФУНКЦИЯ: ОБНОВИТЬ СТАТУС
             function updateStatus(targetUsername, status) {
                 var dot = document.getElementById("status-" + targetUsername);
                 if (dot) {

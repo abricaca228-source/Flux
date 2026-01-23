@@ -2,6 +2,7 @@ import json
 from datetime import datetime
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Request
 from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles  # <--- НОВЫЙ ИМПОРТ
 from pydantic import BaseModel
 from sqlalchemy import text
 from database import AsyncSessionLocal, init_db
@@ -10,6 +11,10 @@ from database import AsyncSessionLocal, init_db
 from passlib.context import CryptContext
 
 app = FastAPI()
+
+# !!! ПОДКЛЮЧАЕМ ПАПКУ STATIC (ДЛЯ ИКОНКИ И PWA) !!!
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 templates = Jinja2Templates(directory="templates")
 
 # Настройка шифрования (Argon2)
