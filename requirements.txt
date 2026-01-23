@@ -6,4 +6,5 @@ websockets
 sqlalchemy
 asyncpg
 pydantic
-passlib[argon2]
+passlib
+argon2-cffi
