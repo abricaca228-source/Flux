@@ -432,6 +432,10 @@
                 play: `<svg style="width:16px; height:16px; fill:currentColor; margin-left:2px;" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`,
                 pause: `<svg style="width:16px; height:16px; fill:currentColor;" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`
             };
+            
+            // ЗВУКОВОЙ ФАЙЛ
+            const notificationSound = new Audio("https://cdn.freesound.org/previews/235/235911_2391840-lq.mp3");
+            notificationSound.volume = 0.5;
 
             var ws = null;
             var username = "";
@@ -644,7 +648,6 @@
                 }
                 var avatarUrl = getDefaultAvatar(friendName);
                 
-                // ТЕПЕРЬ АВАТАРКА КЛИКАБЕЛЬНА (event.stopPropagation чтобы не открывался чат)
                 div.innerHTML = `<img src="${avatarUrl}" class="dm-avatar" onclick="event.stopPropagation(); viewUserProfile('${friendName}')"> <span style="flex-grow:1;">${friendName}</span> ${banBtnHtml}`;
                 var channelID = getDMChannelID(username, friendName);
                 div.onclick = function() { switchChannel(channelID, friendName, true); };
@@ -733,6 +736,12 @@
                     document.getElementById("mic-btn").classList.remove("recording");
                 }
             }
+            
+            // ФУНКЦИЯ ВОСПРОИЗВЕДЕНИЯ ЗВУКА
+            function playNotification() {
+                notificationSound.currentTime = 0;
+                notificationSound.play().catch(e => console.log("Сначала кликни по сайту, чтобы включить звук"));
+            }
 
             function connectWebSocket() {
                 var protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -774,7 +783,11 @@
                     }
                     else if (data.channel === currentChannel) {
                         addMessageToUI(data);
-                        if(data.username !== username) document.getElementById("typing-indicator").classList.remove("show");
+                        if(data.username !== username) {
+                            document.getElementById("typing-indicator").classList.remove("show");
+                            // !!! ВКЛЮЧАЕМ ЗВУК, ЕСЛИ ЭТО НЕ МЫ !!!
+                            playNotification();
+                        }
                     }
                 };
             }
@@ -830,7 +843,6 @@
                     avatarSrc = getDefaultAvatar(data.username);
                 }
                 
-                // АВАТАРКА В ЧАТЕ ТОЖЕ КЛИКАБЕЛЬНА
                 li.innerHTML = `
                     <img class="avatar" src="${avatarSrc}" onclick="viewUserProfile('${data.username}')">
                     <div class="content">
