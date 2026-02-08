@@ -8,29 +8,15 @@
         <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;800&display=swap" rel="stylesheet">
         
         <style>
-            /* --- ГЛОБАЛЬНЫЕ НАСТРОЙКИ --- */
-            :root { 
-                --bg-deep: #0f0c29; --bg-medium: #1a163a; --bg-light: #302b63; 
-                --accent-primary: #00d2ff; --accent-secondary: #3a7bd5; 
-                --text-main: #ffffff; --text-dim: #b8b8d0; 
-                --danger: #ff416c; --success: #00f260; 
-                --glass: rgba(255,255,255,0.05); --glass-border: rgba(255,255,255,0.1); 
-            }
+            /* --- ОСНОВА --- */
+            :root { --bg-deep:#0f0c29; --bg-medium:#1a163a; --bg-light:#302b63; --accent-primary:#00d2ff; --accent-secondary:#3a7bd5; --text-main:#ffffff; --text-dim:#b8b8d0; --danger:#ff416c; --success:#00f260; --glass:rgba(255,255,255,0.05); --glass-border:rgba(255,255,255,0.1); }
+            * { box-sizing: border-box; }
+            body { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background: linear-gradient(135deg, var(--bg-deep), #24243e); color: var(--text-main); font-family: 'Exo 2', sans-serif; }
             
-            html, body { 
-                margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; 
-                background: linear-gradient(135deg, var(--bg-deep), #24243e); 
-                color: var(--text-main); font-family: 'Exo 2', sans-serif;
-            }
-
             #app-container { display: none; width: 100%; height: 100%; display: flex; }
 
             /* --- САЙДБАР --- */
-            .sidebar { 
-                width: 280px; min-width: 280px; background: rgba(15, 12, 41, 0.98); 
-                border-right: 1px solid var(--glass-border); display: flex; flex-direction: column; 
-                height: 100%; overflow-y: auto; z-index: 20;
-            }
+            .sidebar { width: 280px; min-width: 280px; background: rgba(15, 12, 41, 0.98); border-right: 1px solid var(--glass-border); display: flex; flex-direction: column; height: 100%; overflow-y: auto; z-index: 20; }
             .sidebar-title { font-weight: 800; padding: 25px 20px 10px 20px; color: var(--text-dim); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; }
             .channel { padding: 10px 15px; margin: 2px 10px; border-radius: 12px; cursor: pointer; color: var(--text-dim); font-weight: 600; display: flex; align-items: center; transition: 0.2s; font-size: 14px; }
             .channel:hover { background: var(--glass); color: white; }
@@ -38,23 +24,11 @@
             .dm-avatar { width: 32px; height: 32px; min-width: 32px; border-radius: 50%; margin-right: 10px; background: linear-gradient(135deg, #667eea, #764ba2); object-fit: cover; }
             .user-panel { background: rgba(0,0,0,0.2); padding: 15px 20px; display: flex; align-items: center; cursor: pointer; margin-top: auto; border-top: 1px solid var(--glass-border); }
             .my-avatar { width: 38px; height: 38px; border-radius: 50%; background-color: #5865f2; margin-right: 10px; object-fit: cover; }
-            .my-info { flex-grow: 1; overflow: hidden; }
-            .my-name { font-weight: bold; font-size: 14px; }
-            .my-bio { font-size: 11px; color: var(--accent-primary); opacity: 0.8; }
+            .my-info { flex-grow: 1; overflow: hidden; } .my-name { font-weight: bold; font-size: 14px; } .my-bio { font-size: 11px; color: var(--accent-primary); opacity: 0.8; }
 
             /* --- ЧАТ --- */
-            .chat-area { 
-                flex-grow: 1; display: flex; flex-direction: column; 
-                background: radial-gradient(circle at top right, #1a163a 0%, #0f0c29 60%);
-                position: relative; width: 100%;
-            }
-            .chat-header { 
-                height: 65px; border-bottom: 1px solid var(--glass-border); 
-                display: flex; align-items: center; padding: 0 20px; 
-                font-weight: 800; color: white; flex-shrink: 0; 
-                background: rgba(15, 12, 41, 0.95); backdrop-filter: blur(10px); 
-                justify-content: space-between; z-index: 10;
-            }
+            .chat-area { flex-grow: 1; display: flex; flex-direction: column; background: radial-gradient(circle at top right, #1a163a 0%, #0f0c29 60%); position: relative; width: 100%; }
+            .chat-header { height: 65px; border-bottom: 1px solid var(--glass-border); display: flex; align-items: center; padding: 0 20px; font-weight: 800; color: white; flex-shrink: 0; background: rgba(15, 12, 41, 0.95); backdrop-filter: blur(10px); justify-content: space-between; z-index: 10; }
             .hamburger { display: none; margin-right: 15px; font-size: 24px; cursor: pointer; color: white; }
             .header-actions { display: flex; gap: 10px; align-items: center; }
             .add-member-header-btn { cursor: pointer; background: linear-gradient(90deg, var(--success), #00b09b); color: #0f0c29; font-weight: 800; padding: 6px 14px; border-radius: 20px; font-size: 12px; display: none; }
@@ -64,57 +38,52 @@
             /* --- СООБЩЕНИЯ --- */
             #messages { list-style-type: none; margin: 0; padding: 20px; flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
             .msg-row { display: flex; width: 100%; align-items: flex-end; position: relative; }
-            .msg-row.me { justify-content: flex-end; padding-right: 10px; } 
-            .msg-row.other { justify-content: flex-start; }
-            
-            .msg-bubble { 
-                max-width: 75%; padding: 10px 16px; border-radius: 18px; 
-                position: relative; word-wrap: break-word; font-size: 15px; line-height: 1.4; 
-                box-shadow: 0 2px 10px rgba(0,0,0,0.2); 
-            }
+            .msg-row.me { justify-content: flex-end; padding-right: 10px; } .msg-row.other { justify-content: flex-start; }
+            .msg-bubble { max-width: 75%; padding: 10px 16px; border-radius: 18px; position: relative; word-wrap: break-word; font-size: 15px; line-height: 1.4; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
             .msg-row.other .msg-bubble { background: rgba(255, 255, 255, 0.08); border: 1px solid var(--glass-border); border-bottom-left-radius: 4px; margin-left: 8px; }
             .msg-row.me .msg-bubble { background: linear-gradient(135deg, var(--accent-secondary), var(--accent-primary)); color: #0f0c29; border-bottom-right-radius: 4px; font-weight: 500; }
-            
             .avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; margin-bottom: 2px; cursor: pointer; flex-shrink: 0;}
             .msg-row.me .avatar { display: none; }
-            
             .username { font-weight: 700; font-size: 12px; color: var(--accent-primary); margin-bottom: 3px; display: block; cursor: pointer; }
             .timestamp { font-size: 10px; color: rgba(255,255,255,0.5); margin-left: 8px; float: right; margin-top: 5px; }
             .msg-row.me .timestamp { color: rgba(15, 12, 41, 0.6); }
             .edited-label { font-size: 9px; opacity: 0.7; font-style: italic; margin-left: 4px; }
 
-            /* РЕАКЦИИ И ДЕЙСТВИЯ */
-            .msg-actions { 
-                position: absolute; bottom: -25px; 
-                display: flex; gap: 5px; opacity: 0; transition: 0.2s; z-index: 10;
-                background: rgba(15, 12, 41, 0.9); padding: 4px 8px; border-radius: 20px; border: 1px solid var(--glass-border);
-            }
-            .msg-row.me .msg-actions { right: 10px; }
-            .msg-row.other .msg-actions { left: 50px; }
-            .msg-row:hover .msg-actions { opacity: 1; bottom: -15px; }
-            
-            .action-btn { cursor: pointer; font-size: 14px; transition: 0.2s; padding: 2px; }
+            /* --- ПЛЕЕР И АНИМАЦИЯ --- */
+            .audio-player { display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 12px; min-width: 240px; margin-top: 5px; }
+            .msg-row.me .audio-player { background: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.3); }
+            .play-btn { width: 30px; height: 30px; border-radius: 50%; background: white; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--accent-primary); flex-shrink: 0; font-size: 12px; }
+            .audio-track-container { flex-grow: 1; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; position: relative; cursor: pointer; }
+            .audio-progress { height: 100%; width: 0%; background: white; border-radius: 2px; transition: width 0.1s linear; position: relative; }
+            .audio-progress::after { content: ''; position: absolute; right: -4px; top: -3px; width: 10px; height: 10px; background: white; border-radius: 50%; box-shadow: 0 0 5px rgba(0,0,0,0.5); }
+            .audio-time { font-size: 10px; width: 35px; text-align: right; opacity: 0.8; font-family: monospace; }
+
+            /* --- РЕАКЦИИ (ВИЗУАЛ) --- */
+            .reactions-display { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; justify-content: flex-end; }
+            .msg-row.other .reactions-display { justify-content: flex-start; }
+            .reaction-pill { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 2px 6px; font-size: 11px; cursor: pointer; transition: 0.2s; color: white; user-select: none; }
+            .msg-row.me .reaction-pill { background: rgba(255,255,255,0.25); color: #0f0c29; border-color: rgba(0,0,0,0.1); }
+            .reaction-pill:hover { transform: scale(1.1); }
+
+            /* МЕНЮ ДЕЙСТВИЙ */
+            .msg-actions { position: absolute; bottom: -30px; display: flex; gap: 5px; opacity: 0; transition: 0.2s; z-index: 10; background: rgba(15, 12, 41, 0.95); padding: 5px 10px; border-radius: 20px; border: 1px solid var(--accent-primary); box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+            .msg-row.me .msg-actions { right: 10px; } .msg-row.other .msg-actions { left: 50px; }
+            .msg-row:hover .msg-actions { opacity: 1; bottom: -20px; }
+            .action-btn { cursor: pointer; font-size: 16px; transition: 0.2s; padding: 2px; }
             .action-btn:hover { transform: scale(1.3); }
 
-            /* --- ВВОД (FIXED MIC) --- */
+            /* ВВОД */
             form { padding: 0 20px 20px 20px; margin: 0; width: 100%; flex-shrink: 0; position: relative; }
             .input-wrapper { background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); border-radius: 24px; display: flex; align-items: center; padding: 5px 10px; width: 100%; backdrop-filter: blur(10px); }
             .input-wrapper.editing { border-color: var(--success); box-shadow: 0 0 10px rgba(0, 242, 96, 0.2); }
             input[type="text"] { flex-grow: 1; padding: 12px; border: none; background: transparent; color: white; outline: none; font-size: 16px; font-family: 'Exo 2'; }
             
-            /* КНОПКИ ВВОДА */
-            .icon-btn-input { 
-                width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; 
-                cursor: pointer; color: var(--text-dim); border-radius: 50%; transition: 0.2s; 
-                flex-shrink: 0;
-            }
+            .icon-btn-input { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-dim); border-radius: 50%; transition: 0.2s; flex-shrink: 0; }
             .icon-btn-input:hover { background: rgba(255,255,255,0.1); color: white; }
-            .icon-btn-input svg { width: 20px; height: 20px; fill: currentColor; }
             .mic-btn.recording { color: var(--danger); animation: pulse 1s infinite; background: rgba(255, 65, 108, 0.1); }
-
             #edit-indicator { display: none; position: absolute; bottom: 85px; left: 40px; background: var(--success); color: #0f0c29; padding: 4px 12px; border-radius: 8px; font-size: 11px; font-weight: bold; }
 
-            /* ОСТАЛЬНОЕ */
+            /* LOGIN & REST */
             #login-screen { position: absolute; top:0; left:0; width:100%; height:100%; background: radial-gradient(circle at center, #302b63 0%, #0f0c29 100%); z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center;}
             .logo-f { font-size: 120px; font-weight: 900; background: linear-gradient(to bottom, #00ffff, #0055ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px;}
             .login-box { width: 90%; max-width: 360px; text-align: center; }
@@ -124,20 +93,14 @@
 
             #call-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; flex-direction: column; align-items: center; justify-content: center; }
             .call-avatar { width: 140px; height: 140px; border-radius: 50%; border: 4px solid var(--accent-primary); margin-bottom: 20px; object-fit: cover; animation: pulse 2s infinite; }
-            .call-actions { display: flex; gap: 40px; } 
-            .call-action-btn { width: 70px; height: 70px; border-radius: 50%; border: none; font-size: 28px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+            .call-actions { display: flex; gap: 40px; } .call-action-btn { width: 70px; height: 70px; border-radius: 50%; border: none; font-size: 28px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
             .btn-answer { background: var(--success); color: white; } .btn-hangup { background: var(--danger); color: white; }
 
             .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); justify-content: center; align-items: center; }
             .modal-content { background: #1a163a; padding: 25px; border-radius: 20px; width: 400px; text-align: center; border: 1px solid var(--glass-border); position: relative; }
             .close-btn { position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: var(--text-dim); }
             .settings-input { width: 100%; padding: 10px; margin-bottom: 10px; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); color: white; border-radius: 8px; }
-            
             .chat-image { max-width: 100%; border-radius: 10px; margin-top: 5px; cursor: pointer; }
-            .audio-player { display: flex; align-items: center; gap: 8px; background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255,255,255,0.2); padding: 6px 10px; border-radius: 12px; margin-top: 5px; min-width: 200px; }
-            .play-btn { width: 28px; height: 28px; border-radius: 50%; background: white; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--accent-primary); flex-shrink: 0; }
-            .icon-btn { cursor: pointer; color: var(--text-dim); display: inline-flex; align-items: center; justify-content: center; padding: 5px; border-radius: 5px; transition: 0.2s; }
-            .icon-btn:hover { color: var(--accent-primary); background: var(--glass); transform: scale(1.1); }
             .status-dot { width: 8px; height: 8px; background: var(--success); border-radius: 50%; display: inline-block; margin-left: 6px; box-shadow: 0 0 5px var(--success); display: none; vertical-align: middle;}
 
             @media (max-width: 768px) {
@@ -190,10 +153,10 @@
                 <form action="" onsubmit="sendMessage(event)">
                     <div id="edit-indicator">Редактирование... (Esc отмена)</div>
                     <div class="input-wrapper" id="input-box">
-                        <label class="icon-btn-input"><input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleFileSelect(this)"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></label>
+                        <label class="icon-btn-input"><input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleFileSelect(this)"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></label>
                         <input type="text" id="messageText" autocomplete="off" placeholder="Написать сообщение..."/>
                         <div id="mic-btn" class="icon-btn-input mic-btn" onclick="toggleMic()">
-                            <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+                            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
                         </div>
                     </div>
                 </form>
@@ -248,6 +211,28 @@
                     else if(d.type==="hang_up") closeCall();
                     else if(d.type==="initial_status") d.users.forEach(u=>updateStatus(u,'online'));
                     else if(d.type==="status") updateStatus(d.username, d.status);
+                    
+                    // ОБНОВЛЕНИЕ РЕАКЦИЙ
+                    else if(d.type==="reaction_update") {
+                        let row = document.getElementById("msg-"+d.message_id);
+                        if(row) {
+                            let bubble = row.querySelector('.msg-bubble');
+                            let oldReactions = bubble.querySelector('.reactions-display');
+                            if(oldReactions) oldReactions.remove();
+                            
+                            // РИСУЕМ НОВЫЕ РЕАКЦИИ
+                            let newReactionsHtml = "";
+                            if(d.reactions && Object.keys(d.reactions).length > 0) {
+                                newReactionsHtml = '<div class="reactions-display">';
+                                for (const [emoji, users] of Object.entries(d.reactions)) {
+                                    newReactionsHtml += `<div class="reaction-pill" onclick="sendReaction(${d.message_id}, '${emoji}')">${emoji} ${users.length}</div>`;
+                                }
+                                newReactionsHtml += '</div>';
+                                bubble.insertAdjacentHTML('beforeend', newReactionsHtml);
+                            }
+                        }
+                    }
+                    
                     else if(d.type==="edit_update") {
                         let contentDiv = document.querySelector(`#msg-${d.message_id} .content-text`);
                         if(contentDiv) {
@@ -268,10 +253,31 @@
                 var li = document.createElement('li'); li.className = "msg-row "+(me?"me":"other"); li.id="msg-"+d.id;
                 var contentHtml = "";
                 if (d.content.startsWith("data:image")) contentHtml = `<img src="${d.content}" class="chat-image" onclick="document.getElementById('image-modal').style.display='flex';document.getElementById('modal-img').src=this.src;">`;
-                else if (d.content.startsWith("data:audio")) contentHtml = `<div class="audio-player"><div class="play-btn" onclick="playAudio(this, '${d.id}')">▶</div><audio id="audio-${d.id}" src="${d.content}" onended="resetAudio(this)"></audio></div>`;
+                
+                // ВОЗВРАЩАЕМ ПОЛНОЦЕННЫЙ АУДИО ПЛЕЕР
+                else if (d.content.startsWith("data:audio")) {
+                    contentHtml = `
+                    <div class="audio-player">
+                        <div class="play-btn" onclick="toggleAudio(${d.id})">▶</div>
+                        <div class="audio-track-container" onclick="seekAudio(event, ${d.id})">
+                            <div id="prog-${d.id}" class="audio-progress"></div>
+                        </div>
+                        <div id="time-${d.id}" class="audio-time">0:00</div>
+                        <audio id="audio-${d.id}" src="${d.content}" ontimeupdate="updateAudioProgress(${d.id})" onended="resetAudio(${d.id})" onloadedmetadata="setAudioDuration(${d.id})"></audio>
+                    </div>`;
+                }
                 else contentHtml = `<span class="content-text">${d.content}</span>` + (d.is_edited ? '<span class="edited-label">(ред.)</span>' : '');
                 
-                // РЕАКЦИИ (НОВАЯ ФИШКА)
+                // ОТРИСОВКА РЕАКЦИЙ ПРИ ЗАГРУЗКЕ
+                let reactionsHtml = "";
+                if(d.reactions && Object.keys(d.reactions).length > 0) {
+                    reactionsHtml = '<div class="reactions-display">';
+                    for (const [emoji, users] of Object.entries(d.reactions)) {
+                        reactionsHtml += `<div class="reaction-pill" onclick="sendReaction(${d.id}, '${emoji}')">${emoji} ${users.length}</div>`;
+                    }
+                    reactionsHtml += '</div>';
+                }
+
                 var actions = `
                     <div class="msg-actions">
                         ${(me || myIsAdmin) && !d.content.startsWith("data:") ? `<span class="action-btn" onclick="startEdit(${d.id}, this)">${ICONS.edit}</span>` : ""}
@@ -283,15 +289,22 @@
                 `;
 
                 var ava = `<img class="avatar" src="${d.avatar_url||getDefaultAvatar(d.username)}" onclick="viewProfile('${d.username}')">`;
-                var info = `<div class="msg-bubble">${!me?`<span class="username">${d.username}</span>`:""}${contentHtml}<div class="timestamp">${d.created_at}</div>${actions}</div>`;
+                var info = `<div class="msg-bubble">${!me?`<span class="username">${d.username}</span>`:""}${contentHtml}${reactionsHtml}<div class="timestamp">${d.created_at}</div>${actions}</div>`;
                 li.innerHTML = me ? info : ava+info;
                 l.appendChild(li); l.scrollTop=l.scrollHeight;
             }
 
             window.sendReaction = function(id, emoji) {
-                // Пока просто визуально (в следующем обновлении подключим к базе)
-                alert("Реакция " + emoji + " отправлена! (Скоро будет видно всем)");
+                // ТЕПЕРЬ ЭТО ОТПРАВЛЯЕТСЯ НА СЕРВЕР
+                if(ws) ws.send(JSON.stringify({ type: "reaction", message_id: id, emoji: emoji }));
             }
+
+            // АУДИО ФУНКЦИИ
+            window.toggleAudio = function(id) { var a=document.getElementById('audio-'+id); var b=a.parentElement.querySelector('.play-btn'); if(a.paused){a.play();b.innerText="⏸";}else{a.pause();b.innerText="▶";} };
+            window.updateAudioProgress = function(id) { var a=document.getElementById('audio-'+id); if(a.duration) document.getElementById('prog-'+id).style.width=((a.currentTime/a.duration)*100)+'%'; };
+            window.setAudioDuration = function(id) { var a=document.getElementById('audio-'+id); if(a.duration) { var m=Math.floor(a.duration/60), s=Math.floor(a.duration%60); document.getElementById('time-'+id).innerText=m+':'+(s<10?'0'+s:s); } };
+            window.seekAudio = function(e,id){ var a=document.getElementById('audio-'+id); var c=e.currentTarget; var p=(e.offsetX/c.clientWidth); a.currentTime=p*a.duration; };
+            window.resetAudio = function(id){ document.getElementById('audio-'+id).parentElement.querySelector('.play-btn').innerText="▶"; document.getElementById('prog-'+id).style.width='0%'; };
 
             window.startEdit = function(id, btn) {
                 let row = document.getElementById("msg-" + id);
@@ -317,8 +330,6 @@
                 else { ws.send(JSON.stringify({type:"message",channel:currentChannel,username:username,content:i.value})); i.value=''; }
             }
 
-            function playAudio(btn, id) { var a=document.getElementById('audio-'+id); if(a.paused){a.play();btn.innerText="⏸";}else{a.pause();btn.innerText="▶";} }
-            function resetAudio(a) { a.parentElement.querySelector('.play-btn').innerText="▶"; }
             function requestHistory() { if(ws&&ws.readyState===1) ws.send(JSON.stringify({type:"history",channel:currentChannel})); }
             function delMsg(id) { if(confirm("Удалить?")) ws.send(JSON.stringify({type:"delete", message_id:id})); }
             function handleFileSelect(i) { if(i.files[0]) { var r=new FileReader(); r.onload=e=>ws.send(JSON.stringify({type:"message",channel:currentChannel,username:username,content:e.target.result})); r.readAsDataURL(i.files[0]); i.value=''; } }
