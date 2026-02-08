@@ -3,122 +3,157 @@
     <head>
         <title>Flux</title>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+        
         <link rel="manifest" href="/static/manifest.json">
         <link rel="icon" type="image/png" href="/static/icon.png">
         <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;800&display=swap" rel="stylesheet">
+        
         <style>
-            /* --- ГЛОБАЛЬНЫЕ НАСТРОЙКИ (ЯДЕРНЫЙ СБРОС) --- */
+            /* --- ГЛОБАЛЬНЫЕ НАСТРОЙКИ --- */
             :root { --bg-deep:#0f0c29; --bg-medium:#1a163a; --bg-light:#302b63; --accent-primary:#00d2ff; --accent-secondary:#3a7bd5; --text-main:#ffffff; --text-dim:#b8b8d0; --danger:#ff416c; --success:#00f260; --glass:rgba(255,255,255,0.05); --glass-border:rgba(255,255,255,0.1); }
             
             html, body { 
                 margin: 0; padding: 0; 
-                width: 100vw; height: 100vh; /* ЖЕСТКО НА ВЕСЬ ЭКРАН */
+                width: 100vw; height: 100vh; 
                 overflow: hidden; 
                 background: linear-gradient(135deg, var(--bg-deep), #24243e); 
                 color: var(--text-main); font-family: 'Exo 2', sans-serif;
             }
 
-            /* --- КОНТЕЙНЕР ПРИЛОЖЕНИЯ --- */
-            #app-container {
-                display: none; /* Скрыт до входа */
-                width: 100vw; 
-                height: 100vh;
-                /* Flexbox растянет детей на всю ширину */
-            }
+            #app-container { display: none; width: 100%; height: 100%; display: flex; }
 
-            /* --- САЙДБАР (ЛЕВЫЙ) --- */
+            /* --- САЙДБАР --- */
             .sidebar { 
-                width: 300px; min-width: 300px; /* Фиксирован */
-                background: rgba(15, 12, 41, 0.98); 
+                width: 280px; min-width: 280px;
+                background: rgba(15, 12, 41, 0.95); 
                 border-right: 1px solid var(--glass-border);
                 display: flex; flex-direction: column; 
                 height: 100%; overflow-y: auto; z-index: 20;
             }
-            
-            /* --- ЧАТ (ПРАВЫЙ - РАСТЯГИВАЕТСЯ) --- */
-            .chat-area { 
-                flex-grow: 1; /* Забирает всё остальное место */
-                width: calc(100vw - 300px); /* Математически точная ширина */
-                display: flex; flex-direction: column; 
-                background: radial-gradient(circle at top right, #1a163a 0%, #0f0c29 60%);
-                height: 100%; position: relative;
-            }
-
-            /* Остальные стили (красота) */
             .sidebar-title { font-weight: 800; padding: 25px 20px 10px 20px; color: var(--text-dim); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; }
-            .channel { padding: 12px 15px; margin: 4px 10px; border-radius: 12px; cursor: pointer; color: var(--text-dim); font-weight: 600; display: flex; align-items: center; transition: 0.2s; font-size: 15px; }
+            .channel { padding: 10px 15px; margin: 2px 10px; border-radius: 10px; cursor: pointer; color: var(--text-dim); font-weight: 600; display: flex; align-items: center; transition: 0.2s; font-size: 14px; }
             .channel:hover { background: var(--glass); color: white; }
-            .channel.active { background: linear-gradient(90deg, rgba(0, 210, 255, 0.15), transparent); color: white; border-left: 4px solid var(--accent-primary); }
-            .dm-avatar { width: 36px; height: 36px; min-width: 36px; border-radius: 50%; margin-right: 12px; background: linear-gradient(135deg, #667eea, #764ba2); object-fit: cover; border: 1px solid rgba(255,255,255,0.1); }
+            .channel.active { background: linear-gradient(90deg, rgba(0, 210, 255, 0.1), transparent); color: white; border-left: 3px solid var(--accent-primary); }
+            .dm-avatar { width: 32px; height: 32px; min-width: 32px; border-radius: 50%; margin-right: 10px; background: linear-gradient(135deg, #667eea, #764ba2); object-fit: cover; }
+            
             .user-panel { background: rgba(0,0,0,0.2); padding: 15px 20px; display: flex; align-items: center; cursor: pointer; margin-top: auto; border-top: 1px solid var(--glass-border); }
-            .my-avatar { width: 42px; height: 42px; min-width: 42px; border-radius: 50%; background-color: #5865f2; margin-right: 12px; object-fit: cover; }
-            .my-info { flex-grow: 1; overflow: hidden; } .my-name { font-weight: bold; font-size: 15px; } .my-bio { font-size: 12px; color: var(--accent-primary); opacity: 0.8; }
+            .my-avatar { width: 38px; height: 38px; border-radius: 50%; background-color: #5865f2; margin-right: 10px; object-fit: cover; }
+            .my-info { flex-grow: 1; overflow: hidden; }
+            .my-name { font-weight: bold; font-size: 14px; }
+            .my-bio { font-size: 11px; color: var(--accent-primary); opacity: 0.8; }
+
+            /* --- ЧАТ --- */
+            .chat-area { 
+                flex-grow: 1; display: flex; flex-direction: column; 
+                background: radial-gradient(circle at top right, #1a163a 0%, #0f0c29 60%);
+                position: relative; width: 100%;
+            }
             
-            .chat-header { height: 70px; border-bottom: 1px solid var(--glass-border); display: flex; align-items: center; padding: 0 25px; font-weight: 800; color: white; flex-shrink: 0; background: rgba(15, 12, 41, 0.8); backdrop-filter: blur(10px); z-index: 10; justify-content: space-between; }
+            .chat-header { 
+                height: 65px; border-bottom: 1px solid var(--glass-border); 
+                display: flex; align-items: center; padding: 0 20px; 
+                font-weight: 800; color: white; flex-shrink: 0; 
+                background: rgba(15, 12, 41, 0.8); backdrop-filter: blur(10px); 
+                justify-content: space-between;
+            }
+            
+            /* СКРЫВАЕМ ГАМБУРГЕР НА ПК */
+            .hamburger { display: none; margin-right: 15px; font-size: 24px; cursor: pointer; color: white; }
+            
             .header-actions { display: flex; gap: 15px; align-items: center; }
-            .add-member-header-btn { cursor: pointer; background: linear-gradient(90deg, var(--success), #00b09b); color: #0f0c29; font-weight: 800; padding: 8px 16px; border-radius: 20px; font-size: 13px; display: none; }
-            .call-btn { cursor: pointer; color: var(--success); display: none; padding: 8px; border-radius: 50%; border: 2px solid var(--success); width: 40px; height: 40px; align-items: center; justify-content: center; font-size: 20px; transition: 0.2s;}
-            .call-btn:hover { background: var(--success); color: #0f0c29; }
-
-            #messages { list-style-type: none; margin: 0; padding: 25px; flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; width: 100%; }
-            .msg-row { display: flex; width: 100%; }
-            .msg-row.me { justify-content: flex-end; } .msg-row.other { justify-content: flex-start; }
-            .msg-bubble { max-width: 85%; padding: 12px 18px; border-radius: 20px; position: relative; word-wrap: break-word; font-size: 16px; line-height: 1.5; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
-            .msg-row.other .msg-bubble { background: rgba(255, 255, 255, 0.08); border: 1px solid var(--glass-border); border-bottom-left-radius: 4px; margin-left: 10px; }
-            .msg-row.me .msg-bubble { background: linear-gradient(135deg, var(--accent-secondary), var(--accent-primary)); color: #0f0c29; border-bottom-right-radius: 4px; font-weight: 500; }
-            .avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; margin-bottom: 2px; cursor: pointer; } 
-            .msg-row.me .avatar { display: none; }
-            .username { font-weight: 700; font-size: 13px; color: var(--accent-primary); margin-bottom: 4px; display: block; }
-            .timestamp { font-size: 10px; color: var(--text-dim); margin-left: 10px; float: right; margin-top: 5px; opacity: 0.7;}
-            .edited-label { font-size: 10px; color: var(--text-dim); font-style: italic; margin-left: 5px; }
+            .add-member-header-btn { cursor: pointer; background: linear-gradient(90deg, var(--success), #00b09b); color: #0f0c29; font-weight: 800; padding: 6px 14px; border-radius: 20px; font-size: 12px; display: none; }
             
-            /* Кнопки действий (редактирование) */
-            .msg-actions { display: flex; gap: 5px; align-self: center; margin: 0 8px; opacity: 0; transition: 0.2s; }
+            /* КНОПКА ЗВОНКА (ИСПРАВЛЕНА: МЕНЬШЕ) */
+            .call-btn { 
+                cursor: pointer; color: var(--success); display: none; 
+                padding: 0; border-radius: 50%; border: 2px solid var(--success); 
+                width: 34px; height: 34px; /* Уменьшили размер */
+                align-items: center; justify-content: center; 
+                transition: 0.3s; font-size: 16px; /* Иконка поменьше */
+            }
+            .call-btn:hover { background: var(--success); color: #0f0c29; box-shadow: 0 0 15px rgba(0, 242, 96, 0.4); }
+
+            /* СООБЩЕНИЯ (ИСПРАВЛЕН ОТСТУП) */
+            #messages { list-style-type: none; margin: 0; padding: 20px; flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+            .msg-row { display: flex; width: 100%; align-items: flex-end; }
+            
+            /* Отступ справа для своих сообщений */
+            .msg-row.me { justify-content: flex-end; padding-right: 15px; } 
+            .msg-row.other { justify-content: flex-start; }
+            
+            .msg-bubble { 
+                max-width: 75%; padding: 10px 16px; border-radius: 18px; 
+                position: relative; word-wrap: break-word; font-size: 15px; line-height: 1.4; 
+                box-shadow: 0 2px 10px rgba(0,0,0,0.2); 
+            }
+            .msg-row.other .msg-bubble { background: rgba(255, 255, 255, 0.08); border: 1px solid var(--glass-border); border-bottom-left-radius: 4px; margin-left: 8px; }
+            .msg-row.me .msg-bubble { background: linear-gradient(135deg, var(--accent-secondary), var(--accent-primary)); color: #0f0c29; border-bottom-right-radius: 4px; font-weight: 500; }
+            
+            .avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; margin-bottom: 2px; cursor: pointer; flex-shrink: 0;}
+            .msg-row.me .avatar { display: none; }
+            
+            .username { font-weight: 700; font-size: 12px; color: var(--accent-primary); margin-bottom: 3px; display: block; cursor: pointer; }
+            /* ВРЕМЯ (Четче видно) */
+            .timestamp { font-size: 10px; color: rgba(255,255,255,0.6); margin-left: 8px; float: right; margin-top: 4px; }
+            .msg-row.me .timestamp { color: rgba(15, 12, 41, 0.6); } /* Темный цвет времени на голубом фоне */
+            
+            .edited-label { font-size: 9px; opacity: 0.7; font-style: italic; margin-left: 4px; }
+            
+            /* КНОПКИ ДЕЙСТВИЙ (СКРЫТЫЕ) */
+            .msg-actions { display: flex; gap: 8px; align-self: center; margin: 0 10px; opacity: 0; transition: 0.2s; }
             .msg-row:hover .msg-actions { opacity: 1; }
-            .action-btn { cursor: pointer; color: var(--text-dim); padding: 5px; font-size: 14px; }
-            .action-btn:hover { color: var(--accent-primary); transform: scale(1.2); }
+            .action-btn { cursor: pointer; color: var(--text-dim); font-size: 14px; }
+            .action-btn:hover { color: white; transform: scale(1.1); }
 
-            form { padding: 0 25px 25px 25px; margin: 0; width: 100%; flex-shrink: 0; position: relative; }
-            .input-wrapper { background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); border-radius: 16px; display: flex; align-items: center; padding: 8px 15px; width: 100%; backdrop-filter: blur(10px); }
-            .input-wrapper.editing { border-color: var(--success); box-shadow: 0 0 15px rgba(0, 242, 96, 0.3); }
-            input[type="text"] { flex-grow: 1; padding: 12px; border: none; background: transparent; color: white; outline: none; font-size: 16px; width: 100%; font-family: 'Exo 2'; }
-            .file-btn, .mic-btn { cursor: pointer; color: var(--text-dim); padding: 10px; display: flex; align-items: center; justify-content: center; }
+            /* ВВОД */
+            form { padding: 0 20px 20px 20px; margin: 0; width: 100%; flex-shrink: 0; position: relative; }
+            .input-wrapper { background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); border-radius: 20px; display: flex; align-items: center; padding: 6px 12px; width: 100%; backdrop-filter: blur(10px); }
+            .input-wrapper.editing { border-color: var(--success); box-shadow: 0 0 10px rgba(0, 242, 96, 0.2); }
+            input[type="text"] { flex-grow: 1; padding: 10px; border: none; background: transparent; color: white; outline: none; font-size: 16px; font-family: 'Exo 2'; }
+            .file-btn, .mic-btn { cursor: pointer; color: var(--text-dim); padding: 8px; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+            .file-btn:hover, .mic-btn:hover { color: white; }
             .mic-btn.recording { color: var(--danger); animation: pulse 1s infinite; }
-            #edit-indicator { display: none; position: absolute; bottom: 85px; left: 40px; background: rgba(0, 150, 0, 0.8); color: white; padding: 5px 15px; border-radius: 10px; font-size: 12px; font-weight: bold; pointer-events: none;}
+            #edit-indicator { display: none; position: absolute; bottom: 80px; left: 40px; background: var(--success); color: #0f0c29; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: bold; }
 
+            /* ЭКРАНЫ И МОДАЛКИ */
             #login-screen { position: absolute; top:0; left:0; width:100%; height:100%; background: radial-gradient(circle at center, #302b63 0%, #0f0c29 100%); z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center;}
-            .login-box { width: 90%; max-width: 380px; text-align: center; }
-            .login-input { width: 100%; padding: 14px; margin-bottom: 15px; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); color: white; border-radius: 12px; outline: none; font-size: 16px; }
-            .btn { width: 100%; padding: 14px; border: none; border-radius: 12px; cursor: pointer; font-weight: 800; color: white; font-size: 16px; text-transform: uppercase; margin-bottom: 12px; background: linear-gradient(90deg, var(--accent-secondary), var(--accent-primary)); }
-            .error-msg { display: none; color: var(--danger); margin-bottom: 10px; font-weight: bold; background: rgba(255, 65, 108, 0.1); padding: 10px; border-radius: 10px; border: 1px solid var(--danger); }
+            .logo-f { font-size: 120px; font-weight: 900; background: linear-gradient(to bottom, #00ffff, #0055ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px;}
+            .login-box { width: 90%; max-width: 360px; text-align: center; }
+            .login-input { width: 100%; padding: 12px; margin-bottom: 15px; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); color: white; border-radius: 10px; outline: none; font-size: 16px; }
+            .btn { width: 100%; padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; color: white; font-size: 15px; text-transform: uppercase; margin-bottom: 10px; background: linear-gradient(90deg, var(--accent-secondary), var(--accent-primary)); }
+            .error-msg { display: none; color: var(--danger); margin-bottom: 10px; font-weight: bold; }
 
-            /* МОБИЛЬНЫЙ АДАПТИВ */
+            #call-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; flex-direction: column; align-items: center; justify-content: center; }
+            .call-avatar { width: 140px; height: 140px; border-radius: 50%; border: 4px solid var(--accent-primary); margin-bottom: 20px; object-fit: cover; animation: pulse 2s infinite; }
+            .call-actions { display: flex; gap: 40px; } 
+            .call-action-btn { width: 70px; height: 70px; border-radius: 50%; border: none; font-size: 28px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+            .btn-answer { background: var(--success); color: white; } .btn-hangup { background: var(--danger); color: white; }
+
+            .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); justify-content: center; align-items: center; }
+            .modal-content { background: #1a163a; padding: 25px; border-radius: 20px; width: 400px; text-align: center; border: 1px solid var(--glass-border); position: relative; }
+            .close-btn { position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: var(--text-dim); }
+            .settings-input { width: 100%; padding: 10px; margin-bottom: 10px; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); color: white; border-radius: 8px; }
+            
+            .chat-image { max-width: 100%; border-radius: 10px; margin-top: 5px; cursor: pointer; }
+            .audio-player { display: flex; align-items: center; gap: 8px; background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255,255,255,0.2); padding: 6px 10px; border-radius: 12px; margin-top: 5px; min-width: 200px; }
+            .play-btn { width: 28px; height: 28px; border-radius: 50%; background: white; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--accent-primary); flex-shrink: 0; }
+
+            /* АДАПТИВ ДЛЯ ТЕЛЕФОНА */
             @media (max-width: 768px) {
                 .sidebar { position: absolute; height: 100%; transform: translateX(-100%); width: 280px; }
                 .sidebar.open { transform: translateX(0); }
-                .hamburger { display: block !important; margin-right: 15px; font-size: 24px; cursor: pointer; }
-                .chat-area { width: 100vw; }
+                .hamburger { display: block !important; } /* Показываем ТОЛЬКО на телефоне */
                 #overlay { display: none; position: absolute; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 15; }
                 #overlay.show { display: block; }
-                input[type="text"], input[type="password"] { font-size: 16px !important; }
+                .msg-bubble { max-width: 85%; }
+                .msg-row.me { padding-right: 0; } /* На телефоне отступ меньше */
             }
-            
-            /* СКРЫТЫЕ ЭЛЕМЕНТЫ (Звонки, Модалки) */
-            #call-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; flex-direction: column; align-items: center; justify-content: center; }
-            .call-avatar { width: 150px; height: 150px; border-radius: 50%; border: 4px solid var(--accent-primary); margin-bottom: 30px; object-fit: cover; animation: pulse 2s infinite; }
-            .call-actions { display: flex; gap: 50px; } .call-action-btn { width: 80px; height: 80px; border-radius: 50%; border: none; font-size: 32px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-            .btn-answer { background: var(--success); color: white; } .btn-hangup { background: var(--danger); color: white; }
-            .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); justify-content: center; align-items: center; }
-            .modal-content { background: #1a163a; padding: 30px; border-radius: 20px; width: 90%; max-width: 450px; text-align: center; position: relative; border: 1px solid var(--glass-border); }
-            .close-btn { position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: var(--text-dim); }
-            .chat-image { max-width: 100%; border-radius: 10px; margin-top: 5px; cursor: pointer; }
-            .audio-player { display: flex; align-items: center; gap: 10px; background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255,255,255,0.2); padding: 8px 12px; border-radius: 12px; margin-top: 5px; min-width: 220px; }
-            .play-btn { width: 32px; height: 32px; border-radius: 50%; background: white; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--accent-primary); flex-shrink: 0; }
+            @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
         </style>
     </head>
     <body>
         <div id="image-modal" class="modal" onclick="this.style.display='none'"><span class="close-btn">&times;</span><img id="modal-img" style="max-width:100%;max-height:80vh;"></div>
-        <div id="call-overlay"><img id="call-avatar" class="call-avatar" src=""><div id="call-username" style="font-size:32px;font-weight:bold;color:white;margin-bottom:10px;"></div><div id="call-status" style="font-size:18px;color:#b8b8d0;margin-bottom:50px;"></div><div class="call-actions"><button id="answer-btn" class="call-action-btn btn-answer" onclick="answerCall()">📞</button><button id="hangup-btn" class="call-action-btn btn-hangup" onclick="hangUp()">❌</button></div><audio id="remote-audio" autoplay playsinline></audio></div>
+        <div id="call-overlay"><img id="call-avatar" class="call-avatar" src=""><div id="call-username" style="font-size:24px;font-weight:bold;color:white;margin-bottom:10px;"></div><div id="call-status" style="font-size:16px;color:#b8b8d0;margin-bottom:40px;"></div><div class="call-actions"><button id="answer-btn" class="call-action-btn btn-answer" onclick="answerCall()">📞</button><button id="hangup-btn" class="call-action-btn btn-hangup" onclick="hangUp()">❌</button></div><audio id="remote-audio" autoplay playsinline></audio></div>
         <div id="settings-modal" class="modal"><div class="modal-content"><span class="close-btn" onclick="document.getElementById('settings-modal').style.display='none'">&times;</span><h2>Профиль</h2><img id="settings-avatar-preview" style="width:100px;height:100px;border-radius:50%;margin-bottom:15px;object-fit:cover;" src=""><label class="btn" style="display:block;margin-bottom:15px;">Фото<input type="file" style="display:none;" accept="image/*" onchange="previewAvatar(this)"></label><input id="settings-bio" class="settings-input" placeholder="Статус"><input id="settings-realname" class="settings-input" placeholder="Имя"><input id="settings-location" class="settings-input" placeholder="Город"><input id="settings-birthdate" class="settings-input" placeholder="ДР"><input id="settings-social" class="settings-input" placeholder="Соцсети"><button class="btn" onclick="saveProfile()">Сохранить</button></div></div>
         <div id="dm-modal" class="modal"><div class="modal-content"><span class="close-btn" onclick="this.parentElement.parentElement.style.display='none'">&times;</span><h2>Найти</h2><input id="dm-username" class="settings-input" placeholder="Никнейм"><button class="btn" onclick="sendFriendRequest()">Отправить</button></div></div>
         <div id="create-group-modal" class="modal"><div class="modal-content"><span class="close-btn" onclick="this.parentElement.parentElement.style.display='none'">&times;</span><h2>Группа</h2><input id="group-name-input" class="settings-input" placeholder="Название"><button class="btn" onclick="createGroup()">Создать</button></div></div>
@@ -139,8 +174,8 @@
         <div id="app-container">
             <div id="overlay" onclick="toggleSidebar()"></div>
             <div class="sidebar" id="sidebar">
-                <div class="sidebar-title">ЧАТЫ <span class="icon-btn" onclick="document.getElementById('create-group-modal').style.display='flex'">+</span></div><div id="groups-list"></div>
-                <div class="sidebar-title">ЛИЧНЫЕ <span class="icon-btn" onclick="document.getElementById('dm-modal').style.display='flex'">+</span></div><div id="dm-list"></div>
+                <div class="sidebar-title">ЧАТЫ <span class="icon-btn" style="color:var(--accent-primary)" onclick="document.getElementById('create-group-modal').style.display='flex'">+</span></div><div id="groups-list"></div>
+                <div class="sidebar-title">ЛИЧНЫЕ <span class="icon-btn" style="color:var(--accent-primary)" onclick="document.getElementById('dm-modal').style.display='flex'">+</span></div><div id="dm-list"></div>
                 <div id="requests-section" style="display:none;"><div class="sidebar-title" style="color:var(--success);">ЗАЯВКИ</div><div id="requests-list"></div></div>
                 <div class="user-panel" onclick="openSettings()"><img id="my-avatar-img" class="my-avatar" src=""><div class="my-info"><div id="my-name-text" class="my-name"></div><div id="my-bio-text" class="my-bio"></div></div><div class="settings-btn">⚙️</div></div>
             </div>
@@ -151,7 +186,7 @@
                 </div>
                 <ul id='messages'></ul><div id="typing-indicator"></div>
                 <form action="" onsubmit="sendMessage(event)">
-                    <div id="edit-indicator">Редактирование... (Esc для отмены)</div>
+                    <div id="edit-indicator">Редактирование... (Esc отмена)</div>
                     <div class="input-wrapper" id="input-box">
                         <label class="file-btn">+<input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleFileSelect(this)"></label>
                         <input type="text" id="messageText" autocomplete="off" placeholder="Написать сообщение..."/>
@@ -184,7 +219,7 @@
                         let d = await r.json(); username=u; myIsAdmin=d.is_admin;
                         updateMyUI(d); loadDMs(); loadGroups(); loadRequests();
                         document.getElementById("login-screen").style.display="none"; 
-                        // ЯВНОЕ ВКЛЮЧЕНИЕ FLEXBOX ПРИ ВХОДЕ
+                        // СНАЧАЛА ГРУЗИМ FLEX
                         document.getElementById("app-container").style.display="flex";
                         connectWS();
                         ['realname','location','birthdate','social'].forEach(k => document.getElementById("settings-"+k).value=d[k=="realname"?"real_name":k=="social"?"social_link":k]||"");
@@ -236,7 +271,7 @@
                 if (me || myIsAdmin) {
                     actions = `<div class="msg-actions">`;
                     if (!d.content.startsWith("data:")) actions += `<span class="action-btn" onclick="startEdit(${d.id}, this)">${ICONS.edit}</span>`;
-                    actions += `<span class="action-btn delete-btn" onclick="delMsg(${d.id})">${ICONS.trash}</span></div>`;
+                    actions += `<span class="action-btn" style="color:var(--danger)" onclick="delMsg(${d.id})">${ICONS.trash}</span></div>`;
                 }
                 var ava = `<img class="avatar" src="${d.avatar_url||getDefaultAvatar(d.username)}" onclick="viewProfile('${d.username}')">`;
                 var info = `<div class="msg-bubble">${!me?`<span class="username">${d.username}</span>`:""}${contentHtml}<div class="timestamp">${d.created_at}</div></div>`;
