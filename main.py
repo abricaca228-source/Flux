@@ -26,7 +26,15 @@ class CreateGroupModel(BaseModel): name: str; owner: str
 class AddMemberModel(BaseModel): group_id: int; username: str
 
 @app.on_event("startup")
-async def startup(): await init_db()
+async def startup():
+    await init_db()
+    # "Миграция" - добавляем колонку is_edited, если её нет
+    async with AsyncSessionLocal() as session:
+        try:
+            await session.execute(text("ALTER TABLE messages ADD COLUMN is_edited BOOLEAN DEFAULT FALSE"))
+            await session.commit()
+        except:
+            pass # Колонка уже есть
 
 class ConnectionManager:
     def __init__(self): self.active_connections: dict[str, WebSocket] = {}
@@ -173,23 +181,47 @@ async def websocket_endpoint(websocket: WebSocket, username: str):
             # --- WEB RTC СИГНАЛЫ (ЗВОНКИ) ---
             if data.get("type") in ["call_offer", "call_answer", "new_ice_candidate", "hang_up"]:
                 target = data.get("target")
-                # Просто пересылаем сообщение получателю
                 await manager.send_personal_message(data, target)
 
             # --- ОБЫЧНЫЙ ЧАТ ---
             elif data.get("type") == "history":
                 async with AsyncSessionLocal() as session:
-                    res = await session.execute(text("SELECT m.id, m.username, m.content, m.channel, m.created_at, u.avatar_url, u.bio, u.is_admin FROM messages m LEFT JOIN users u ON m.username = u.username WHERE m.channel=:ch ORDER BY m.id DESC LIMIT 50"), {"ch":data.get("channel")})
-                    await websocket.send_text(json.dumps([{"id":r[0], "username":r[1], "content":r[2], "channel":r[3], "created_at":r[4], "avatar_url":r[5], "bio":r[6], "is_admin":r[7]} for r in res.fetchall()]))
+                    # Загружаем историю (теперь с пометкой is_edited)
+                    res = await session.execute(text("SELECT m.id, m.username, m.content, m.channel, m.created_at, u.avatar_url, u.bio, u.is_admin, m.is_edited FROM messages m LEFT JOIN users u ON m.username = u.username WHERE m.channel=:ch ORDER BY m.id DESC LIMIT 50"), {"ch":data.get("channel")})
+                    history = []
+                    for r in res.fetchall():
+                        history.append({
+                            "id": r[0], "username": r[1], "content": r[2], "channel": r[3], 
+                            "created_at": r[4], "avatar_url": r[5], "bio": r[6], 
+                            "is_admin": r[7], "is_edited": r[8] if len(r) > 8 else False 
+                        })
+                    await websocket.send_text(json.dumps(history))
 
             elif data.get("type") == "message":
                 now = datetime.now().strftime("%H:%M")
                 async with AsyncSessionLocal() as session:
-                    nid = (await session.execute(text("INSERT INTO messages (username, content, channel, created_at) VALUES (:u, :c, :ch, :t) RETURNING id"), {"u":data['username'], "c":data['content'], "ch":data['channel'], "t":now})).scalar()
+                    nid = (await session.execute(text("INSERT INTO messages (username, content, channel, created_at, is_edited) VALUES (:u, :c, :ch, :t, FALSE) RETURNING id"), {"u":data['username'], "c":data['content'], "ch":data['channel'], "t":now})).scalar()
                     await session.commit()
                     u_row = (await session.execute(text("SELECT avatar_url, bio, is_admin FROM users WHERE username=:u"), {"u":data['username']})).fetchone()
-                data.update({'id':nid, 'created_at':now, 'avatar_url':u_row[0] or "", 'bio':u_row[1] or "", 'is_admin':u_row[2] or False})
+                data.update({'id':nid, 'created_at':now, 'avatar_url':u_row[0] or "", 'bio':u_row[1] or "", 'is_admin':u_row[2] or False, 'is_edited': False})
                 await manager.broadcast(data)
+
+            # --- НОВАЯ ФУНКЦИЯ: РЕДАКТИРОВАНИЕ ---
+            elif data.get("type") == "edit_message":
+                async with AsyncSessionLocal() as session:
+                    # Проверяем, автор ли это сообщения или админ
+                    msg = (await session.execute(text("SELECT username FROM messages WHERE id=:id"), {"id":data.get("message_id")})).fetchone()
+                    is_admin = (await session.execute(text("SELECT is_admin FROM users WHERE username=:u"), {"u":username})).scalar()
+                    
+                    if msg and (msg[0] == username or is_admin):
+                        await session.execute(text("UPDATE messages SET content=:c, is_edited=TRUE WHERE id=:id"), {"c":data.get("new_content"), "id":data.get("message_id")})
+                        await session.commit()
+                        # Рассылаем всем обновленную версию
+                        await manager.broadcast({
+                            "type": "edit_update", 
+                            "message_id": data.get("message_id"), 
+                            "new_content": data.get("new_content")
+                        })
 
             elif data.get("type") == "delete":
                 async with AsyncSessionLocal() as session:
