@@ -8,10 +8,20 @@
         <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;800&display=swap" rel="stylesheet">
         
         <style>
-            :root { --bg-deep:#0f0c29; --bg-medium:#1a163a; --bg-light:#302b63; --accent-primary:#00d2ff; --accent-secondary:#3a7bd5; --text-main:#ffffff; --text-dim:#b8b8d0; --danger:#ff416c; --success:#00f260; --glass:rgba(255,255,255,0.05); --glass-border:rgba(255,255,255,0.1); }
+            /* --- ОСНОВА --- */
+            :root { 
+                --bg-deep: #0f0c29; --bg-medium: #1a163a; 
+                --accent-primary: #00d2ff; --accent-secondary: #3a7bd5; 
+                --text-main: #ffffff; --text-dim: #b8b8d0; 
+                --danger: #ff416c; --success: #00f260; 
+                --glass: rgba(255,255,255,0.05); 
+                --glass-border: rgba(255,255,255,0.1); 
+            }
             * { box-sizing: border-box; }
             body { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background: linear-gradient(135deg, var(--bg-deep), #24243e); color: var(--text-main); font-family: 'Exo 2', sans-serif; }
             #app-container { display: none; width: 100%; height: 100%; display: flex; }
+
+            /* --- САЙДБАР --- */
             .sidebar { width: 280px; min-width: 280px; background: rgba(15, 12, 41, 0.98); border-right: 1px solid var(--glass-border); display: flex; flex-direction: column; height: 100%; overflow-y: auto; z-index: 20; }
             .sidebar-title { font-weight: 800; padding: 25px 20px 10px 20px; color: var(--text-dim); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; }
             .channel { padding: 10px 15px; margin: 2px 10px; border-radius: 12px; cursor: pointer; color: var(--text-dim); font-weight: 600; display: flex; align-items: center; transition: 0.2s; font-size: 14px; }
@@ -21,6 +31,8 @@
             .user-panel { background: rgba(0,0,0,0.2); padding: 15px 20px; display: flex; align-items: center; cursor: pointer; margin-top: auto; border-top: 1px solid var(--glass-border); }
             .my-avatar { width: 38px; height: 38px; border-radius: 50%; background-color: #5865f2; margin-right: 10px; object-fit: cover; }
             .my-info { flex-grow: 1; overflow: hidden; } .my-name { font-weight: bold; font-size: 14px; } .my-bio { font-size: 11px; color: var(--accent-primary); opacity: 0.8; }
+
+            /* --- ЧАТ --- */
             .chat-area { flex-grow: 1; display: flex; flex-direction: column; background: radial-gradient(circle at top right, #1a163a 0%, #0f0c29 60%); position: relative; width: 100%; }
             .chat-header { height: 65px; border-bottom: 1px solid var(--glass-border); display: flex; align-items: center; padding: 0 20px; font-weight: 800; color: white; flex-shrink: 0; background: rgba(15, 12, 41, 0.95); backdrop-filter: blur(10px); justify-content: space-between; z-index: 10; }
             .hamburger { display: none; margin-right: 15px; font-size: 24px; cursor: pointer; color: white; }
@@ -28,63 +40,98 @@
             .add-member-header-btn { cursor: pointer; background: linear-gradient(90deg, var(--success), #00b09b); color: #0f0c29; font-weight: 800; padding: 6px 14px; border-radius: 20px; font-size: 12px; display: none; }
             .call-btn { cursor: pointer; color: var(--success); display: none; padding: 0; border-radius: 50%; border: 2px solid var(--success); width: 34px; height: 34px; align-items: center; justify-content: center; transition: 0.3s; font-size: 16px; }
             .call-btn:hover { background: var(--success); color: #0f0c29; box-shadow: 0 0 15px rgba(0, 242, 96, 0.4); }
-            
-            #messages { list-style-type: none; margin: 0; padding: 20px; flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+
+            /* --- СООБЩЕНИЯ --- */
+            #messages { list-style-type: none; margin: 0; padding: 20px; flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
             .msg-row { display: flex; width: 100%; align-items: flex-end; position: relative; }
             .msg-row.me { justify-content: flex-end; padding-right: 10px; } .msg-row.other { justify-content: flex-start; }
-            .msg-bubble { max-width: 75%; padding: 10px 16px; border-radius: 18px; position: relative; word-wrap: break-word; font-size: 15px; line-height: 1.4; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+            .msg-bubble { max-width: 70%; padding: 10px 14px; border-radius: 18px; position: relative; word-wrap: break-word; font-size: 15px; line-height: 1.4; box-shadow: 0 4px 10px rgba(0,0,0,0.2); transition: 0.3s; }
             .msg-row.other .msg-bubble { background: rgba(255, 255, 255, 0.08); border: 1px solid var(--glass-border); border-bottom-left-radius: 4px; margin-left: 8px; }
             .msg-row.me .msg-bubble { background: linear-gradient(135deg, var(--accent-secondary), var(--accent-primary)); color: #0f0c29; border-bottom-right-radius: 4px; font-weight: 500; }
             
-            /* СТИЛИ ДЛЯ ОТВЕТОВ */
-            .reply-preview { font-size: 11px; margin-bottom: 5px; padding: 5px; border-left: 3px solid var(--accent-primary); background: rgba(0,0,0,0.2); border-radius: 4px; color: rgba(255,255,255,0.7); cursor: pointer; }
-            .reply-username { font-weight: bold; color: var(--accent-primary); }
+            /* СТИЛЬНЫЕ КАРТИНКИ */
+            .chat-image { 
+                max-width: 100%; 
+                max-height: 250px; /* Ограничение высоты */
+                width: auto;
+                border-radius: 12px; 
+                margin-top: 5px; 
+                cursor: pointer; 
+                object-fit: cover; /* Красивая обрезка */
+                border: 1px solid rgba(255,255,255,0.2);
+                transition: transform 0.2s;
+            }
+            .chat-image:hover { transform: scale(1.02); }
+
+            /* НОВЫЙ АУДИО ПЛЕЕР */
+            .custom-player {
+                display: flex; align-items: center; gap: 10px;
+                background: rgba(0, 0, 0, 0.2);
+                border: 1px solid rgba(255, 255, 255, 0.15);
+                padding: 8px 12px; border-radius: 14px;
+                width: 240px; margin-top: 5px;
+            }
+            .msg-row.me .custom-player { background: rgba(255, 255, 255, 0.25); border-color: rgba(255, 255, 255, 0.3); }
             
-            /* СТИЛИ ДЛЯ ГАЛОЧЕК И ШПИОНА */
-            .msg-meta { display: flex; align-items: center; justify-content: flex-end; gap: 4px; margin-top: 4px; }
-            .read-ticks { font-size: 10px; color: var(--accent-primary); font-weight: bold; }
-            .spy-icon { font-size: 12px; margin-right: 4px; color: var(--danger); animation: pulse 1s infinite; }
+            .play-icon { width: 32px; height: 32px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--accent-primary); cursor: pointer; flex-shrink: 0; transition: 0.2s; }
+            .play-icon:hover { transform: scale(1.1); }
             
-            /* Остальное */
+            .track-bar { flex-grow: 1; height: 4px; background: rgba(255,255,255,0.3); border-radius: 2px; position: relative; cursor: pointer; }
+            .track-progress { height: 100%; width: 0%; background: white; border-radius: 2px; position: relative; transition: width 0.1s linear; }
+            .track-progress::after { content: ''; position: absolute; right: -5px; top: -3px; width: 10px; height: 10px; background: white; border-radius: 50%; box-shadow: 0 0 5px rgba(0,0,0,0.3); }
+            
+            .track-time { font-size: 10px; width: 35px; text-align: right; font-family: monospace; opacity: 0.8; }
+
+            /* ШПИОНСКИЙ РЕЖИМ (СООБЩЕНИЕ) */
+            .spy-msg { border: 1px solid var(--danger) !important; background: rgba(255, 65, 108, 0.15) !important; color: white !important; }
+            .spy-header { font-size: 10px; color: var(--danger); font-weight: bold; margin-bottom: 3px; display: flex; align-items: center; gap: 4px;}
+
+            /* ОСТАЛЬНОЕ */
             .avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; margin-bottom: 2px; cursor: pointer; flex-shrink: 0;}
             .msg-row.me .avatar { display: none; }
             .username { font-weight: 700; font-size: 12px; color: var(--accent-primary); margin-bottom: 3px; display: block; cursor: pointer; }
-            .timestamp { font-size: 10px; color: rgba(255,255,255,0.5); }
+            .timestamp { font-size: 10px; color: rgba(255,255,255,0.5); margin-left: 8px; float: right; margin-top: 5px; }
             .msg-row.me .timestamp { color: rgba(15, 12, 41, 0.6); }
-            .edited-label { font-size: 9px; opacity: 0.7; font-style: italic; margin-left: 4px; }
-            .reactions-display { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; justify-content: flex-end; }
-            .msg-row.other .reactions-display { justify-content: flex-start; }
-            .reaction-pill { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 2px 6px; font-size: 11px; cursor: pointer; transition: 0.2s; color: white; user-select: none; }
-            .msg-row.me .reaction-pill { background: rgba(255,255,255,0.25); color: #0f0c29; border-color: rgba(0,0,0,0.1); }
+            
             .msg-actions { position: absolute; bottom: -30px; display: flex; gap: 5px; opacity: 0; transition: 0.2s; z-index: 10; background: rgba(15, 12, 41, 0.95); padding: 5px 10px; border-radius: 20px; border: 1px solid var(--accent-primary); box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
             .msg-row.me .msg-actions { right: 10px; } .msg-row.other .msg-actions { left: 50px; }
             .msg-row:hover .msg-actions { opacity: 1; bottom: -20px; }
             .action-btn { cursor: pointer; font-size: 16px; transition: 0.2s; padding: 2px; }
             .action-btn:hover { transform: scale(1.3); }
+            .reactions-display { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; justify-content: flex-end; }
+            .msg-row.other .reactions-display { justify-content: flex-start; }
+            .reaction-pill { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 2px 6px; font-size: 11px; cursor: pointer; transition: 0.2s; color: white; user-select: none; }
+            .msg-row.me .reaction-pill { background: rgba(255,255,255,0.25); color: #0f0c29; border-color: rgba(0,0,0,0.1); }
 
-            /* ВВОД С НОВЫМИ КНОПКАМИ */
+            /* ВВОД */
             form { padding: 0 20px 20px 20px; margin: 0; width: 100%; flex-shrink: 0; position: relative; }
-            .input-wrapper { background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); border-radius: 24px; display: flex; align-items: center; padding: 5px 10px; width: 100%; backdrop-filter: blur(10px); }
+            .input-wrapper { background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); border-radius: 24px; display: flex; align-items: center; padding: 5px 10px; width: 100%; backdrop-filter: blur(10px); transition: 0.3s; }
             .input-wrapper.editing { border-color: var(--success); box-shadow: 0 0 10px rgba(0, 242, 96, 0.2); }
-            .input-wrapper.spy-active { border-color: var(--danger); box-shadow: 0 0 10px rgba(255, 65, 108, 0.3); }
+            .input-wrapper.spy-active { border-color: var(--danger); box-shadow: 0 0 15px rgba(255, 65, 108, 0.4); background: rgba(255, 65, 108, 0.1); }
+            
             input[type="text"] { flex-grow: 1; padding: 12px; border: none; background: transparent; color: white; outline: none; font-size: 16px; font-family: 'Exo 2'; }
+            
             .icon-btn-input { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-dim); border-radius: 50%; transition: 0.2s; flex-shrink: 0; }
             .icon-btn-input:hover { background: rgba(255,255,255,0.1); color: white; }
             .mic-btn.recording { color: var(--danger); animation: pulse 1s infinite; background: rgba(255, 65, 108, 0.1); }
-            .spy-btn.active { color: var(--danger); text-shadow: 0 0 10px var(--danger); }
             
-            /* БЛОК ОТВЕТА (НАД ВВОДОМ) */
+            /* КНОПКА БОМБЫ */
+            .spy-btn { transition: 0.3s; }
+            .spy-btn.active { color: var(--danger); animation: pulse 1s infinite; filter: drop-shadow(0 0 5px var(--danger)); }
+
+            #edit-indicator { display: none; position: absolute; bottom: 85px; left: 40px; background: var(--success); color: #0f0c29; padding: 4px 12px; border-radius: 8px; font-size: 11px; font-weight: bold; }
             #reply-bar { display: none; background: rgba(0, 0, 0, 0.5); padding: 8px 20px; color: var(--text-dim); font-size: 13px; border-top: 1px solid var(--glass-border); align-items: center; }
             #reply-bar span { color: var(--accent-primary); font-weight: bold; margin-right: 5px; }
             #reply-close { margin-left: auto; cursor: pointer; font-size: 18px; }
-
-            #edit-indicator { display: none; position: absolute; bottom: 85px; left: 40px; background: var(--success); color: #0f0c29; padding: 4px 12px; border-radius: 8px; font-size: 11px; font-weight: bold; }
+            
+            /* Экраны и оверлеи */
             #login-screen { position: absolute; top:0; left:0; width:100%; height:100%; background: radial-gradient(circle at center, #302b63 0%, #0f0c29 100%); z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center;}
             .logo-f { font-size: 120px; font-weight: 900; background: linear-gradient(to bottom, #00ffff, #0055ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px;}
             .login-box { width: 90%; max-width: 360px; text-align: center; }
             .login-input { width: 100%; padding: 12px; margin-bottom: 15px; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); color: white; border-radius: 10px; outline: none; font-size: 16px; }
             .btn { width: 100%; padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; color: white; font-size: 15px; text-transform: uppercase; margin-bottom: 10px; background: linear-gradient(90deg, var(--accent-secondary), var(--accent-primary)); }
             .error-msg { display: none; color: var(--danger); margin-bottom: 10px; font-weight: bold; }
+            
             #call-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; flex-direction: column; align-items: center; justify-content: center; }
             .call-avatar { width: 140px; height: 140px; border-radius: 50%; border: 4px solid var(--accent-primary); margin-bottom: 20px; object-fit: cover; animation: pulse 2s infinite; }
             .call-actions { display: flex; gap: 40px; } .call-action-btn { width: 70px; height: 70px; border-radius: 50%; border: none; font-size: 28px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
@@ -93,10 +140,8 @@
             .modal-content { background: #1a163a; padding: 25px; border-radius: 20px; width: 400px; text-align: center; border: 1px solid var(--glass-border); position: relative; }
             .close-btn { position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: var(--text-dim); }
             .settings-input { width: 100%; padding: 10px; margin-bottom: 10px; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); color: white; border-radius: 8px; }
-            .chat-image { max-width: 100%; border-radius: 10px; margin-top: 5px; cursor: pointer; }
-            .audio-player { display: flex; align-items: center; gap: 8px; background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255,255,255,0.2); padding: 6px 10px; border-radius: 12px; margin-top: 5px; min-width: 200px; }
-            .play-btn { width: 28px; height: 28px; border-radius: 50%; background: white; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--accent-primary); flex-shrink: 0; }
             .status-dot { width: 8px; height: 8px; background: var(--success); border-radius: 50%; display: inline-block; margin-left: 6px; box-shadow: 0 0 5px var(--success); display: none; vertical-align: middle;}
+
             @media (max-width: 768px) {
                 .sidebar { position: absolute; height: 100%; transform: translateX(-100%); width: 280px; }
                 .sidebar.open { transform: translateX(0); }
@@ -144,14 +189,16 @@
                 </div>
                 <ul id='messages'></ul><div id="typing-indicator"></div>
                 
-                <div id="reply-bar">Ответ на: <span id="reply-username"></span><div id="reply-close" onclick="cancelReply()">✕</div></div>
+                <div id="reply-bar">Ответ: <span id="reply-username"></span><div id="reply-close" onclick="cancelReply()">✕</div></div>
 
                 <form action="" onsubmit="sendMessage(event)">
                     <div id="edit-indicator">Редактирование... (Esc отмена)</div>
                     <div class="input-wrapper" id="input-box">
                         <label class="icon-btn-input"><input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleFileSelect(this)"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></label>
                         
-                        <div class="icon-btn-input spy-btn" id="spy-btn" onclick="toggleSpyMode()">💣</div>
+                        <div class="icon-btn-input spy-btn" id="spy-btn" onclick="toggleSpyMode()">
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M11 20H13V22H11V20ZM11 2H13V5H11V2ZM19.53 18.12L20.95 19.53L19.53 19.53L18.12 18.12C17.27 18.7 16.32 19.14 15.31 19.43V21.43C16.89 21.1 18.33 20.45 19.53 19.53ZM4.47 18.12C3.62 17.27 2.97 16.32 2.57 15.31H4.57C4.86 16.32 5.3 17.27 5.88 18.12L4.47 19.53L5.88 19.53L4.47 18.12ZM2.57 8.69C2.97 7.68 3.62 6.73 4.47 5.88L5.88 4.47L4.47 4.47L2.57 5.88C2.28 6.89 2.1 8 2.1 9.17H4.1C4.1 8.69 4.19 8.23 4.34 7.8L2.57 8.69ZM12 7C9.24 7 7 9.24 7 12C7 14.76 9.24 17 12 17C14.76 17 17 14.76 17 12C17 9.24 14.76 7 12 7ZM19.66 7.8L17.89 8.69C18.04 9.12 18.1 9.58 18.1 10.05H20.1C20.1 8.88 19.92 7.77 19.66 6.75V7.8Z"/></svg>
+                        </div>
 
                         <input type="text" id="messageText" autocomplete="off" placeholder="Написать сообщение..."/>
                         
@@ -170,11 +217,7 @@
             var ws, username, currentUserAvatar, tempAvatarBase64, myIsAdmin, currentChannel, currentGroupId;
             var mediaRecorder, audioChunks=[], isRecording=false, typingTimeout, lastTypingSent=0;
             var localStream, peerConnection, callTarget, editingMessageId = null;
-            
-            // НОВЫЕ ПЕРЕМЕННЫЕ
-            var replyToId = null;
-            var isSpyMode = false;
-
+            var replyToId = null, isSpyMode = false;
             const rtcConfig = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }, { urls: "stun:stun1.l.google.com:19302" }] };
 
             function toggleSidebar() { document.getElementById("sidebar").classList.toggle("open"); document.getElementById("overlay").classList.toggle("show"); }
@@ -241,23 +284,9 @@
                             if(!bubble.querySelector('.edited-label')) bubble.insertAdjacentHTML('beforeend', '<span class="edited-label">(ред.)</span>');
                         }
                     }
-                    else if(d.type==="read_update") {
-                        let row = document.getElementById("msg-"+d.message_id);
-                        if(row) {
-                            let ticks = row.querySelector('.read-ticks');
-                            if(ticks) ticks.innerHTML = d.readers.length > 0 ? "✓✓" : "✓";
-                        }
-                    }
                     else if(Array.isArray(d)) { document.getElementById('messages').innerHTML=''; d.reverse().forEach(addMsg); }
                     else if(d.type==="delete") { var el=document.getElementById("msg-"+d.message_id); if(el)el.remove(); }
-                    else if(d.channel===currentChannel) { 
-                        addMsg(d); 
-                        if(d.username!==username) { 
-                            notifSound.play().catch(()=>{});
-                            // АВТОМАТИЧЕСКАЯ ПОМЕТКА ПРОЧТЕНИЯ
-                            ws.send(JSON.stringify({type:"mark_read", message_id: d.id}));
-                        } 
-                    }
+                    else if(d.channel===currentChannel) { addMsg(d); if(d.username!==username) notifSound.play().catch(()=>{}); }
                 };
             }
 
@@ -266,32 +295,30 @@
                 var me = d.username===username;
                 var li = document.createElement('li'); li.className = "msg-row "+(me?"me":"other"); li.id="msg-"+d.id;
                 
-                // ШПИОНСКАЯ ЛОГИКА
+                // ШПИОНСКАЯ ЛОГИКА (ВИЗУАЛ)
+                let bubbleClass = d.timer > 0 ? "msg-bubble spy-msg" : "msg-bubble";
+                let spyHeader = d.timer > 0 ? `<div class="spy-header">🔥 Самоуничтожение 10с</div>` : "";
+                
                 if(d.timer > 0 && !me) {
-                    setTimeout(() => {
-                        // Удаляем локально через 10 сек
-                        if(document.getElementById("msg-"+d.id)) {
-                            document.getElementById("msg-"+d.id).remove();
-                        }
-                    }, 10000); 
+                    setTimeout(() => { if(document.getElementById("msg-"+d.id)) document.getElementById("msg-"+d.id).remove(); }, 10000); 
                 }
 
                 var contentHtml = "";
-                var spyIcon = d.timer > 0 ? `<span class="spy-icon">💣</span>` : "";
-
                 if (d.content.startsWith("data:image")) contentHtml = `<img src="${d.content}" class="chat-image" onclick="document.getElementById('image-modal').style.display='flex';document.getElementById('modal-img').src=this.src;">`;
+                
+                // НОВЫЙ КРАСИВЫЙ АУДИО ПЛЕЕР
                 else if (d.content.startsWith("data:audio")) {
                     contentHtml = `
-                    <div class="audio-player">
-                        <div class="play-btn" onclick="toggleAudio(${d.id})">▶</div>
-                        <div class="audio-track-container" onclick="seekAudio(event, ${d.id})">
-                            <div id="prog-${d.id}" class="audio-progress"></div>
+                    <div class="custom-player">
+                        <div class="play-icon" onclick="toggleAudio(${d.id})">▶</div>
+                        <div class="track-bar" onclick="seekAudio(event, ${d.id})">
+                            <div id="prog-${d.id}" class="track-progress"></div>
                         </div>
-                        <div id="time-${d.id}" class="audio-time">0:00</div>
+                        <div id="time-${d.id}" class="track-time">0:00</div>
                         <audio id="audio-${d.id}" src="${d.content}" ontimeupdate="updateAudioProgress(${d.id})" onended="resetAudio(${d.id})" onloadedmetadata="setAudioDuration(${d.id})"></audio>
                     </div>`;
                 }
-                else contentHtml = `${spyIcon}<span class="content-text">${d.content}</span>` + (d.is_edited ? '<span class="edited-label">(ред.)</span>' : '');
+                else contentHtml = `${spyHeader}<span class="content-text">${d.content}</span>` + (d.is_edited ? '<span class="edited-label">(ред.)</span>' : '');
                 
                 let reactionsHtml = "";
                 if(d.reactions && Object.keys(d.reactions).length > 0) {
@@ -302,14 +329,8 @@
                     reactionsHtml += '</div>';
                 }
 
-                // ЦИТАТА ОТВЕТА
                 let replyHtml = "";
-                if (d.reply_preview) {
-                    replyHtml = `<div class="reply-preview"><span class="reply-username">${d.reply_preview.username}</span>: ${d.reply_preview.content.substring(0, 30)}...</div>`;
-                }
-
-                // ГАЛОЧКИ
-                let ticks = me ? `<span class="read-ticks">${d.read_by && d.read_by.length > 0 ? "✓✓" : "✓"}</span>` : "";
+                if (d.reply_preview) replyHtml = `<div style="font-size:11px;margin-bottom:5px;opacity:0.7;border-left:2px solid white;padding-left:5px;"><b>${d.reply_preview.username}</b>: ${d.reply_preview.content.substring(0, 20)}...</div>`;
 
                 var actions = `
                     <div class="msg-actions">
@@ -323,15 +344,12 @@
                 `;
 
                 var ava = `<img class="avatar" src="${d.avatar_url||getDefaultAvatar(d.username)}" onclick="viewProfile('${d.username}')">`;
-                var info = `<div class="msg-bubble">${replyHtml}${!me?`<span class="username">${d.username}</span>`:""}${contentHtml}${reactionsHtml}<div class="msg-meta">${ticks}<span class="timestamp">${d.created_at}</span></div>${actions}</div>`;
+                var info = `<div class="${bubbleClass}">${replyHtml}${!me?`<span class="username">${d.username}</span>`:""}${contentHtml}${reactionsHtml}<div class="timestamp">${d.created_at}</div>${actions}</div>`;
                 li.innerHTML = me ? info : ava+info;
                 l.appendChild(li); l.scrollTop=l.scrollHeight;
-                
-                // Если я не автор, то сразу шлем "прочитано"
                 if (!me) ws.send(JSON.stringify({type:"mark_read", message_id: d.id}));
             }
 
-            // ЛОГИКА НОВЫХ ФИЧ
             window.sendReaction = function(id, emoji) { if(ws) ws.send(JSON.stringify({ type: "reaction", message_id: id, emoji: emoji })); }
             
             window.toggleSpyMode = function() {
@@ -350,6 +368,13 @@
                 replyToId = null;
                 document.getElementById("reply-bar").style.display = "none";
             }
+
+            // АУДИО ФУНКЦИИ (НОВЫЕ)
+            window.toggleAudio = function(id) { var a=document.getElementById('audio-'+id); var btn=a.parentElement.querySelector('.play-icon'); if(a.paused){a.play();btn.innerText="⏸";}else{a.pause();btn.innerText="▶";} };
+            window.updateAudioProgress = function(id) { var a=document.getElementById('audio-'+id); if(a.duration) document.getElementById('prog-'+id).style.width=((a.currentTime/a.duration)*100)+'%'; };
+            window.setAudioDuration = function(id) { var a=document.getElementById('audio-'+id); if(a.duration) { var m=Math.floor(a.duration/60), s=Math.floor(a.duration%60); document.getElementById('time-'+id).innerText=m+':'+(s<10?'0'+s:s); } };
+            window.seekAudio = function(e,id){ var a=document.getElementById('audio-'+id); var c=e.currentTarget; var p=(e.offsetX/c.clientWidth); a.currentTime=p*a.duration; };
+            window.resetAudio = function(id){ document.getElementById('audio-'+id).parentElement.querySelector('.play-icon').innerText="▶"; document.getElementById('prog-'+id).style.width='0%'; };
 
             window.startEdit = function(id, btn) {
                 let row = document.getElementById("msg-" + id);
@@ -386,16 +411,9 @@
                     })); 
                     i.value=''; 
                     cancelReply();
-                    if(isSpyMode) toggleSpyMode(); // Выключаем шпиона после отправки
+                    if(isSpyMode) toggleSpyMode(); 
                 }
             }
-
-            // АУДИО ФУНКЦИИ
-            window.toggleAudio = function(id) { var a=document.getElementById('audio-'+id); var b=a.parentElement.querySelector('.play-btn'); if(a.paused){a.play();b.innerText="⏸";}else{a.pause();b.innerText="▶";} };
-            window.updateAudioProgress = function(id) { var a=document.getElementById('audio-'+id); if(a.duration) document.getElementById('prog-'+id).style.width=((a.currentTime/a.duration)*100)+'%'; };
-            window.setAudioDuration = function(id) { var a=document.getElementById('audio-'+id); if(a.duration) { var m=Math.floor(a.duration/60), s=Math.floor(a.duration%60); document.getElementById('time-'+id).innerText=m+':'+(s<10?'0'+s:s); } };
-            window.seekAudio = function(e,id){ var a=document.getElementById('audio-'+id); var c=e.currentTarget; var p=(e.offsetX/c.clientWidth); a.currentTime=p*a.duration; };
-            window.resetAudio = function(id){ document.getElementById('audio-'+id).parentElement.querySelector('.play-btn').innerText="▶"; document.getElementById('prog-'+id).style.width='0%'; };
 
             function requestHistory() { if(ws&&ws.readyState===1) ws.send(JSON.stringify({type:"history",channel:currentChannel})); }
             function delMsg(id) { if(confirm("Удалить?")) ws.send(JSON.stringify({type:"delete", message_id:id})); }
