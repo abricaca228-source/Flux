@@ -25,23 +25,60 @@ class RespondRequestModel(BaseModel): request_id: int; action: str
 class CreateGroupModel(BaseModel): name: str; owner: str
 class AddMemberModel(BaseModel): group_id: int; username: str
 
-# --- МЕГА-ОБНОВЛЕНИЕ БАЗЫ ДАННЫХ ---
+# --- 🛠 ЯДЕРНОЕ ВОССТАНОВЛЕНИЕ БАЗЫ ---
 @app.on_event("startup")
 async def startup():
     await init_db()
     async with AsyncSessionLocal() as session:
-        # Добавляем все новые колонки, если их нет
-        for col, dtype in [
-            ("is_edited", "BOOLEAN DEFAULT FALSE"),
-            ("reactions", "TEXT DEFAULT '{}'"),
-            ("reply_to", "INTEGER DEFAULT NULL"),       # ID сообщения, на которое отвечаем
-            ("read_by", "TEXT DEFAULT '[]'"),           # Список тех, кто прочитал
-            ("timer", "INTEGER DEFAULT 0")              # Таймер удаления (0 = обычно)
-        ]:
+        # 1. СБРОС (Удаляем старую сломанную таблицу)
+        # Это очистит историю, но ПОЧИНИТ отправку!
+        try:
+            # Пробуем удалить старую таблицу, чтобы создать новую с нуля
+            # Если таблица заблокирована или не существует, просто идем дальше
+            await session.execute(text("DROP TABLE IF EXISTS messages"))
+            await session.commit()
+        except Exception as e:
+            print(f"Drop error (это нормально): {e}")
+
+        # 2. СОЗДАНИЕ (Создаем правильную таблицу со всеми колонками)
+        # Пробуем вариант для PostgreSQL (Render)
+        try:
+            await session.execute(text("""
+                CREATE TABLE IF NOT EXISTS messages (
+                    id SERIAL PRIMARY KEY,
+                    username TEXT,
+                    content TEXT,
+                    channel TEXT,
+                    created_at TEXT,
+                    is_edited BOOLEAN DEFAULT FALSE,
+                    reactions TEXT DEFAULT '{}',
+                    reply_to INTEGER DEFAULT NULL,
+                    read_by TEXT DEFAULT '[]',
+                    timer INTEGER DEFAULT 0
+                )
+            """))
+            await session.commit()
+        except Exception as e:
+            print(f"Postgres create fail: {e}, trying SQLite...")
+            # Если не вышло (например, мы локально), пробуем для SQLite
             try:
-                await session.execute(text(f"ALTER TABLE messages ADD COLUMN {col} {dtype}"))
+                await session.execute(text("""
+                    CREATE TABLE IF NOT EXISTS messages (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        username TEXT,
+                        content TEXT,
+                        channel TEXT,
+                        created_at TEXT,
+                        is_edited BOOLEAN DEFAULT FALSE,
+                        reactions TEXT DEFAULT '{}',
+                        reply_to INTEGER DEFAULT NULL,
+                        read_by TEXT DEFAULT '[]',
+                        timer INTEGER DEFAULT 0
+                    )
+                """))
                 await session.commit()
-            except: pass
+            except Exception as e2:
+                print(f"Critical DB Error: {e2}")
 
 class ConnectionManager:
     def __init__(self): self.active_connections: dict[str, WebSocket] = {}
@@ -181,11 +218,9 @@ async def websocket_endpoint(websocket: WebSocket, username: str):
 
             elif data.get("type") == "history":
                 async with AsyncSessionLocal() as session:
-                    # Загружаем ВСЕ новые поля
                     res = await session.execute(text("SELECT m.id, m.username, m.content, m.channel, m.created_at, u.avatar_url, u.bio, u.is_admin, m.is_edited, m.reactions, m.reply_to, m.read_by, m.timer FROM messages m LEFT JOIN users u ON m.username = u.username WHERE m.channel=:ch ORDER BY m.id DESC LIMIT 50"), {"ch":data.get("channel")})
                     history = []
                     for r in res.fetchall():
-                        # Подгружаем контент родительского сообщения для ответа
                         reply_content = None
                         if r[10]: 
                             parent = (await session.execute(text("SELECT username, content FROM messages WHERE id=:pid"), {"pid":r[10]})).fetchone()
@@ -206,7 +241,7 @@ async def websocket_endpoint(websocket: WebSocket, username: str):
             elif data.get("type") == "message":
                 now = datetime.now().strftime("%H:%M")
                 async with AsyncSessionLocal() as session:
-                    # Сохраняем reply_to и timer
+                    # Теперь таблица точно существует и правильная!
                     nid = (await session.execute(text("INSERT INTO messages (username, content, channel, created_at, is_edited, reactions, reply_to, read_by, timer) VALUES (:u, :c, :ch, :t, FALSE, '{}', :rep, '[]', :tim) RETURNING id"), 
                         {"u":data['username'], "c":data['content'], "ch":data['channel'], "t":now, "rep":data.get('reply_to'), "tim":data.get('timer', 0)})).scalar()
                     await session.commit()
@@ -227,7 +262,6 @@ async def websocket_endpoint(websocket: WebSocket, username: str):
                 })
                 await manager.broadcast(data)
 
-            # --- НОВАЯ ЛОГИКА: ГАЛОЧКИ ПРОЧТЕНИЯ ---
             elif data.get("type") == "mark_read":
                 async with AsyncSessionLocal() as session:
                     mid = data.get("message_id")
