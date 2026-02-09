@@ -30,21 +30,11 @@ class RespondRequestModel(BaseModel): request_id: int; action: str
 class CreateGroupModel(BaseModel): name: str; owner: str
 class AddMemberModel(BaseModel): group_id: int; username: str
 
-# --- СТАРТ СИСТЕМЫ (С ОЧИСТКОЙ ОТ ОШИБОК) ---
 @app.on_event("startup")
 async def startup():
     await init_db()
     async with AsyncSessionLocal() as session:
-        # УДАЛЯЕМ старые таблицы, чтобы исправить конфликт ключей
-        try:
-            await session.execute(text("DROP TABLE IF EXISTS messages CASCADE"))
-            await session.execute(text("DROP TABLE IF EXISTS users CASCADE"))
-            await session.execute(text("DROP TABLE IF EXISTS dms CASCADE"))
-            await session.commit()
-        except: 
-            pass # Если не вышло удалить каскадно, пробуем просто создать
-
-        # СОЗДАЕМ ТАБЛИЦЫ ЗАНОВО (ЧИСТЫЙ ЛИСТ)
+        # Создаем таблицы (если их нет)
         await session.execute(text("""
             CREATE TABLE IF NOT EXISTS users (
                 id SERIAL PRIMARY KEY,
@@ -60,7 +50,6 @@ async def startup():
                 social_link TEXT DEFAULT ''
             )
         """))
-        
         await session.execute(text("""
             CREATE TABLE IF NOT EXISTS messages (
                 id SERIAL PRIMARY KEY,
@@ -76,17 +65,14 @@ async def startup():
                 viewed_at TEXT DEFAULT NULL
             )
         """))
-        
-        # Вспомогательные
         for t in [
             "CREATE TABLE IF NOT EXISTS friend_requests (id SERIAL PRIMARY KEY, sender TEXT, receiver TEXT, status TEXT)",
-            "CREATE TABLE IF NOT EXISTS dms (id SERIAL PRIMARY KEY, user1 TEXT, user2 TEXT, UNIQUE(user1, user2))", # Добавил UNIQUE constraint явно
+            "CREATE TABLE IF NOT EXISTS dms (id SERIAL PRIMARY KEY, user1 TEXT, user2 TEXT)",
             "CREATE TABLE IF NOT EXISTS groups (id SERIAL PRIMARY KEY, name TEXT, owner TEXT)",
             "CREATE TABLE IF NOT EXISTS group_members (id SERIAL PRIMARY KEY, group_id INTEGER, username TEXT)"
         ]:
             try: await session.execute(text(t))
             except: pass
-        
         await session.commit()
 
 class ConnectionManager:
@@ -119,16 +105,13 @@ async def get(request: Request): return templates.TemplateResponse("index.html",
 @app.post("/register")
 async def register(user: AuthModel):
     async with AsyncSessionLocal() as session:
-        # 1. Проверяем пользователя
         if (await session.execute(text("SELECT id FROM users WHERE username=:u"), {"u":user.username})).scalar(): 
             raise HTTPException(400, "Ник занят")
         
-        # 2. Создаем пользователя
         await session.execute(text("INSERT INTO users (username, password, bio, is_admin, wallpaper, real_name, location, birth_date, social_link) VALUES (:u, :p, 'Новичок', :a, '', :rn, '', :bd, '')"), 
             {"u":user.username, "p":get_password_hash(user.password), "a":False, "rn":user.real_name, "bd":user.birth_date})
         
-        # 3. Создаем Избранное (БЕЗОПАСНО)
-        # Проверяем, нет ли уже такого чата (чтобы не было ошибки duplicate key)
+        # ЗАЩИТА ОТ ОШИБКИ: Проверяем, есть ли уже чат, прежде чем создавать
         exists = (await session.execute(text("SELECT id FROM dms WHERE user1=:u AND user2=:u"), {"u":user.username})).scalar()
         if not exists:
             await session.execute(text("INSERT INTO dms (user1, user2) VALUES (:u, :u)"), {"u":user.username})
@@ -141,7 +124,6 @@ async def login(user: AuthModel):
     async with AsyncSessionLocal() as session:
         row = (await session.execute(text("SELECT password, avatar_url, bio, is_admin, real_name, location, birth_date, social_link, wallpaper FROM users WHERE username=:u"), {"u":user.username})).fetchone()
         if not row or not verify_password(user.password, row[0]): raise HTTPException(400, "Неверный логин или пароль")
-    
     return {
         "message": "Success", "avatar_url": row[1], "bio": row[2], "is_admin": row[3], 
         "real_name": row[4] or "", "location": row[5] or "", "birth_date": row[6] or "", 
@@ -266,7 +248,13 @@ async def websocket_endpoint(websocket: WebSocket, username: str):
                             res_p = await session.execute(text("SELECT username, content FROM messages WHERE id=:pid"), {"pid":r[10]})
                             parent = res_p.fetchone()
                             if parent: reply_content = {"username": parent[0], "content": parent[1]}
-                        history.append({"id": r[0], "username": r[1], "content": r[2], "channel": r[3], "created_at": r[4], "avatar_url": r[5], "bio": r[6], "is_admin": r[7], "is_edited": r[8] if len(r) > 8 else False, "reactions": json.loads(r[9]) if r[9] else {}, "reply_to": r[10], "reply_preview": reply_content, "read_by": json.loads(r[11]) if r[11] else [], "timer": r[12] or 0, "viewed_at": r[13]})
+                        
+                        history.append({
+                            "id": r[0], "username": r[1], "content": r[2], "channel": r[3], "created_at": r[4], 
+                            "avatar_url": r[5], "bio": r[6], "is_admin": r[7], "is_edited": r[8] if len(r) > 8 else False, 
+                            "reactions": json.loads(r[9]) if r[9] else {}, "reply_to": r[10], "reply_preview": reply_content, 
+                            "read_by": json.loads(r[11]) if r[11] else [], "timer": r[12] or 0, "viewed_at": r[13]
+                        })
                     await websocket.send_text(json.dumps(history))
 
             elif data.get("type") == "message":
