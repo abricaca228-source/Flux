@@ -19,7 +19,8 @@ def verify_password(plain, hashed):
     except: return False
 
 class AuthModel(BaseModel): username: str; password: str
-class ProfileUpdateModel(BaseModel): username: str; bio: str; avatar_url: str; real_name: str = ""; location: str = ""; birth_date: str = ""; social_link: str = ""
+# Добавили поле wallpaper
+class ProfileUpdateModel(BaseModel): username: str; bio: str; avatar_url: str; wallpaper: str = ""; real_name: str = ""; location: str = ""; birth_date: str = ""; social_link: str = ""
 class FriendRequestModel(BaseModel): sender: str; receiver: str
 class RespondRequestModel(BaseModel): request_id: int; action: str 
 class CreateGroupModel(BaseModel): name: str; owner: str
@@ -29,9 +30,13 @@ class AddMemberModel(BaseModel): group_id: int; username: str
 async def startup():
     await init_db()
     async with AsyncSessionLocal() as session:
+        # Миграция для сообщений
         for col, dtype in [("is_edited", "BOOLEAN DEFAULT FALSE"), ("reactions", "TEXT DEFAULT '{}'"), ("reply_to", "INTEGER DEFAULT NULL"), ("read_by", "TEXT DEFAULT '[]'"), ("timer", "INTEGER DEFAULT 0")]:
             try: await session.execute(text(f"ALTER TABLE messages ADD COLUMN {col} {dtype}")); await session.commit()
             except: pass
+        # Миграция для пользователей (Обои)
+        try: await session.execute(text("ALTER TABLE users ADD COLUMN wallpaper TEXT DEFAULT ''")); await session.commit()
+        except: pass
 
 class ConnectionManager:
     def __init__(self): self.active_connections: dict[str, WebSocket] = {}
@@ -65,24 +70,24 @@ async def get(request: Request): return templates.TemplateResponse("index.html",
 async def register(user: AuthModel):
     async with AsyncSessionLocal() as session:
         if (await session.execute(text("SELECT id FROM users WHERE username=:u"), {"u":user.username})).scalar(): raise HTTPException(400, "Ник занят")
-        await session.execute(text("INSERT INTO users (username, password, bio, is_admin) VALUES (:u, :p, 'Новичок', :a)"), {"u":user.username, "p":get_password_hash(user.password), "a":False})
+        await session.execute(text("INSERT INTO users (username, password, bio, is_admin, wallpaper) VALUES (:u, :p, 'Новичок', :a, '')"), {"u":user.username, "p":get_password_hash(user.password), "a":False})
         await session.commit()
-    return {"message": "Success", "avatar_url": "", "bio": "Новичок", "is_admin": False}
+    return {"message": "Success", "avatar_url": "", "bio": "Новичок", "is_admin": False, "wallpaper": ""}
 
 @app.post("/login")
 async def login(user: AuthModel):
     async with AsyncSessionLocal() as session:
-        row = (await session.execute(text("SELECT password, avatar_url, bio, is_admin, real_name, location, birth_date, social_link FROM users WHERE username=:u"), {"u":user.username})).fetchone()
+        row = (await session.execute(text("SELECT password, avatar_url, bio, is_admin, real_name, location, birth_date, social_link, wallpaper FROM users WHERE username=:u"), {"u":user.username})).fetchone()
         if not row or not verify_password(user.password, row[0]): raise HTTPException(400, "Неверный логин или пароль")
-    return {"message": "Success", "avatar_url": row[1], "bio": row[2], "is_admin": row[3], "real_name": row[4] or "", "location": row[5] or "", "birth_date": row[6] or "", "social_link": row[7] or ""}
+    return {"message": "Success", "avatar_url": row[1], "bio": row[2], "is_admin": row[3], "real_name": row[4] or "", "location": row[5] or "", "birth_date": row[6] or "", "social_link": row[7] or "", "wallpaper": row[8] or ""}
 
 @app.post("/update_profile")
 async def update_profile(data: ProfileUpdateModel):
     async with AsyncSessionLocal() as session:
         new_bio = data.bio.replace("#admin", "").strip() if "#admin" in data.bio else data.bio
         is_admin = True if "#admin" in data.bio else False
-        q = "UPDATE users SET avatar_url=:a, bio=:b, real_name=:rn, location=:l, birth_date=:bd, social_link=:sl" + (", is_admin=TRUE" if is_admin else "") + " WHERE username=:u"
-        await session.execute(text(q), {"a":data.avatar_url, "b":new_bio, "u":data.username, "rn":data.real_name, "l":data.location, "bd":data.birth_date, "sl":data.social_link})
+        q = "UPDATE users SET avatar_url=:a, bio=:b, real_name=:rn, location=:l, birth_date=:bd, social_link=:sl, wallpaper=:w" + (", is_admin=TRUE" if is_admin else "") + " WHERE username=:u"
+        await session.execute(text(q), {"a":data.avatar_url, "b":new_bio, "u":data.username, "rn":data.real_name, "l":data.location, "bd":data.birth_date, "sl":data.social_link, "w":data.wallpaper})
         await session.commit()
         admin_status = (await session.execute(text("SELECT is_admin FROM users WHERE username=:u"), {"u":data.username})).scalar()
     return {"message": "Updated", "bio": new_bio, "is_admin": admin_status}
@@ -90,9 +95,9 @@ async def update_profile(data: ProfileUpdateModel):
 @app.get("/get_profile")
 async def get_profile(username: str):
     async with AsyncSessionLocal() as session:
-        user = (await session.execute(text("SELECT username, bio, avatar_url, is_admin, real_name, location, birth_date, social_link FROM users WHERE username=:u"), {"u":username})).fetchone()
+        user = (await session.execute(text("SELECT username, bio, avatar_url, is_admin, real_name, location, birth_date, social_link, wallpaper FROM users WHERE username=:u"), {"u":username})).fetchone()
         if not user: raise HTTPException(404, "User not found")
-        return {"username": user[0], "bio": user[1], "avatar_url": user[2], "is_admin": user[3], "real_name": user[4] or "", "location": user[5] or "", "birth_date": user[6] or "", "social_link": user[7] or ""}
+        return {"username": user[0], "bio": user[1], "avatar_url": user[2], "is_admin": user[3], "real_name": user[4] or "", "location": user[5] or "", "birth_date": user[6] or "", "social_link": user[7] or "", "wallpaper": user[8] or ""}
 
 @app.post("/send_request")
 async def send_request(data: FriendRequestModel):
@@ -156,7 +161,6 @@ async def get_my_groups(username: str):
     async with AsyncSessionLocal() as session:
         return [{"id": r[0], "name": r[1]} for r in (await session.execute(text("SELECT g.id, g.name FROM groups g JOIN group_members gm ON g.id = gm.group_id WHERE gm.username=:u"), {"u":username})).fetchall()]
 
-# --- НОВЫЙ ПОИСК ---
 @app.get("/search")
 async def search_messages(channel: str, query: str):
     async with AsyncSessionLocal() as session:
