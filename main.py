@@ -18,6 +18,7 @@ def verify_password(plain, hashed):
     try: return pwd_context.verify(plain, hashed)
     except: return False
 
+# Модели данных
 class AuthModel(BaseModel): 
     username: str
     password: str
@@ -30,19 +31,19 @@ class RespondRequestModel(BaseModel): request_id: int; action: str
 class CreateGroupModel(BaseModel): name: str; owner: str
 class AddMemberModel(BaseModel): group_id: int; username: str
 
-# --- ОБНОВЛЕНИЕ БАЗЫ (FIX DB) ---
+# --- ЗАПУСК И ОБНОВЛЕНИЕ БАЗЫ ---
 @app.on_event("startup")
 async def startup():
     await init_db()
     async with AsyncSessionLocal() as session:
-        # Сбрасываем таблицы, чтобы накатить новую структуру с viewed_at для шпиона
+        # УДАЛЯЕМ СТАРЫЕ ТАБЛИЦЫ (ЧТОБЫ УБРАТЬ ОШИБКИ)
         try:
             await session.execute(text("DROP TABLE IF EXISTS messages"))
             await session.execute(text("DROP TABLE IF EXISTS users"))
             await session.commit()
         except: pass
 
-        # Таблица пользователей
+        # СОЗДАЕМ ТАБЛИЦУ ПОЛЬЗОВАТЕЛЕЙ (С НОВЫМИ ПОЛЯМИ)
         await session.execute(text("""
             CREATE TABLE IF NOT EXISTS users (
                 id SERIAL PRIMARY KEY,
@@ -59,7 +60,7 @@ async def startup():
             )
         """))
         
-        # Таблица сообщений (с viewed_at для умного таймера)
+        # СОЗДАЕМ ТАБЛИЦУ СООБЩЕНИЙ (С ПОЛЕМ VIEWED_AT ДЛЯ ШПИОНА)
         await session.execute(text("""
             CREATE TABLE IF NOT EXISTS messages (
                 id SERIAL PRIMARY KEY,
@@ -76,14 +77,17 @@ async def startup():
             )
         """))
         
-        # Остальные таблицы (SQLite fallback внутри init_db, тут для Postgres/Render)
-        try:
-            await session.execute(text("CREATE TABLE IF NOT EXISTS friend_requests (id SERIAL PRIMARY KEY, sender TEXT, receiver TEXT, status TEXT)"))
-            await session.execute(text("CREATE TABLE IF NOT EXISTS dms (id SERIAL PRIMARY KEY, user1 TEXT, user2 TEXT)"))
-            await session.execute(text("CREATE TABLE IF NOT EXISTS groups (id SERIAL PRIMARY KEY, name TEXT, owner TEXT)"))
-            await session.execute(text("CREATE TABLE IF NOT EXISTS group_members (id SERIAL PRIMARY KEY, group_id INTEGER, username TEXT)"))
-            await session.commit()
-        except: pass
+        # Вспомогательные таблицы (SQLite fallback внутри, здесь для Postgres/Render)
+        for t in [
+            "CREATE TABLE IF NOT EXISTS friend_requests (id SERIAL PRIMARY KEY, sender TEXT, receiver TEXT, status TEXT)",
+            "CREATE TABLE IF NOT EXISTS dms (id SERIAL PRIMARY KEY, user1 TEXT, user2 TEXT)",
+            "CREATE TABLE IF NOT EXISTS groups (id SERIAL PRIMARY KEY, name TEXT, owner TEXT)",
+            "CREATE TABLE IF NOT EXISTS group_members (id SERIAL PRIMARY KEY, group_id INTEGER, username TEXT)"
+        ]:
+            try: await session.execute(text(t))
+            except: pass
+        
+        await session.commit()
 
 class ConnectionManager:
     def __init__(self): self.active_connections: dict[str, WebSocket] = {}
@@ -115,13 +119,12 @@ async def get(request: Request): return templates.TemplateResponse("index.html",
 @app.post("/register")
 async def register(user: AuthModel):
     async with AsyncSessionLocal() as session:
-        # Проверка на дубликаты
         try:
             if (await session.execute(text("SELECT id FROM users WHERE username=:u"), {"u":user.username})).scalar(): 
                 raise HTTPException(400, "Ник занят")
         except: pass
         
-        # Создаем пользователя
+        # Создаем пользователя с новыми полями
         await session.execute(text("INSERT INTO users (username, password, bio, is_admin, wallpaper, real_name, location, birth_date, social_link) VALUES (:u, :p, 'Новичок', :a, '', :rn, '', :bd, '')"), 
             {"u":user.username, "p":get_password_hash(user.password), "a":False, "rn":user.real_name, "bd":user.birth_date})
         
@@ -256,7 +259,7 @@ async def websocket_endpoint(websocket: WebSocket, username: str):
 
             elif data.get("type") == "history":
                 async with AsyncSessionLocal() as session:
-                    # Грузим viewed_at
+                    # Грузим ВСЕ поля, включая viewed_at
                     res = await session.execute(text("SELECT m.id, m.username, m.content, m.channel, m.created_at, u.avatar_url, u.bio, u.is_admin, m.is_edited, m.reactions, m.reply_to, m.read_by, m.timer, m.viewed_at FROM messages m LEFT JOIN users u ON m.username = u.username WHERE m.channel=:ch ORDER BY m.id DESC LIMIT 50"), {"ch":data.get("channel")})
                     history = []
                     for r in res.fetchall():
@@ -271,7 +274,7 @@ async def websocket_endpoint(websocket: WebSocket, username: str):
                             "avatar_url": r[5], "bio": r[6], "is_admin": r[7], "is_edited": r[8] if len(r) > 8 else False, 
                             "reactions": json.loads(r[9]) if r[9] else {}, "reply_to": r[10], "reply_preview": reply_content, 
                             "read_by": json.loads(r[11]) if r[11] else [], "timer": r[12] or 0,
-                            "viewed_at": r[13] # Время просмотра
+                            "viewed_at": r[13] # Время просмотра (timestamp или null)
                         })
                     await websocket.send_text(json.dumps(history))
 
@@ -293,14 +296,14 @@ async def websocket_endpoint(websocket: WebSocket, username: str):
                 data.update({'id':nid, 'created_at':now, 'avatar_url':u_row[0] or "", 'bio':u_row[1] or "", 'is_admin':u_row[2] or False, 'is_edited': False, 'reactions': {}, 'reply_to': data.get('reply_to'), 'reply_preview': reply_content, 'read_by': [], 'timer': data.get('timer', 0), 'viewed_at': None})
                 await manager.broadcast(data)
 
-            # --- НОВЫЙ СИГНАЛ: ОТКРЫТИЕ ШПИОНА ---
+            # --- СИГНАЛ: ОТКРЫТИЕ ШПИОНА ---
             elif data.get("type") == "spy_viewed":
                 async with AsyncSessionLocal() as session:
-                    # Ставим отметку времени, когда открыли
                     view_time = datetime.now().timestamp()
+                    # Обновляем только если еще не было просмотрено
                     await session.execute(text("UPDATE messages SET viewed_at=:vt WHERE id=:id AND viewed_at IS NULL"), {"vt":str(view_time), "id":data.get("message_id")})
                     await session.commit()
-                    # Рассылаем всем, что таймер пошел
+                    # Сообщаем всем (чтобы запустить таймер на клиентах)
                     await manager.broadcast({"type": "spy_start", "message_id": data.get("message_id"), "start_time": view_time})
 
             elif data.get("type") == "mark_read":

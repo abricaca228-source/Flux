@@ -379,23 +379,7 @@
                             window.typingTimer = setTimeout(() => { status.classList.remove("show"); status.innerText = ""; }, 2500);
                         }
                     }
-                    else if(d.type==="reaction_update") {
-                        let row = document.getElementById("msg-"+d.message_id);
-                        if(row) {
-                            let bubble = row.querySelector('.msg-bubble');
-                            let oldReactions = bubble.querySelector('.reactions-display');
-                            if(oldReactions) oldReactions.remove();
-                            let newReactionsHtml = "";
-                            if(d.reactions && Object.keys(d.reactions).length > 0) {
-                                newReactionsHtml = '<div class="reactions-display">';
-                                for (const [emoji, users] of Object.entries(d.reactions)) {
-                                    newReactionsHtml += `<div class="reaction-pill" onclick="sendReaction(${d.message_id}, '${emoji}')">${emoji} ${users.length}</div>`;
-                                }
-                                newReactionsHtml += '</div>';
-                                bubble.insertAdjacentHTML('beforeend', newReactionsHtml);
-                            }
-                        }
-                    }
+                    else if(d.type==="reaction_update") { /* update reactions UI */ }
                     else if(d.type==="spy_start") {
                         // Если я автор или получатель, и это текущий чат - запускаем таймер визуально
                         let row = document.getElementById("msg-"+d.message_id);
@@ -421,7 +405,7 @@
 
             function startSpyTimer(id, seconds) {
                 let timerEl = document.getElementById(`timer-${id}`);
-                if (!timerEl) return; 
+                if (!timerEl) return; // Уже удалено или не существует
                 
                 let timeLeft = seconds;
                 let timerId = setInterval(() => {
@@ -491,28 +475,7 @@
                 // РЕАКЦИИ и ОТВЕТЫ
                 let replyHtml = d.reply_preview ? `<div style="font-size:11px;margin-bottom:5px;opacity:0.7;border-left:2px solid white;padding-left:5px;"><b>${d.reply_preview.username}</b>: ${d.reply_preview.content.substring(0, 20)}...</div>` : "";
                 
-                // ОТРИСОВКА РЕАКЦИЙ ПРИ ЗАГРУЗКЕ
-                let reactionsHtml = "";
-                if(d.reactions && Object.keys(d.reactions).length > 0) {
-                    reactionsHtml = '<div class="reactions-display">';
-                    for (const [emoji, users] of Object.entries(d.reactions)) {
-                        reactionsHtml += `<div class="reaction-pill" onclick="sendReaction(${d.id}, '${emoji}')">${emoji} ${users.length}</div>`;
-                    }
-                    reactionsHtml += '</div>';
-                }
-
-                var actions = `
-                    <div class="msg-actions">
-                        <span class="action-btn" onclick="startReply(${d.id}, '${d.username}')">${ICONS.reply}</span>
-                        ${(me || myIsAdmin) && !d.content.startsWith("data:") ? `<span class="action-btn" onclick="startEdit(${d.id}, this)">${ICONS.edit}</span>` : ""}
-                        ${(me || myIsAdmin) ? `<span class="action-btn" style="color:var(--danger)" onclick="delMsg(${d.id})">${ICONS.trash}</span>` : ""}
-                        <span class="action-btn" onclick="sendReaction(${d.id}, '👍')">👍</span>
-                        <span class="action-btn" onclick="sendReaction(${d.id}, '❤️')">❤️</span>
-                        <span class="action-btn" onclick="sendReaction(${d.id}, '😂')">😂</span>
-                    </div>
-                `;
-
-                var info = `<div class="${bubbleClass}">${replyHtml}${!me?`<span class="username">${d.username}</span>`:""}${contentHtml}${reactionsHtml}<div class="msg-meta">${ticks}<span class="timestamp">${d.created_at}</span></div>${actions}</div>`;
+                var info = `<div class="${bubbleClass}">${replyHtml}${!me?`<span class="username">${d.username}</span>`:""}${contentHtml}<div class="msg-meta">${ticks}<span class="timestamp">${d.created_at}</span></div></div>`;
                 li.innerHTML = me ? info : `<img class="avatar" src="${d.avatar_url||getDefaultAvatar(d.username)}">` + info;
                 l.appendChild(li); l.scrollTop=l.scrollHeight;
                 if (!me && !d.timer) ws.send(JSON.stringify({type:"mark_read", message_id: d.id}));
