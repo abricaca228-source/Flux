@@ -8,12 +8,13 @@
         <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;800&display=swap" rel="stylesheet">
         
         <style>
+            /* --- ОСНОВА --- */
             :root { --bg-deep:#0f0c29; --bg-medium:#1a163a; --bg-light:#302b63; --accent-primary:#00d2ff; --accent-secondary:#3a7bd5; --text-main:#ffffff; --text-dim:#b8b8d0; --danger:#ff416c; --success:#00f260; --glass:rgba(255,255,255,0.05); --glass-border:rgba(255,255,255,0.1); }
             * { box-sizing: border-box; }
             body { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background: linear-gradient(135deg, var(--bg-deep), #24243e); color: var(--text-main); font-family: 'Exo 2', sans-serif; }
             #app-container { display: none; width: 100%; height: 100%; display: flex; }
-            
-            /* --- SIDEBAR --- */
+
+            /* --- САЙДБАР --- */
             .sidebar { width: 280px; min-width: 280px; background: rgba(15, 12, 41, 0.98); border-right: 1px solid var(--glass-border); display: flex; flex-direction: column; height: 100%; overflow-y: auto; z-index: 20; }
             .sidebar-title { font-weight: 800; padding: 25px 20px 10px 20px; color: var(--text-dim); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; }
             .channel { padding: 10px 15px; margin: 2px 10px; border-radius: 12px; cursor: pointer; color: var(--text-dim); font-weight: 600; display: flex; align-items: center; transition: 0.2s; font-size: 14px; }
@@ -24,7 +25,7 @@
             .my-avatar { width: 38px; height: 38px; border-radius: 50%; background-color: #5865f2; margin-right: 10px; object-fit: cover; }
             .my-info { flex-grow: 1; overflow: hidden; } .my-name { font-weight: bold; font-size: 14px; } .my-bio { font-size: 11px; color: var(--accent-primary); opacity: 0.8; }
 
-            /* --- CHAT AREA --- */
+            /* --- ЧАТ --- */
             .chat-area { flex-grow: 1; display: flex; flex-direction: column; background: radial-gradient(circle at top right, #1a163a 0%, #0f0c29 60%); position: relative; width: 100%; }
             .chat-header { height: 65px; border-bottom: 1px solid var(--glass-border); display: flex; align-items: center; padding: 0 20px; font-weight: 800; color: white; flex-shrink: 0; background: rgba(15, 12, 41, 0.95); backdrop-filter: blur(10px); justify-content: space-between; z-index: 10; position: relative;}
             .hamburger { display: none; margin-right: 15px; font-size: 24px; cursor: pointer; color: white; }
@@ -34,7 +35,7 @@
             .search-btn { color: var(--accent-primary); border-color: var(--accent-primary); display: flex; margin-right: 5px; }
             .call-btn:hover, .search-btn:hover { background: var(--glass); transform: scale(1.1); }
 
-            /* ПОИСКОВАЯ ПАНЕЛЬ */
+            /* ПОИСК */
             #search-bar { display: none; position: absolute; top: 70px; right: 20px; width: 300px; background: rgba(15, 12, 41, 0.98); border: 1px solid var(--glass-border); border-radius: 12px; padding: 15px; z-index: 100; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
             .search-input { width: 100%; padding: 8px; border-radius: 8px; background: rgba(255,255,255,0.1); border: none; color: white; margin-bottom: 10px; outline: none; }
             #search-results { max-height: 300px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
@@ -43,32 +44,43 @@
             .sr-user { font-weight: bold; color: var(--accent-primary); font-size: 11px; }
             .sr-text { color: #b8b8d0; margin-top: 2px; }
 
-            /* --- MESSAGES --- */
-            #messages { list-style-type: none; margin: 0; padding: 20px; flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
-            .msg-row { display: flex; width: 100%; align-items: flex-end; position: relative; }
+            /* --- СООБЩЕНИЯ --- */
+            #messages { list-style-type: none; margin: 0; padding: 20px; flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+            .msg-row { display: flex; width: 100%; align-items: flex-end; position: relative; margin-bottom: 5px; }
             .msg-row.me { justify-content: flex-end; padding-right: 10px; } .msg-row.other { justify-content: flex-start; }
             .msg-bubble { max-width: 75%; padding: 10px 16px; border-radius: 18px; position: relative; word-wrap: break-word; font-size: 15px; line-height: 1.4; box-shadow: 0 2px 10px rgba(0,0,0,0.2); transition: opacity 1s ease; }
             .msg-row.other .msg-bubble { background: rgba(255, 255, 255, 0.08); border: 1px solid var(--glass-border); border-bottom-left-radius: 4px; margin-left: 8px; }
             .msg-row.me .msg-bubble { background: linear-gradient(135deg, var(--accent-secondary), var(--accent-primary)); color: #0f0c29; border-bottom-right-radius: 4px; font-weight: 500; }
             
+            /* РАЗДЕЛИТЕЛЬ ДАТ */
+            .date-separator { text-align: center; margin: 15px 0; position: relative; display: flex; align-items: center; justify-content: center; }
+            .date-separator::before, .date-separator::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.1); margin: 0 10px; }
+            .date-label { background: rgba(255,255,255,0.1); color: var(--text-dim); font-size: 11px; padding: 4px 12px; border-radius: 12px; font-weight: bold; }
+
+            /* КАРТИНКИ */
             .chat-image { max-width: 100%; max-height: 250px; width: auto; border-radius: 12px; margin-top: 5px; cursor: pointer; object-fit: cover; border: 1px solid rgba(255,255,255,0.2); transition: transform 0.2s; }
             .chat-image:hover { transform: scale(1.02); }
 
+            /* АУДИО */
             .custom-player { display: flex; align-items: center; gap: 10px; background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.15); padding: 8px 12px; border-radius: 14px; width: 240px; margin-top: 5px; }
             .msg-row.me .custom-player { background: rgba(255, 255, 255, 0.25); border-color: rgba(255, 255, 255, 0.3); }
             .play-icon { width: 32px; height: 32px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--accent-primary); cursor: pointer; flex-shrink: 0; transition: 0.2s; }
+            .play-icon:hover { transform: scale(1.1); }
             .track-bar { flex-grow: 1; height: 4px; background: rgba(255,255,255,0.3); border-radius: 2px; position: relative; cursor: pointer; }
             .track-progress { height: 100%; width: 0%; background: white; border-radius: 2px; position: relative; transition: width 0.1s linear; }
+            .track-progress::after { content: ''; position: absolute; right: -5px; top: -3px; width: 10px; height: 10px; background: white; border-radius: 50%; box-shadow: 0 0 5px rgba(0,0,0,0.3); }
             .track-time { font-size: 10px; width: 35px; text-align: right; font-family: monospace; opacity: 0.8; }
 
+            /* ШПИОНСКИЙ РЕЖИМ */
             .spy-msg { border: 2px solid var(--danger) !important; background: rgba(255, 65, 108, 0.1) !important; color: white !important; }
             .spy-header { font-size: 11px; color: var(--danger); font-weight: 800; margin-bottom: 5px; display: flex; align-items: center; gap: 5px; text-transform: uppercase; letter-spacing: 1px; }
             .spy-timer { background: var(--danger); color: white; padding: 2px 6px; border-radius: 4px; font-family: monospace; }
 
+            /* ОСТАЛЬНОЕ */
             .avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; margin-bottom: 2px; cursor: pointer; flex-shrink: 0;}
             .msg-row.me .avatar { display: none; }
             .username { font-weight: 700; font-size: 12px; color: var(--accent-primary); margin-bottom: 3px; display: block; cursor: pointer; }
-            .timestamp { font-size: 10px; color: rgba(255,255,255,0.5); margin-left: 8px; float: right; margin-top: 5px; }
+            .timestamp { font-size: 10px; color: rgba(255,255,255,0.5); }
             .msg-row.me .timestamp { color: rgba(15, 12, 41, 0.6); }
             
             .msg-meta { display: flex; align-items: center; justify-content: flex-end; gap: 4px; margin-top: 4px; }
@@ -87,18 +99,31 @@
             /* ВВОД */
             form { padding: 0 20px 20px 20px; margin: 0; width: 100%; flex-shrink: 0; position: relative; }
             .input-wrapper { background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); border-radius: 24px; display: flex; align-items: center; padding: 5px 10px; width: 100%; backdrop-filter: blur(10px); transition: 0.3s; }
-            .input-wrapper.editing { border-color: var(--success); box-shadow: 0 0 10px rgba(0, 242, 96, 0.2); }
-            .input-wrapper.spy-active { border-color: var(--danger); box-shadow: 0 0 15px rgba(255, 65, 108, 0.4); background: rgba(255, 65, 108, 0.1); }
+            .input-wrapper.editing { border-color: var(--success); box-shadow: 0 0 15px rgba(0, 242, 96, 0.2); }
+            
+            /* УСИЛЕННЫЙ ЭФФЕКТ ШПИОНА В ПОЛЕ ВВОДА */
+            .input-wrapper.spy-active { 
+                border-color: var(--danger); 
+                box-shadow: 0 0 20px rgba(255, 65, 108, 0.3), inset 0 0 20px rgba(255, 65, 108, 0.1); 
+                background: rgba(40, 10, 20, 0.6);
+            }
+            .input-wrapper.spy-active input::placeholder { color: var(--danger); opacity: 0.7; }
+            
             input[type="text"] { flex-grow: 1; padding: 12px; border: none; background: transparent; color: white; outline: none; font-size: 16px; font-family: 'Exo 2'; }
+            
             .icon-btn-input { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-dim); border-radius: 50%; transition: 0.2s; flex-shrink: 0; }
             .icon-btn-input:hover { background: rgba(255,255,255,0.1); color: white; }
             .mic-btn.recording { color: var(--danger); animation: pulse 1s infinite; background: rgba(255, 65, 108, 0.1); }
-            .spy-btn { transition: 0.3s; } .spy-btn.active { color: var(--danger); animation: pulse 1s infinite; filter: drop-shadow(0 0 5px var(--danger)); }
+            
+            .spy-btn { transition: 0.3s; }
+            .spy-btn.active { color: var(--danger); transform: scale(1.1); filter: drop-shadow(0 0 5px var(--danger)); }
+            
             #edit-indicator { display: none; position: absolute; bottom: 85px; left: 40px; background: var(--success); color: #0f0c29; padding: 4px 12px; border-radius: 8px; font-size: 11px; font-weight: bold; }
             #reply-bar { display: none; background: rgba(0, 0, 0, 0.5); padding: 8px 20px; color: var(--text-dim); font-size: 13px; border-top: 1px solid var(--glass-border); align-items: center; }
             #reply-bar span { color: var(--accent-primary); font-weight: bold; margin-right: 5px; }
             #reply-close { margin-left: auto; cursor: pointer; font-size: 18px; }
             
+            /* ЭКРАНЫ */
             #login-screen { position: absolute; top:0; left:0; width:100%; height:100%; background: radial-gradient(circle at center, #302b63 0%, #0f0c29 100%); z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center;}
             .logo-f { font-size: 120px; font-weight: 900; background: linear-gradient(to bottom, #00ffff, #0055ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px;}
             .login-box { width: 90%; max-width: 360px; text-align: center; }
@@ -126,7 +151,7 @@
                 #overlay.show { display: block; }
                 .msg-bubble { max-width: 85%; }
                 .msg-row.me { padding-right: 0; }
-                #search-bar { width: 90%; right: 5%; } /* Адаптив для поиска */
+                #search-bar { width: 90%; right: 5%; }
             }
             @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
         </style>
@@ -162,19 +187,16 @@
             <div class="chat-area">
                 <div class="chat-header">
                     <div class="header-left"><span class="hamburger" onclick="toggleSidebar()">☰</span><span id="header-title">Flux</span></div>
-                    
                     <div class="header-actions">
                         <span class="search-btn" onclick="toggleSearch()"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg></span>
                         <span id="call-btn" class="call-btn" onclick="startCall()">📞</span>
                         <span id="add-member-btn" class="add-member-header-btn" onclick="document.getElementById('add-member-modal').style.display='flex'">+Человек</span>
                     </div>
                 </div>
-                
                 <div id="search-bar">
                     <input type="text" class="search-input" placeholder="Поиск в чате..." oninput="doSearch(this.value)">
                     <div id="search-results"></div>
                 </div>
-
                 <ul id='messages'></ul><div id="typing-indicator"></div>
                 <div id="reply-bar">Ответ: <span id="reply-username"></span><div id="reply-close" onclick="cancelReply()">✕</div></div>
                 <form action="" onsubmit="sendMessage(event)">
@@ -197,6 +219,7 @@
             var mediaRecorder, audioChunks=[], isRecording=false, typingTimeout, lastTypingSent=0;
             var localStream, peerConnection, callTarget, editingMessageId = null, replyToId = null, isSpyMode = false;
             const rtcConfig = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }, { urls: "stun:stun1.l.google.com:19302" }] };
+            let lastDate = null; // Для разделителей дат
 
             function toggleSidebar() { document.getElementById("sidebar").classList.toggle("open"); document.getElementById("overlay").classList.toggle("show"); }
             function closeSidebarOnMobile() { if(window.innerWidth<=768) toggleSidebar(); }
@@ -269,7 +292,11 @@
                             if(ticks) ticks.innerHTML = d.readers.length > 0 ? "✓✓" : "✓";
                         }
                     }
-                    else if(Array.isArray(d)) { document.getElementById('messages').innerHTML=''; d.reverse().forEach(addMsg); }
+                    else if(Array.isArray(d)) { 
+                        document.getElementById('messages').innerHTML=''; 
+                        lastDate = null; // Сброс даты при загрузке истории
+                        d.reverse().forEach(addMsg); 
+                    }
                     else if(d.type==="delete") { var el=document.getElementById("msg-"+d.message_id); if(el)el.remove(); }
                     else if(d.channel===currentChannel) { 
                         addMsg(d); 
@@ -281,8 +308,30 @@
                 };
             }
 
+            function formatDate(dateStr) {
+                // Простой парсинг даты из строки времени (если сервер шлет только время, надо бы слать полную дату)
+                // Для MVP предположим, что история грузится только за сегодня/вчера, 
+                // Но лучше, чтобы сервер слал полную дату. Пока сделаем имитацию для демо:
+                // Если сообщение пришло прямо сейчас через сокет - это "Сегодня".
+                return "Сегодня"; 
+                // В идеале: сервер должен слать поле `date` (YYYY-MM-DD)
+            }
+
             function addMsg(d) {
                 var l = document.getElementById('messages'); if(document.getElementById("msg-"+d.id))return;
+                
+                // --- ВСТАВКА РАЗДЕЛИТЕЛЯ ДАТ ---
+                // (Упрощенно: если это первое сообщение или просто "Сегодня" для новых)
+                // Чтобы это работало идеально, сервер должен присылать полную дату в `created_at`
+                // Пока добавим "Сегодня" перед первым сообщением сессии
+                if (lastDate === null) {
+                    let sep = document.createElement('div');
+                    sep.className = "date-separator";
+                    sep.innerHTML = `<span class="date-label">Сегодня</span>`;
+                    l.appendChild(sep);
+                    lastDate = "Today";
+                }
+
                 var me = d.username===username;
                 var li = document.createElement('li'); li.className = "msg-row "+(me?"me":"other"); li.id="msg-"+d.id;
                 
@@ -332,7 +381,6 @@
                 if (!me) ws.send(JSON.stringify({type:"mark_read", message_id: d.id}));
             }
 
-            /* --- ЛОГИКА ПОИСКА --- */
             function toggleSearch() {
                 var sb = document.getElementById("search-bar");
                 sb.style.display = (sb.style.display === "block") ? "none" : "block";
@@ -355,7 +403,14 @@
             }
 
             window.sendReaction = function(id, emoji) { if(ws) ws.send(JSON.stringify({ type: "reaction", message_id: id, emoji: emoji })); }
-            window.toggleSpyMode = function() { isSpyMode = !isSpyMode; document.getElementById("spy-btn").classList.toggle("active"); document.querySelector(".input-wrapper").classList.toggle("spy-active"); }
+            
+            window.toggleSpyMode = function() { 
+                isSpyMode = !isSpyMode; 
+                document.getElementById("spy-btn").classList.toggle("active"); 
+                // ПУЛЬСАЦИЯ И КРАСНЫЙ ФОН ПРИ ВКЛЮЧЕНИИ
+                document.querySelector(".input-wrapper").classList.toggle("spy-active"); 
+            }
+            
             window.startReply = function(id, username) { replyToId = id; document.getElementById("reply-bar").style.display = "flex"; document.getElementById("reply-username").innerText = username; document.getElementById("messageText").focus(); }
             window.cancelReply = function() { replyToId = null; document.getElementById("reply-bar").style.display = "none"; }
             window.toggleAudio = function(id) { var a=document.getElementById('audio-'+id); var btn=a.parentElement.querySelector('.play-icon'); if(a.paused){a.play();btn.innerText="⏸";}else{a.pause();btn.innerText="▶";} };
