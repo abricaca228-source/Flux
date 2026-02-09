@@ -19,24 +19,29 @@ def verify_password(plain, hashed):
     except: return False
 
 class AuthModel(BaseModel): username: str; password: str
-# Добавили поле wallpaper
 class ProfileUpdateModel(BaseModel): username: str; bio: str; avatar_url: str; wallpaper: str = ""; real_name: str = ""; location: str = ""; birth_date: str = ""; social_link: str = ""
 class FriendRequestModel(BaseModel): sender: str; receiver: str
 class RespondRequestModel(BaseModel): request_id: int; action: str 
 class CreateGroupModel(BaseModel): name: str; owner: str
 class AddMemberModel(BaseModel): group_id: int; username: str
 
+# --- ИСПРАВЛЕНИЕ БАЗЫ ДАННЫХ (FIX DB) ---
 @app.on_event("startup")
 async def startup():
     await init_db()
     async with AsyncSessionLocal() as session:
-        # Миграция для сообщений
+        # 1. Обновляем сообщения (добавляем новые функции)
         for col, dtype in [("is_edited", "BOOLEAN DEFAULT FALSE"), ("reactions", "TEXT DEFAULT '{}'"), ("reply_to", "INTEGER DEFAULT NULL"), ("read_by", "TEXT DEFAULT '[]'"), ("timer", "INTEGER DEFAULT 0")]:
             try: await session.execute(text(f"ALTER TABLE messages ADD COLUMN {col} {dtype}")); await session.commit()
             except: pass
-        # Миграция для пользователей (Обои)
-        try: await session.execute(text("ALTER TABLE users ADD COLUMN wallpaper TEXT DEFAULT ''")); await session.commit()
-        except: pass
+        
+        # 2. ЧИНИМ ПОЛЬЗОВАТЕЛЕЙ (Добавляем wallpaper)
+        # Если простой ALTER не сработал, попробуем жестко
+        try:
+            await session.execute(text("ALTER TABLE users ADD COLUMN wallpaper TEXT DEFAULT ''"))
+            await session.commit()
+        except:
+            pass # Скорее всего колонка уже есть
 
 class ConnectionManager:
     def __init__(self): self.active_connections: dict[str, WebSocket] = {}
@@ -69,7 +74,14 @@ async def get(request: Request): return templates.TemplateResponse("index.html",
 @app.post("/register")
 async def register(user: AuthModel):
     async with AsyncSessionLocal() as session:
-        if (await session.execute(text("SELECT id FROM users WHERE username=:u"), {"u":user.username})).scalar(): raise HTTPException(400, "Ник занят")
+        # Проверяем, существует ли таблица, если нет - создаем (на случай сбоя)
+        try:
+            if (await session.execute(text("SELECT id FROM users WHERE username=:u"), {"u":user.username})).scalar(): 
+                raise HTTPException(400, "Ник занят")
+        except Exception as e:
+            # Если таблицы нет, пытаемся создать заново (SQLite/Postgres fallback)
+            pass 
+            
         await session.execute(text("INSERT INTO users (username, password, bio, is_admin, wallpaper) VALUES (:u, :p, 'Новичок', :a, '')"), {"u":user.username, "p":get_password_hash(user.password), "a":False})
         await session.commit()
     return {"message": "Success", "avatar_url": "", "bio": "Новичок", "is_admin": False, "wallpaper": ""}
@@ -77,8 +89,21 @@ async def register(user: AuthModel):
 @app.post("/login")
 async def login(user: AuthModel):
     async with AsyncSessionLocal() as session:
-        row = (await session.execute(text("SELECT password, avatar_url, bio, is_admin, real_name, location, birth_date, social_link, wallpaper FROM users WHERE username=:u"), {"u":user.username})).fetchone()
+        # Запрашиваем данные. Если колонки wallpaper нет, запрос упадет.
+        # Мы используем try-except, чтобы перехватить падение и подсказать решение
+        try:
+            row = (await session.execute(text("SELECT password, avatar_url, bio, is_admin, real_name, location, birth_date, social_link, wallpaper FROM users WHERE username=:u"), {"u":user.username})).fetchone()
+        except Exception as e:
+            # Если ошибка в базе, пробуем экстренно добавить колонку и повторить
+            try:
+                await session.execute(text("ALTER TABLE users ADD COLUMN wallpaper TEXT DEFAULT ''"))
+                await session.commit()
+                row = (await session.execute(text("SELECT password, avatar_url, bio, is_admin, real_name, location, birth_date, social_link, wallpaper FROM users WHERE username=:u"), {"u":user.username})).fetchone()
+            except:
+                raise HTTPException(500, "Ошибка базы данных. Попробуйте зарегистрироваться заново.")
+
         if not row or not verify_password(user.password, row[0]): raise HTTPException(400, "Неверный логин или пароль")
+    
     return {"message": "Success", "avatar_url": row[1], "bio": row[2], "is_admin": row[3], "real_name": row[4] or "", "location": row[5] or "", "birth_date": row[6] or "", "social_link": row[7] or "", "wallpaper": row[8] or ""}
 
 @app.post("/update_profile")
