@@ -24,9 +24,17 @@
             .my-avatar { width: 38px; height: 38px; border-radius: 50%; background-color: #5865f2; margin-right: 10px; object-fit: cover; }
             .my-info { flex-grow: 1; overflow: hidden; } .my-name { font-weight: bold; font-size: 14px; } .my-bio { font-size: 11px; color: var(--accent-primary); opacity: 0.8; }
 
-            /* CHAT AREA */
+            /* CHAT AREA & HEADER */
             .chat-area { flex-grow: 1; display: flex; flex-direction: column; background: radial-gradient(circle at top right, #1a163a 0%, #0f0c29 60%); position: relative; width: 100%; }
             .chat-header { height: 65px; border-bottom: 1px solid var(--glass-border); display: flex; align-items: center; padding: 0 20px; font-weight: 800; color: white; flex-shrink: 0; background: rgba(15, 12, 41, 0.95); backdrop-filter: blur(10px); justify-content: space-between; z-index: 10; position: relative;}
+            
+            /* НОВАЯ СТРУКТУРА ЗАГОЛОВКА */
+            .header-left { display: flex; align-items: center; overflow: hidden; }
+            .chat-info { display: flex; flex-direction: column; justify-content: center; margin-left: 5px; }
+            #header-title { font-size: 16px; line-height: 1.2; }
+            #header-status { font-size: 12px; color: var(--accent-primary); font-weight: normal; height: 14px; opacity: 0; transition: opacity 0.2s; font-style: italic; }
+            #header-status.show { opacity: 1; }
+
             .hamburger { display: none; margin-right: 15px; font-size: 24px; cursor: pointer; color: white; }
             .header-actions { display: flex; gap: 10px; align-items: center; }
             .add-member-header-btn { cursor: pointer; background: linear-gradient(90deg, var(--success), #00b09b); color: #0f0c29; font-weight: 800; padding: 6px 14px; border-radius: 20px; font-size: 12px; display: none; }
@@ -34,7 +42,7 @@
             .search-btn { color: var(--accent-primary); border-color: var(--accent-primary); display: flex; margin-right: 5px; }
             .call-btn:hover, .search-btn:hover { background: var(--glass); transform: scale(1.1); }
 
-            /* SEARCH */
+            /* SEARCH PANEL */
             #search-bar { display: none; position: absolute; top: 70px; right: 20px; width: 300px; background: rgba(15, 12, 41, 0.98); border: 1px solid var(--glass-border); border-radius: 12px; padding: 15px; z-index: 100; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
             .search-input { width: 100%; padding: 8px; border-radius: 8px; background: rgba(255,255,255,0.1); border: none; color: white; margin-bottom: 10px; outline: none; }
             #search-results { max-height: 300px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
@@ -54,7 +62,6 @@
             .date-separator::before, .date-separator::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.1); margin: 0 10px; }
             .date-label { background: rgba(255,255,255,0.1); color: var(--text-dim); font-size: 11px; padding: 4px 12px; border-radius: 12px; font-weight: bold; }
             
-            /* MEDIA & FEATURES */
             .chat-image { max-width: 100%; max-height: 250px; width: auto; border-radius: 12px; margin-top: 5px; cursor: pointer; object-fit: cover; border: 1px solid rgba(255,255,255,0.2); transition: transform 0.2s; }
             .chat-image:hover { transform: scale(1.02); }
             .custom-player { display: flex; align-items: center; gap: 10px; background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.15); padding: 8px 12px; border-radius: 14px; width: 240px; margin-top: 5px; }
@@ -64,11 +71,11 @@
             .track-progress { height: 100%; width: 0%; background: white; border-radius: 2px; position: relative; transition: width 0.1s linear; }
             .track-progress::after { content: ''; position: absolute; right: -5px; top: -3px; width: 10px; height: 10px; background: white; border-radius: 50%; box-shadow: 0 0 5px rgba(0,0,0,0.3); }
             .track-time { font-size: 10px; width: 35px; text-align: right; font-family: monospace; opacity: 0.8; }
+            
             .spy-msg { border: 2px solid var(--danger) !important; background: rgba(255, 65, 108, 0.1) !important; color: white !important; }
             .spy-header { font-size: 11px; color: var(--danger); font-weight: 800; margin-bottom: 5px; display: flex; align-items: center; gap: 5px; text-transform: uppercase; letter-spacing: 1px; }
             .spy-timer { background: var(--danger); color: white; padding: 2px 6px; border-radius: 4px; font-family: monospace; }
 
-            /* MESSAGE META */
             .avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; margin-bottom: 2px; cursor: pointer; flex-shrink: 0;}
             .msg-row.me .avatar { display: none; }
             .username { font-weight: 700; font-size: 12px; color: var(--accent-primary); margin-bottom: 3px; display: block; cursor: pointer; }
@@ -87,7 +94,7 @@
             .reaction-pill { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 2px 6px; font-size: 11px; cursor: pointer; transition: 0.2s; color: white; user-select: none; }
             .msg-row.me .reaction-pill { background: rgba(255,255,255,0.25); color: #0f0c29; border-color: rgba(0,0,0,0.1); }
 
-            /* INPUT AREA */
+            /* INPUT */
             form { padding: 0 20px 20px 20px; margin: 0; width: 100%; flex-shrink: 0; position: relative; }
             .input-wrapper { background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); border-radius: 24px; display: flex; align-items: center; padding: 5px 10px; width: 100%; backdrop-filter: blur(10px); transition: 0.3s; }
             .input-wrapper.editing { border-color: var(--success); box-shadow: 0 0 10px rgba(0, 242, 96, 0.2); }
@@ -97,30 +104,11 @@
             .icon-btn-input:hover { background: rgba(255,255,255,0.1); color: white; }
             .mic-btn.recording { color: var(--danger); animation: pulse 1s infinite; background: rgba(255, 65, 108, 0.1); }
             .spy-btn { transition: 0.3s; } .spy-btn.active { color: var(--danger); animation: pulse 1s infinite; filter: drop-shadow(0 0 5px var(--danger)); }
-            
-            /* TYPING INDICATOR */
-            #typing-label { 
-                position: absolute; bottom: 85px; left: 60px; /* Над полем ввода */
-                font-size: 12px; color: var(--accent-primary); 
-                font-style: italic; opacity: 0; transition: opacity 0.3s; 
-                display: flex; align-items: center; gap: 5px;
-                pointer-events: none;
-            }
-            #typing-label.show { opacity: 1; }
-            .typing-dots span {
-                display: inline-block; width: 4px; height: 4px; background: var(--accent-primary); 
-                border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both;
-            }
-            .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
-            .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
-            @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
-
             #edit-indicator { display: none; position: absolute; bottom: 85px; left: 40px; background: var(--success); color: #0f0c29; padding: 4px 12px; border-radius: 8px; font-size: 11px; font-weight: bold; }
             #reply-bar { display: none; background: rgba(0, 0, 0, 0.5); padding: 8px 20px; color: var(--text-dim); font-size: 13px; border-top: 1px solid var(--glass-border); align-items: center; }
             #reply-bar span { color: var(--accent-primary); font-weight: bold; margin-right: 5px; }
             #reply-close { margin-left: auto; cursor: pointer; font-size: 18px; }
             
-            /* GLOBAL */
             #login-screen { position: absolute; top:0; left:0; width:100%; height:100%; background: radial-gradient(circle at center, #302b63 0%, #0f0c29 100%); z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center;}
             .logo-f { font-size: 120px; font-weight: 900; background: linear-gradient(to bottom, #00ffff, #0055ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px;}
             .login-box { width: 90%; max-width: 360px; text-align: center; }
@@ -182,7 +170,13 @@
             </div>
             <div class="chat-area">
                 <div class="chat-header">
-                    <div class="header-left"><span class="hamburger" onclick="toggleSidebar()">☰</span><span id="header-title">Flux</span></div>
+                    <div class="header-left">
+                        <span class="hamburger" onclick="toggleSidebar()">☰</span>
+                        <div class="chat-info">
+                            <div id="header-title">Flux</div>
+                            <div id="header-status"></div>
+                        </div>
+                    </div>
                     <div class="header-actions">
                         <span class="search-btn" onclick="toggleSearch()"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg></span>
                         <span id="call-btn" class="call-btn" onclick="startCall()">📞</span>
@@ -194,12 +188,6 @@
                     <div id="search-results"></div>
                 </div>
                 <ul id='messages'></ul>
-                
-                <div id="typing-label">
-                    <span id="typing-name">Кто-то</span> печатает
-                    <div class="typing-dots"><span></span><span></span><span></span></div>
-                </div>
-
                 <div id="reply-bar">Ответ: <span id="reply-username"></span><div id="reply-close" onclick="cancelReply()">✕</div></div>
                 <form action="" onsubmit="sendMessage(event)">
                     <div id="edit-indicator">Редактирование... (Esc отмена)</div>
@@ -262,16 +250,21 @@
                     else if(d.type==="hang_up") closeCall();
                     else if(d.type==="initial_status") d.users.forEach(u=>updateStatus(u,'online'));
                     else if(d.type==="status") updateStatus(d.username, d.status);
-                    // НОВАЯ ЛОГИКА - ИНДИКАТОР ПЕЧАТИ
+                    
+                    // НОВАЯ ЛОГИКА ТАЙПИНГА (В ШАПКУ)
                     else if(d.type==="typing") {
                         if(d.channel === currentChannel && d.username !== username) {
-                            let ind = document.getElementById("typing-label");
-                            document.getElementById("typing-name").innerText = d.username;
-                            ind.classList.add("show");
+                            let status = document.getElementById("header-status");
+                            status.innerText = d.username + " печатает...";
+                            status.classList.add("show");
                             clearTimeout(window.typingTimer);
-                            window.typingTimer = setTimeout(() => ind.classList.remove("show"), 2500);
+                            window.typingTimer = setTimeout(() => {
+                                status.classList.remove("show");
+                                status.innerText = "";
+                            }, 2500);
                         }
                     }
+                    
                     else if(d.type==="reaction_update") {
                         let row = document.getElementById("msg-"+d.message_id);
                         if(row) {
@@ -441,6 +434,7 @@
             async function saveProfile() { let body={username:username, bio:document.getElementById("settings-bio").value, avatar_url:currentUserAvatar, real_name:document.getElementById("settings-realname").value, location:document.getElementById("settings-location").value, birth_date:document.getElementById("settings-birthdate").value, social_link:document.getElementById("settings-social").value}; let r=await fetch("/update_profile", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}); if(r.ok) { let d=await r.json(); updateMyUI(d); document.getElementById("settings-modal").style.display="none"; } }
             function previewAvatar(i) { if(i.files[0]) { var r=new FileReader(); r.onload=e=> { tempAvatarBase64=e.target.result; document.getElementById("settings-avatar-preview").src=tempAvatarBase64; currentUserAvatar=tempAvatarBase64; }; r.readAsDataURL(i.files[0]); } }
             async function toggleMic() { if(!isRecording){try{const s=await navigator.mediaDevices.getUserMedia({audio:true});mediaRecorder=new MediaRecorder(s);audioChunks=[];mediaRecorder.ondataavailable=e=>audioChunks.push(e.data);mediaRecorder.onstop=()=>{const b=new Blob(audioChunks,{type:'audio/mp3'});const r=new FileReader();r.onload=()=>{ws.send(JSON.stringify({type:"message",channel:currentChannel,username:username,content:r.result}))};r.readAsDataURL(b);s.getTracks().forEach(t=>t.stop());};mediaRecorder.start();isRecording=true;document.getElementById("mic-btn").classList.add("recording");}catch(e){alert("Mic Error");}}else{mediaRecorder.stop();isRecording=false;document.getElementById("mic-btn").classList.remove("recording");}}
+            document.getElementById("messageText").addEventListener("input", ()=>{var n=Date.now();if(n-lastTypingSent>2000&&ws&&currentChannel){ws.send(JSON.stringify({type:"typing",channel:currentChannel,username:username}));lastTypingSent=n;}});
             
             async function startCall() { if(!currentChannel.startsWith("dm_")) return; callTarget = document.getElementById("header-title").innerText; showCallUI(callTarget, "Набор...", false); try { localStream = await navigator.mediaDevices.getUserMedia({audio:true}); createPeer(); localStream.getTracks().forEach(t => peerConnection.addTrack(t, localStream)); const offer = await peerConnection.createOffer(); await peerConnection.setLocalDescription(offer); ws.send(JSON.stringify({type:"call_offer", target:callTarget, sender:username, offer:offer})); } catch(e) { alert("Mic Error: "+e); closeCall(); } }
             async function handleOffer(d) { callTarget = d.sender; showCallUI(callTarget, "Входящий!", true); window.incomingOffer = d.offer; ringtone.play().catch(e=>{}); }
