@@ -12,6 +12,8 @@
             * { box-sizing: border-box; }
             body { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background: linear-gradient(135deg, var(--bg-deep), #24243e); color: var(--text-main); font-family: 'Exo 2', sans-serif; }
             #app-container { display: none; width: 100%; height: 100%; display: flex; }
+            
+            /* --- SIDEBAR --- */
             .sidebar { width: 280px; min-width: 280px; background: rgba(15, 12, 41, 0.98); border-right: 1px solid var(--glass-border); display: flex; flex-direction: column; height: 100%; overflow-y: auto; z-index: 20; }
             .sidebar-title { font-weight: 800; padding: 25px 20px 10px 20px; color: var(--text-dim); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; }
             .channel { padding: 10px 15px; margin: 2px 10px; border-radius: 12px; cursor: pointer; color: var(--text-dim); font-weight: 600; display: flex; align-items: center; transition: 0.2s; font-size: 14px; }
@@ -21,14 +23,27 @@
             .user-panel { background: rgba(0,0,0,0.2); padding: 15px 20px; display: flex; align-items: center; cursor: pointer; margin-top: auto; border-top: 1px solid var(--glass-border); }
             .my-avatar { width: 38px; height: 38px; border-radius: 50%; background-color: #5865f2; margin-right: 10px; object-fit: cover; }
             .my-info { flex-grow: 1; overflow: hidden; } .my-name { font-weight: bold; font-size: 14px; } .my-bio { font-size: 11px; color: var(--accent-primary); opacity: 0.8; }
+
+            /* --- CHAT AREA --- */
             .chat-area { flex-grow: 1; display: flex; flex-direction: column; background: radial-gradient(circle at top right, #1a163a 0%, #0f0c29 60%); position: relative; width: 100%; }
-            .chat-header { height: 65px; border-bottom: 1px solid var(--glass-border); display: flex; align-items: center; padding: 0 20px; font-weight: 800; color: white; flex-shrink: 0; background: rgba(15, 12, 41, 0.95); backdrop-filter: blur(10px); justify-content: space-between; z-index: 10; }
+            .chat-header { height: 65px; border-bottom: 1px solid var(--glass-border); display: flex; align-items: center; padding: 0 20px; font-weight: 800; color: white; flex-shrink: 0; background: rgba(15, 12, 41, 0.95); backdrop-filter: blur(10px); justify-content: space-between; z-index: 10; position: relative;}
             .hamburger { display: none; margin-right: 15px; font-size: 24px; cursor: pointer; color: white; }
             .header-actions { display: flex; gap: 10px; align-items: center; }
             .add-member-header-btn { cursor: pointer; background: linear-gradient(90deg, var(--success), #00b09b); color: #0f0c29; font-weight: 800; padding: 6px 14px; border-radius: 20px; font-size: 12px; display: none; }
-            .call-btn { cursor: pointer; color: var(--success); display: none; padding: 0; border-radius: 50%; border: 2px solid var(--success); width: 34px; height: 34px; align-items: center; justify-content: center; transition: 0.3s; font-size: 16px; }
-            .call-btn:hover { background: var(--success); color: #0f0c29; box-shadow: 0 0 15px rgba(0, 242, 96, 0.4); }
-            
+            .call-btn, .search-btn { cursor: pointer; color: var(--success); display: none; padding: 0; border-radius: 50%; border: 2px solid var(--success); width: 34px; height: 34px; align-items: center; justify-content: center; transition: 0.3s; font-size: 16px; }
+            .search-btn { color: var(--accent-primary); border-color: var(--accent-primary); display: flex; margin-right: 5px; }
+            .call-btn:hover, .search-btn:hover { background: var(--glass); transform: scale(1.1); }
+
+            /* ПОИСКОВАЯ ПАНЕЛЬ */
+            #search-bar { display: none; position: absolute; top: 70px; right: 20px; width: 300px; background: rgba(15, 12, 41, 0.98); border: 1px solid var(--glass-border); border-radius: 12px; padding: 15px; z-index: 100; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+            .search-input { width: 100%; padding: 8px; border-radius: 8px; background: rgba(255,255,255,0.1); border: none; color: white; margin-bottom: 10px; outline: none; }
+            #search-results { max-height: 300px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+            .search-result-item { background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px; font-size: 13px; cursor: pointer; border-left: 2px solid var(--accent-secondary); }
+            .search-result-item:hover { background: rgba(255,255,255,0.1); }
+            .sr-user { font-weight: bold; color: var(--accent-primary); font-size: 11px; }
+            .sr-text { color: #b8b8d0; margin-top: 2px; }
+
+            /* --- MESSAGES --- */
             #messages { list-style-type: none; margin: 0; padding: 20px; flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
             .msg-row { display: flex; width: 100%; align-items: flex-end; position: relative; }
             .msg-row.me { justify-content: flex-end; padding-right: 10px; } .msg-row.other { justify-content: flex-start; }
@@ -36,30 +51,24 @@
             .msg-row.other .msg-bubble { background: rgba(255, 255, 255, 0.08); border: 1px solid var(--glass-border); border-bottom-left-radius: 4px; margin-left: 8px; }
             .msg-row.me .msg-bubble { background: linear-gradient(135deg, var(--accent-secondary), var(--accent-primary)); color: #0f0c29; border-bottom-right-radius: 4px; font-weight: 500; }
             
-            /* КАРТИНКИ */
             .chat-image { max-width: 100%; max-height: 250px; width: auto; border-radius: 12px; margin-top: 5px; cursor: pointer; object-fit: cover; border: 1px solid rgba(255,255,255,0.2); transition: transform 0.2s; }
             .chat-image:hover { transform: scale(1.02); }
 
-            /* АУДИО */
             .custom-player { display: flex; align-items: center; gap: 10px; background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.15); padding: 8px 12px; border-radius: 14px; width: 240px; margin-top: 5px; }
             .msg-row.me .custom-player { background: rgba(255, 255, 255, 0.25); border-color: rgba(255, 255, 255, 0.3); }
             .play-icon { width: 32px; height: 32px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--accent-primary); cursor: pointer; flex-shrink: 0; transition: 0.2s; }
-            .play-icon:hover { transform: scale(1.1); }
             .track-bar { flex-grow: 1; height: 4px; background: rgba(255,255,255,0.3); border-radius: 2px; position: relative; cursor: pointer; }
             .track-progress { height: 100%; width: 0%; background: white; border-radius: 2px; position: relative; transition: width 0.1s linear; }
-            .track-progress::after { content: ''; position: absolute; right: -5px; top: -3px; width: 10px; height: 10px; background: white; border-radius: 50%; box-shadow: 0 0 5px rgba(0,0,0,0.3); }
             .track-time { font-size: 10px; width: 35px; text-align: right; font-family: monospace; opacity: 0.8; }
 
-            /* ШПИОНСКИЙ РЕЖИМ */
             .spy-msg { border: 2px solid var(--danger) !important; background: rgba(255, 65, 108, 0.1) !important; color: white !important; }
             .spy-header { font-size: 11px; color: var(--danger); font-weight: 800; margin-bottom: 5px; display: flex; align-items: center; gap: 5px; text-transform: uppercase; letter-spacing: 1px; }
             .spy-timer { background: var(--danger); color: white; padding: 2px 6px; border-radius: 4px; font-family: monospace; }
 
-            /* ОСТАЛЬНОЕ */
             .avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; margin-bottom: 2px; cursor: pointer; flex-shrink: 0;}
             .msg-row.me .avatar { display: none; }
             .username { font-weight: 700; font-size: 12px; color: var(--accent-primary); margin-bottom: 3px; display: block; cursor: pointer; }
-            .timestamp { font-size: 10px; color: rgba(255,255,255,0.5); }
+            .timestamp { font-size: 10px; color: rgba(255,255,255,0.5); margin-left: 8px; float: right; margin-top: 5px; }
             .msg-row.me .timestamp { color: rgba(15, 12, 41, 0.6); }
             
             .msg-meta { display: flex; align-items: center; justify-content: flex-end; gap: 4px; margin-top: 4px; }
@@ -84,8 +93,7 @@
             .icon-btn-input { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-dim); border-radius: 50%; transition: 0.2s; flex-shrink: 0; }
             .icon-btn-input:hover { background: rgba(255,255,255,0.1); color: white; }
             .mic-btn.recording { color: var(--danger); animation: pulse 1s infinite; background: rgba(255, 65, 108, 0.1); }
-            .spy-btn { transition: 0.3s; }
-            .spy-btn.active { color: var(--danger); animation: pulse 1s infinite; filter: drop-shadow(0 0 5px var(--danger)); }
+            .spy-btn { transition: 0.3s; } .spy-btn.active { color: var(--danger); animation: pulse 1s infinite; filter: drop-shadow(0 0 5px var(--danger)); }
             #edit-indicator { display: none; position: absolute; bottom: 85px; left: 40px; background: var(--success); color: #0f0c29; padding: 4px 12px; border-radius: 8px; font-size: 11px; font-weight: bold; }
             #reply-bar { display: none; background: rgba(0, 0, 0, 0.5); padding: 8px 20px; color: var(--text-dim); font-size: 13px; border-top: 1px solid var(--glass-border); align-items: center; }
             #reply-bar span { color: var(--accent-primary); font-weight: bold; margin-right: 5px; }
@@ -97,6 +105,7 @@
             .login-input { width: 100%; padding: 12px; margin-bottom: 15px; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); color: white; border-radius: 10px; outline: none; font-size: 16px; }
             .btn { width: 100%; padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; color: white; font-size: 15px; text-transform: uppercase; margin-bottom: 10px; background: linear-gradient(90deg, var(--accent-secondary), var(--accent-primary)); }
             .error-msg { display: none; color: var(--danger); margin-bottom: 10px; font-weight: bold; }
+            
             #call-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; flex-direction: column; align-items: center; justify-content: center; }
             .call-avatar { width: 140px; height: 140px; border-radius: 50%; border: 4px solid var(--accent-primary); margin-bottom: 20px; object-fit: cover; animation: pulse 2s infinite; }
             .call-actions { display: flex; gap: 40px; } .call-action-btn { width: 70px; height: 70px; border-radius: 50%; border: none; font-size: 28px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
@@ -117,6 +126,7 @@
                 #overlay.show { display: block; }
                 .msg-bubble { max-width: 85%; }
                 .msg-row.me { padding-right: 0; }
+                #search-bar { width: 90%; right: 5%; } /* Адаптив для поиска */
             }
             @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
         </style>
@@ -152,8 +162,19 @@
             <div class="chat-area">
                 <div class="chat-header">
                     <div class="header-left"><span class="hamburger" onclick="toggleSidebar()">☰</span><span id="header-title">Flux</span></div>
-                    <div class="header-actions"><span id="call-btn" class="call-btn" onclick="startCall()">📞</span><span id="add-member-btn" class="add-member-header-btn" onclick="document.getElementById('add-member-modal').style.display='flex'">+Человек</span></div>
+                    
+                    <div class="header-actions">
+                        <span class="search-btn" onclick="toggleSearch()"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg></span>
+                        <span id="call-btn" class="call-btn" onclick="startCall()">📞</span>
+                        <span id="add-member-btn" class="add-member-header-btn" onclick="document.getElementById('add-member-modal').style.display='flex'">+Человек</span>
+                    </div>
                 </div>
+                
+                <div id="search-bar">
+                    <input type="text" class="search-input" placeholder="Поиск в чате..." oninput="doSearch(this.value)">
+                    <div id="search-results"></div>
+                </div>
+
                 <ul id='messages'></ul><div id="typing-indicator"></div>
                 <div id="reply-bar">Ответ: <span id="reply-username"></span><div id="reply-close" onclick="cancelReply()">✕</div></div>
                 <form action="" onsubmit="sendMessage(event)">
@@ -265,27 +286,20 @@
                 var me = d.username===username;
                 var li = document.createElement('li'); li.className = "msg-row "+(me?"me":"other"); li.id="msg-"+d.id;
                 
-                // --- ЛОГИКА ТАЙМЕРА (ИСПРАВЛЕНА) ---
                 let bubbleClass = d.timer > 0 ? "msg-bubble spy-msg" : "msg-bubble";
                 let spyHeader = "";
                 
                 if(d.timer > 0) {
                     spyHeader = `<div class="spy-header">🔥 Удаление через <span id="timer-${d.id}" class="spy-timer">10с</span></div>`;
-                    
-                    // ЗАПУСКАЕМ ОБРАТНЫЙ ОТСЧЕТ
                     let timeLeft = 10;
                     let timerId = setInterval(() => {
                         timeLeft--;
                         let t = document.getElementById(`timer-${d.id}`);
                         if(t) t.innerText = timeLeft + "с";
-                        
                         if(timeLeft <= 0) {
                             clearInterval(timerId);
                             let r = document.getElementById(`msg-${d.id}`);
-                            if(r) {
-                                r.querySelector(".msg-bubble").style.opacity = "0";
-                                setTimeout(() => r.remove(), 1000);
-                            }
+                            if(r) { r.querySelector(".msg-bubble").style.opacity = "0"; setTimeout(() => r.remove(), 1000); }
                         }
                     }, 1000);
                 }
@@ -318,6 +332,28 @@
                 if (!me) ws.send(JSON.stringify({type:"mark_read", message_id: d.id}));
             }
 
+            /* --- ЛОГИКА ПОИСКА --- */
+            function toggleSearch() {
+                var sb = document.getElementById("search-bar");
+                sb.style.display = (sb.style.display === "block") ? "none" : "block";
+                if(sb.style.display === "block") document.querySelector(".search-input").focus();
+            }
+
+            let searchTimeout;
+            function doSearch(query) {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(async () => {
+                    if(query.length < 2) { document.getElementById("search-results").innerHTML=""; return; }
+                    let r = await fetch(`/search?channel=${currentChannel}&query=${query}`);
+                    let data = await r.json();
+                    let html = "";
+                    data.forEach(m => {
+                        html += `<div class="search-result-item" onclick="alert('Пока поиск просто показывает результаты!')"><div class="sr-user">${m.username} <span style="opacity:0.5;float:right">${m.created_at}</span></div><div class="sr-text">${m.content}</div></div>`;
+                    });
+                    document.getElementById("search-results").innerHTML = html || "<div style='padding:10px;color:gray;text-align:center'>Ничего не найдено</div>";
+                }, 500);
+            }
+
             window.sendReaction = function(id, emoji) { if(ws) ws.send(JSON.stringify({ type: "reaction", message_id: id, emoji: emoji })); }
             window.toggleSpyMode = function() { isSpyMode = !isSpyMode; document.getElementById("spy-btn").classList.toggle("active"); document.querySelector(".input-wrapper").classList.toggle("spy-active"); }
             window.startReply = function(id, username) { replyToId = id; document.getElementById("reply-bar").style.display = "flex"; document.getElementById("reply-username").innerText = username; document.getElementById("messageText").focus(); }
@@ -348,6 +384,7 @@
             function previewAvatar(i) { if(i.files[0]) { var r=new FileReader(); r.onload=e=> { tempAvatarBase64=e.target.result; document.getElementById("settings-avatar-preview").src=tempAvatarBase64; currentUserAvatar=tempAvatarBase64; }; r.readAsDataURL(i.files[0]); } }
             async function toggleMic() { if(!isRecording){try{const s=await navigator.mediaDevices.getUserMedia({audio:true});mediaRecorder=new MediaRecorder(s);audioChunks=[];mediaRecorder.ondataavailable=e=>audioChunks.push(e.data);mediaRecorder.onstop=()=>{const b=new Blob(audioChunks,{type:'audio/mp3'});const r=new FileReader();r.onload=()=>{ws.send(JSON.stringify({type:"message",channel:currentChannel,username:username,content:r.result}))};r.readAsDataURL(b);s.getTracks().forEach(t=>t.stop());};mediaRecorder.start();isRecording=true;document.getElementById("mic-btn").classList.add("recording");}catch(e){alert("Mic Error");}}else{mediaRecorder.stop();isRecording=false;document.getElementById("mic-btn").classList.remove("recording");}}
             document.getElementById("messageText").addEventListener("input", ()=>{var n=Date.now();if(n-lastTypingSent>2000&&ws&&currentChannel){ws.send(JSON.stringify({type:"typing",channel:currentChannel,username:username}));lastTypingSent=n;}});
+            
             async function startCall() { if(!currentChannel.startsWith("dm_")) return; callTarget = document.getElementById("header-title").innerText; showCallUI(callTarget, "Набор...", false); try { localStream = await navigator.mediaDevices.getUserMedia({audio:true}); createPeer(); localStream.getTracks().forEach(t => peerConnection.addTrack(t, localStream)); const offer = await peerConnection.createOffer(); await peerConnection.setLocalDescription(offer); ws.send(JSON.stringify({type:"call_offer", target:callTarget, sender:username, offer:offer})); } catch(e) { alert("Mic Error: "+e); closeCall(); } }
             async function handleOffer(d) { callTarget = d.sender; showCallUI(callTarget, "Входящий!", true); window.incomingOffer = d.offer; ringtone.play().catch(e=>{}); }
             async function answerCall() { ringtone.pause(); document.getElementById("answer-btn").style.display="none"; document.getElementById("call-status").innerText = "Соединение..."; try { localStream = await navigator.mediaDevices.getUserMedia({audio:true}); createPeer(); localStream.getTracks().forEach(t => peerConnection.addTrack(t, localStream)); await peerConnection.setRemoteDescription(new RTCSessionDescription(window.incomingOffer)); const answer = await peerConnection.createAnswer(); await peerConnection.setLocalDescription(answer); ws.send(JSON.stringify({type:"call_answer", target:callTarget, answer:answer})); } catch(e) { alert("Mic Error"); hangUp(); } }

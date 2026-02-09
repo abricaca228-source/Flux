@@ -25,67 +25,19 @@ class RespondRequestModel(BaseModel): request_id: int; action: str
 class CreateGroupModel(BaseModel): name: str; owner: str
 class AddMemberModel(BaseModel): group_id: int; username: str
 
-# --- 🛠 ЯДЕРНОЕ ВОССТАНОВЛЕНИЕ БАЗЫ ---
 @app.on_event("startup")
 async def startup():
     await init_db()
     async with AsyncSessionLocal() as session:
-        # 1. СБРОС (Удаляем старую сломанную таблицу)
-        # Это очистит историю, но ПОЧИНИТ отправку!
-        try:
-            # Пробуем удалить старую таблицу, чтобы создать новую с нуля
-            # Если таблица заблокирована или не существует, просто идем дальше
-            await session.execute(text("DROP TABLE IF EXISTS messages"))
-            await session.commit()
-        except Exception as e:
-            print(f"Drop error (это нормально): {e}")
-
-        # 2. СОЗДАНИЕ (Создаем правильную таблицу со всеми колонками)
-        # Пробуем вариант для PostgreSQL (Render)
-        try:
-            await session.execute(text("""
-                CREATE TABLE IF NOT EXISTS messages (
-                    id SERIAL PRIMARY KEY,
-                    username TEXT,
-                    content TEXT,
-                    channel TEXT,
-                    created_at TEXT,
-                    is_edited BOOLEAN DEFAULT FALSE,
-                    reactions TEXT DEFAULT '{}',
-                    reply_to INTEGER DEFAULT NULL,
-                    read_by TEXT DEFAULT '[]',
-                    timer INTEGER DEFAULT 0
-                )
-            """))
-            await session.commit()
-        except Exception as e:
-            print(f"Postgres create fail: {e}, trying SQLite...")
-            # Если не вышло (например, мы локально), пробуем для SQLite
-            try:
-                await session.execute(text("""
-                    CREATE TABLE IF NOT EXISTS messages (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        username TEXT,
-                        content TEXT,
-                        channel TEXT,
-                        created_at TEXT,
-                        is_edited BOOLEAN DEFAULT FALSE,
-                        reactions TEXT DEFAULT '{}',
-                        reply_to INTEGER DEFAULT NULL,
-                        read_by TEXT DEFAULT '[]',
-                        timer INTEGER DEFAULT 0
-                    )
-                """))
-                await session.commit()
-            except Exception as e2:
-                print(f"Critical DB Error: {e2}")
+        for col, dtype in [("is_edited", "BOOLEAN DEFAULT FALSE"), ("reactions", "TEXT DEFAULT '{}'"), ("reply_to", "INTEGER DEFAULT NULL"), ("read_by", "TEXT DEFAULT '[]'"), ("timer", "INTEGER DEFAULT 0")]:
+            try: await session.execute(text(f"ALTER TABLE messages ADD COLUMN {col} {dtype}")); await session.commit()
+            except: pass
 
 class ConnectionManager:
     def __init__(self): self.active_connections: dict[str, WebSocket] = {}
     async def connect(self, websocket: WebSocket, username: str):
         await websocket.accept()
-        online_users = list(self.active_connections.keys())
-        await websocket.send_text(json.dumps({"type": "initial_status", "users": online_users}))
+        await websocket.send_text(json.dumps({"type": "initial_status", "users": list(self.active_connections.keys())}))
         self.active_connections[username] = websocket
         await self.broadcast({"type": "status", "username": username, "status": "online"})
     def disconnect(self, username: str):
@@ -204,6 +156,16 @@ async def get_my_groups(username: str):
     async with AsyncSessionLocal() as session:
         return [{"id": r[0], "name": r[1]} for r in (await session.execute(text("SELECT g.id, g.name FROM groups g JOIN group_members gm ON g.id = gm.group_id WHERE gm.username=:u"), {"u":username})).fetchall()]
 
+# --- НОВЫЙ ПОИСК ---
+@app.get("/search")
+async def search_messages(channel: str, query: str):
+    async with AsyncSessionLocal() as session:
+        res = await session.execute(text("SELECT id, username, content, created_at FROM messages WHERE channel=:ch AND content LIKE :q ORDER BY id DESC"), {"ch": channel, "q": f"%{query}%"})
+        results = []
+        for r in res.fetchall():
+            results.append({"id": r[0], "username": r[1], "content": r[2], "created_at": r[3]})
+        return results
+
 @app.websocket("/ws/{username}")
 async def websocket_endpoint(websocket: WebSocket, username: str):
     await manager.connect(websocket, username)
@@ -225,41 +187,20 @@ async def websocket_endpoint(websocket: WebSocket, username: str):
                         if r[10]: 
                             parent = (await session.execute(text("SELECT username, content FROM messages WHERE id=:pid"), {"pid":r[10]})).fetchone()
                             if parent: reply_content = {"username": parent[0], "content": parent[1]}
-
-                        history.append({
-                            "id": r[0], "username": r[1], "content": r[2], "channel": r[3], 
-                            "created_at": r[4], "avatar_url": r[5], "bio": r[6], "is_admin": r[7],
-                            "is_edited": r[8] if len(r) > 8 else False,
-                            "reactions": json.loads(r[9]) if r[9] else {},
-                            "reply_to": r[10],
-                            "reply_preview": reply_content,
-                            "read_by": json.loads(r[11]) if r[11] else [],
-                            "timer": r[12] or 0
-                        })
+                        history.append({"id": r[0], "username": r[1], "content": r[2], "channel": r[3], "created_at": r[4], "avatar_url": r[5], "bio": r[6], "is_admin": r[7], "is_edited": r[8] if len(r) > 8 else False, "reactions": json.loads(r[9]) if r[9] else {}, "reply_to": r[10], "reply_preview": reply_content, "read_by": json.loads(r[11]) if r[11] else [], "timer": r[12] or 0})
                     await websocket.send_text(json.dumps(history))
 
             elif data.get("type") == "message":
                 now = datetime.now().strftime("%H:%M")
                 async with AsyncSessionLocal() as session:
-                    # Теперь таблица точно существует и правильная!
-                    nid = (await session.execute(text("INSERT INTO messages (username, content, channel, created_at, is_edited, reactions, reply_to, read_by, timer) VALUES (:u, :c, :ch, :t, FALSE, '{}', :rep, '[]', :tim) RETURNING id"), 
-                        {"u":data['username'], "c":data['content'], "ch":data['channel'], "t":now, "rep":data.get('reply_to'), "tim":data.get('timer', 0)})).scalar()
+                    nid = (await session.execute(text("INSERT INTO messages (username, content, channel, created_at, is_edited, reactions, reply_to, read_by, timer) VALUES (:u, :c, :ch, :t, FALSE, '{}', :rep, '[]', :tim) RETURNING id"), {"u":data['username'], "c":data['content'], "ch":data['channel'], "t":now, "rep":data.get('reply_to'), "tim":data.get('timer', 0)})).scalar()
                     await session.commit()
-                    
                     u_row = (await session.execute(text("SELECT avatar_url, bio, is_admin FROM users WHERE username=:u"), {"u":data['username']})).fetchone()
-                    
                     reply_content = None
                     if data.get('reply_to'):
                         parent = (await session.execute(text("SELECT username, content FROM messages WHERE id=:pid"), {"pid":data.get('reply_to')})).fetchone()
                         if parent: reply_content = {"username": parent[0], "content": parent[1]}
-
-                data.update({
-                    'id':nid, 'created_at':now, 
-                    'avatar_url':u_row[0] or "", 'bio':u_row[1] or "", 'is_admin':u_row[2] or False, 
-                    'is_edited': False, 'reactions': {}, 
-                    'reply_to': data.get('reply_to'), 'reply_preview': reply_content,
-                    'read_by': [], 'timer': data.get('timer', 0)
-                })
+                data.update({'id':nid, 'created_at':now, 'avatar_url':u_row[0] or "", 'bio':u_row[1] or "", 'is_admin':u_row[2] or False, 'is_edited': False, 'reactions': {}, 'reply_to': data.get('reply_to'), 'reply_preview': reply_content, 'read_by': [], 'timer': data.get('timer', 0)})
                 await manager.broadcast(data)
 
             elif data.get("type") == "mark_read":
@@ -286,7 +227,6 @@ async def websocket_endpoint(websocket: WebSocket, username: str):
                             current[emoji].remove(username)
                             if not current[emoji]: del current[emoji]
                         else: current[emoji].append(username)
-                        
                         await session.execute(text("UPDATE messages SET reactions=:r WHERE id=:id"), {"r":json.dumps(current), "id":mid})
                         await session.commit()
                         await manager.broadcast({"type": "reaction_update", "message_id": mid, "reactions": current})
