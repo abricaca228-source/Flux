@@ -5,7 +5,6 @@ from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from sqlalchemy import text
-# Используем твои рабочие импорты
 from database import AsyncSessionLocal, init_db
 from passlib.context import CryptContext
 
@@ -36,7 +35,7 @@ class AddMemberModel(BaseModel): group_id: int; username: str
 async def startup():
     await init_db()
     async with AsyncSessionLocal() as session:
-        # Удаляем старые таблицы, чтобы добавить новые поля (viewed_at)
+        # Сбрасываем таблицы, чтобы накатить новую структуру с viewed_at для шпиона
         try:
             await session.execute(text("DROP TABLE IF EXISTS messages"))
             await session.execute(text("DROP TABLE IF EXISTS users"))
@@ -60,7 +59,7 @@ async def startup():
             )
         """))
         
-        # Таблица сообщений (с viewed_at для шпиона)
+        # Таблица сообщений (с viewed_at для умного таймера)
         await session.execute(text("""
             CREATE TABLE IF NOT EXISTS messages (
                 id SERIAL PRIMARY KEY,
@@ -77,9 +76,14 @@ async def startup():
             )
         """))
         
-        # Вспомогательные таблицы (SQLite fallback внутри)
-        try: await session.commit()
-        except: pass # Если Postgres, то ок. Если SQLite - таблицы создадутся ниже
+        # Остальные таблицы (SQLite fallback внутри init_db, тут для Postgres/Render)
+        try:
+            await session.execute(text("CREATE TABLE IF NOT EXISTS friend_requests (id SERIAL PRIMARY KEY, sender TEXT, receiver TEXT, status TEXT)"))
+            await session.execute(text("CREATE TABLE IF NOT EXISTS dms (id SERIAL PRIMARY KEY, user1 TEXT, user2 TEXT)"))
+            await session.execute(text("CREATE TABLE IF NOT EXISTS groups (id SERIAL PRIMARY KEY, name TEXT, owner TEXT)"))
+            await session.execute(text("CREATE TABLE IF NOT EXISTS group_members (id SERIAL PRIMARY KEY, group_id INTEGER, username TEXT)"))
+            await session.commit()
+        except: pass
 
 class ConnectionManager:
     def __init__(self): self.active_connections: dict[str, WebSocket] = {}
