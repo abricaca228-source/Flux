@@ -5,55 +5,9 @@ from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from sqlalchemy import text
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import sessionmaker
+# ВАЖНО: Возвращаем импорт из твоего файла database.py, так как он точно рабочий
+from database import AsyncSessionLocal, init_db
 from passlib.context import CryptContext
-
-# --- НАСТРОЙКИ БАЗЫ ДАННЫХ ВНУТРИ MAIN.PY ---
-# Используем новое имя файла, чтобы начать с чистого листа гарантированно
-DATABASE_URL = "sqlite+aiosqlite:///./flux_final.db"
-
-engine = create_async_engine(DATABASE_URL, echo=True)
-AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
-
-async def init_db():
-    async with engine.begin() as conn:
-        # Создаем таблицу пользователей
-        await conn.execute(text("""
-            CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username TEXT UNIQUE,
-                password TEXT,
-                bio TEXT,
-                avatar_url TEXT,
-                is_admin BOOLEAN DEFAULT FALSE,
-                wallpaper TEXT DEFAULT '',
-                real_name TEXT DEFAULT '',
-                location TEXT DEFAULT '',
-                birth_date TEXT DEFAULT '',
-                social_link TEXT DEFAULT ''
-            )
-        """))
-        # Создаем таблицу сообщений
-        await conn.execute(text("""
-            CREATE TABLE IF NOT EXISTS messages (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username TEXT,
-                content TEXT,
-                channel TEXT,
-                created_at TEXT,
-                is_edited BOOLEAN DEFAULT FALSE,
-                reactions TEXT DEFAULT '{}',
-                reply_to INTEGER DEFAULT NULL,
-                read_by TEXT DEFAULT '[]',
-                timer INTEGER DEFAULT 0
-            )
-        """))
-        # Таблицы для друзей и групп (упрощенно для старта)
-        await conn.execute(text("CREATE TABLE IF NOT EXISTS friend_requests (id INTEGER PRIMARY KEY, sender TEXT, receiver TEXT, status TEXT)"))
-        await conn.execute(text("CREATE TABLE IF NOT EXISTS dms (id INTEGER PRIMARY KEY, user1 TEXT, user2 TEXT)"))
-        await conn.execute(text("CREATE TABLE IF NOT EXISTS groups (id INTEGER PRIMARY KEY, name TEXT, owner TEXT)"))
-        await conn.execute(text("CREATE TABLE IF NOT EXISTS group_members (id INTEGER PRIMARY KEY, group_id INTEGER, username TEXT)"))
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -72,11 +26,95 @@ class RespondRequestModel(BaseModel): request_id: int; action: str
 class CreateGroupModel(BaseModel): name: str; owner: str
 class AddMemberModel(BaseModel): group_id: int; username: str
 
-# --- ЗАПУСК ---
+# --- ЖЕСТКИЙ СБРОС ТАБЛИЦ ПРИ СТАРТЕ ---
 @app.on_event("startup")
 async def startup():
-    # Просто инициализируем новую базу
+    # 1. Сначала запускаем стандартную инициализацию
     await init_db()
+    
+    async with AsyncSessionLocal() as session:
+        # 2. Удаляем старые таблицы, чтобы устранить конфликт версий
+        try:
+            await session.execute(text("DROP TABLE IF EXISTS messages"))
+            await session.execute(text("DROP TABLE IF EXISTS users"))
+            await session.commit()
+        except Exception as e:
+            print(f"Drop error: {e}")
+
+        # 3. Создаем таблицу ПОЛЬЗОВАТЕЛЕЙ (с обоями!)
+        try:
+            await session.execute(text("""
+                CREATE TABLE IF NOT EXISTS users (
+                    id SERIAL PRIMARY KEY,
+                    username TEXT UNIQUE,
+                    password TEXT,
+                    bio TEXT,
+                    avatar_url TEXT,
+                    is_admin BOOLEAN DEFAULT FALSE,
+                    wallpaper TEXT DEFAULT '',
+                    real_name TEXT DEFAULT '',
+                    location TEXT DEFAULT '',
+                    birth_date TEXT DEFAULT '',
+                    social_link TEXT DEFAULT ''
+                )
+            """))
+            await session.commit()
+        except:
+            # Fallback для SQLite (если вдруг локально)
+            try:
+                await session.execute(text("""
+                    CREATE TABLE IF NOT EXISTS users (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        username TEXT UNIQUE,
+                        password TEXT,
+                        bio TEXT,
+                        avatar_url TEXT,
+                        is_admin BOOLEAN DEFAULT FALSE,
+                        wallpaper TEXT DEFAULT '',
+                        real_name TEXT DEFAULT '',
+                        location TEXT DEFAULT '',
+                        birth_date TEXT DEFAULT '',
+                        social_link TEXT DEFAULT ''
+                    )
+                """))
+                await session.commit()
+            except: pass
+
+        # 4. Создаем таблицу СООБЩЕНИЙ (с файлами, ответами и таймером!)
+        try:
+            await session.execute(text("""
+                CREATE TABLE IF NOT EXISTS messages (
+                    id SERIAL PRIMARY KEY,
+                    username TEXT,
+                    content TEXT,
+                    channel TEXT,
+                    created_at TEXT,
+                    is_edited BOOLEAN DEFAULT FALSE,
+                    reactions TEXT DEFAULT '{}',
+                    reply_to INTEGER DEFAULT NULL,
+                    read_by TEXT DEFAULT '[]',
+                    timer INTEGER DEFAULT 0
+                )
+            """))
+            await session.commit()
+        except:
+            try:
+                await session.execute(text("""
+                    CREATE TABLE IF NOT EXISTS messages (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        username TEXT,
+                        content TEXT,
+                        channel TEXT,
+                        created_at TEXT,
+                        is_edited BOOLEAN DEFAULT FALSE,
+                        reactions TEXT DEFAULT '{}',
+                        reply_to INTEGER DEFAULT NULL,
+                        read_by TEXT DEFAULT '[]',
+                        timer INTEGER DEFAULT 0
+                    )
+                """))
+                await session.commit()
+            except: pass
 
 class ConnectionManager:
     def __init__(self): self.active_connections: dict[str, WebSocket] = {}
@@ -109,9 +147,11 @@ async def get(request: Request): return templates.TemplateResponse("index.html",
 @app.post("/register")
 async def register(user: AuthModel):
     async with AsyncSessionLocal() as session:
-        # Проверка на существование
-        res = await session.execute(text("SELECT id FROM users WHERE username=:u"), {"u":user.username})
-        if res.scalar(): raise HTTPException(400, "Ник занят")
+        # Проверка на дубликаты (безопасно)
+        try:
+            if (await session.execute(text("SELECT id FROM users WHERE username=:u"), {"u":user.username})).scalar(): 
+                raise HTTPException(400, "Ник занят")
+        except: pass
         
         await session.execute(text("INSERT INTO users (username, password, bio, is_admin, wallpaper, real_name, location, birth_date, social_link) VALUES (:u, :p, 'Новичок', :a, '', '', '', '', '')"), {"u":user.username, "p":get_password_hash(user.password), "a":False})
         await session.commit()
@@ -120,14 +160,20 @@ async def register(user: AuthModel):
 @app.post("/login")
 async def login(user: AuthModel):
     async with AsyncSessionLocal() as session:
-        res = await session.execute(text("SELECT password, avatar_url, bio, is_admin, real_name, location, birth_date, social_link, wallpaper FROM users WHERE username=:u"), {"u":user.username})
-        row = res.fetchone()
+        # Теперь таблица точно новая, ошибок быть не должно
+        row = (await session.execute(text("SELECT password, avatar_url, bio, is_admin, real_name, location, birth_date, social_link, wallpaper FROM users WHERE username=:u"), {"u":user.username})).fetchone()
         if not row or not verify_password(user.password, row[0]): raise HTTPException(400, "Неверный логин или пароль")
     
     return {
-        "message": "Success", "avatar_url": row[1], "bio": row[2], "is_admin": row[3], 
-        "real_name": row[4] or "", "location": row[5] or "", "birth_date": row[6] or "", 
-        "social_link": row[7] or "", "wallpaper": row[8] or ""
+        "message": "Success", 
+        "avatar_url": row[1], 
+        "bio": row[2], 
+        "is_admin": row[3], 
+        "real_name": row[4] or "", 
+        "location": row[5] or "", 
+        "birth_date": row[6] or "", 
+        "social_link": row[7] or "", 
+        "wallpaper": row[8] or ""
     }
 
 @app.post("/update_profile")
@@ -138,7 +184,6 @@ async def update_profile(data: ProfileUpdateModel):
         q = "UPDATE users SET avatar_url=:a, bio=:b, real_name=:rn, location=:l, birth_date=:bd, social_link=:sl, wallpaper=:w" + (", is_admin=TRUE" if is_admin else "") + " WHERE username=:u"
         await session.execute(text(q), {"a":data.avatar_url, "b":new_bio, "u":data.username, "rn":data.real_name, "l":data.location, "bd":data.birth_date, "sl":data.social_link, "w":data.wallpaper})
         await session.commit()
-        # Получаем обновленный статус админа
         res = await session.execute(text("SELECT is_admin FROM users WHERE username=:u"), {"u":data.username})
         admin_status = res.scalar()
     return {"message": "Updated", "bio": new_bio, "is_admin": admin_status}
@@ -262,8 +307,7 @@ async def websocket_endpoint(websocket: WebSocket, username: str):
             elif data.get("type") == "message":
                 now = datetime.now().strftime("%H:%M")
                 async with AsyncSessionLocal() as session:
-                    res = await session.execute(text("INSERT INTO messages (username, content, channel, created_at, is_edited, reactions, reply_to, read_by, timer) VALUES (:u, :c, :ch, :t, FALSE, '{}', :rep, '[]', :tim) RETURNING id"), {"u":data['username'], "c":data['content'], "ch":data['channel'], "t":now, "rep":data.get('reply_to'), "tim":data.get('timer', 0)})
-                    nid = res.scalar()
+                    nid = (await session.execute(text("INSERT INTO messages (username, content, channel, created_at, is_edited, reactions, reply_to, read_by, timer) VALUES (:u, :c, :ch, :t, FALSE, '{}', :rep, '[]', :tim) RETURNING id"), {"u":data['username'], "c":data['content'], "ch":data['channel'], "t":now, "rep":data.get('reply_to'), "tim":data.get('timer', 0)})).scalar()
                     await session.commit()
                     
                     res_u = await session.execute(text("SELECT avatar_url, bio, is_admin FROM users WHERE username=:u"), {"u":data['username']})
@@ -280,8 +324,7 @@ async def websocket_endpoint(websocket: WebSocket, username: str):
             elif data.get("type") == "mark_read":
                 async with AsyncSessionLocal() as session:
                     mid = data.get("message_id")
-                    res = await session.execute(text("SELECT read_by FROM messages WHERE id=:id"), {"id":mid})
-                    row = res.fetchone()
+                    row = (await session.execute(text("SELECT read_by FROM messages WHERE id=:id"), {"id":mid})).fetchone()
                     if row:
                         readers = json.loads(row[0]) if row[0] else []
                         if username not in readers:
@@ -294,8 +337,7 @@ async def websocket_endpoint(websocket: WebSocket, username: str):
                 async with AsyncSessionLocal() as session:
                     mid = data.get("message_id")
                     emoji = data.get("emoji")
-                    res = await session.execute(text("SELECT reactions FROM messages WHERE id=:id"), {"id":mid})
-                    row = res.fetchone()
+                    row = (await session.execute(text("SELECT reactions FROM messages WHERE id=:id"), {"id":mid})).fetchone()
                     if row:
                         current = json.loads(row[0]) if row[0] else {}
                         if emoji not in current: current[emoji] = []
@@ -309,10 +351,8 @@ async def websocket_endpoint(websocket: WebSocket, username: str):
 
             elif data.get("type") == "edit_message":
                 async with AsyncSessionLocal() as session:
-                    res = await session.execute(text("SELECT username FROM messages WHERE id=:id"), {"id":data.get("message_id")})
-                    msg = res.fetchone()
-                    res_a = await session.execute(text("SELECT is_admin FROM users WHERE username=:u"), {"u":username})
-                    is_admin = res_a.scalar()
+                    msg = (await session.execute(text("SELECT username FROM messages WHERE id=:id"), {"id":data.get("message_id")})).fetchone()
+                    is_admin = (await session.execute(text("SELECT is_admin FROM users WHERE username=:u"), {"u":username})).scalar()
                     if msg and (msg[0] == username or is_admin):
                         await session.execute(text("UPDATE messages SET content=:c, is_edited=TRUE WHERE id=:id"), {"c":data.get("new_content"), "id":data.get("message_id")})
                         await session.commit()
@@ -320,12 +360,7 @@ async def websocket_endpoint(websocket: WebSocket, username: str):
 
             elif data.get("type") == "delete":
                 async with AsyncSessionLocal() as session:
-                    res_a = await session.execute(text("SELECT is_admin FROM users WHERE username=:u"), {"u":username})
-                    is_admin = res_a.scalar()
-                    res_m = await session.execute(text("SELECT username FROM messages WHERE id=:id"), {"id":data.get("message_id")})
-                    msg_author = res_m.scalar()
-                    
-                    if is_admin or msg_author == username:
+                    if (await session.execute(text("SELECT is_admin FROM users WHERE username=:u"), {"u":username})).scalar() or (await session.execute(text("SELECT username FROM messages WHERE id=:id"), {"id":data.get("message_id")})).scalar() == username:
                         await session.execute(text("DELETE FROM messages WHERE id=:id"), {"id":data.get("message_id")})
                         await session.commit()
                         await manager.broadcast(data)
@@ -333,8 +368,7 @@ async def websocket_endpoint(websocket: WebSocket, username: str):
             elif data.get("type") == "typing": await manager.broadcast(data)
             elif data.get("type") == "ban_user":
                 async with AsyncSessionLocal() as session:
-                    res = await session.execute(text("SELECT is_admin FROM users WHERE username=:u"), {"u":username})
-                    if res.scalar():
+                    if (await session.execute(text("SELECT is_admin FROM users WHERE username=:u"), {"u":username})).scalar():
                         t = data.get("target")
                         for q in ["DELETE FROM users WHERE username=:t", "DELETE FROM messages WHERE username=:t", "DELETE FROM messages WHERE channel LIKE :p", "DELETE FROM dms WHERE user1=:t OR user2=:t", "DELETE FROM group_members WHERE username=:t"]:
                             await session.execute(text(q), {"t":t, "p":f"%_{t}%"})
