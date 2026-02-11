@@ -298,7 +298,7 @@
                         <div class="settings-label">ID пользователя (как в Telegram)</div>
                         <div style="display:flex;gap:10px;align-items:center;">
                             <input id="settings-userid" class="settings-input" placeholder="000000" maxlength="6" pattern="[0-9]{6}" style="font-family:monospace;letter-spacing:2px;">
-                            <button class="btn" style="flex-shrink:0;padding:8px 15px;" onclick="updateUserId()">Изменить</button>
+                            <button class="btn" style="flex-shrink:0;padding:8px 15px;" onclick="window.updateUserId()">Изменить</button>
                         </div>
                         <div style="font-size:11px;opacity:0.7;margin-top:5px;">6-значный уникальный ID</div>
                     </div>
@@ -307,14 +307,14 @@
                 <div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--glass-border);">
                     <div class="settings-label">Тема оформления</div>
                     <div class="theme-selector">
-                        <div class="theme-btn dark active" onclick="changeTheme('dark', this)">🌙 Тёмная</div>
-                        <div class="theme-btn light" onclick="changeTheme('light', this)">☀️ Светлая</div>
+                        <div class="theme-btn dark active" onclick="window.changeTheme('dark', this)">🌙 Тёмная</div>
+                        <div class="theme-btn light" onclick="window.changeTheme('light', this)">☀️ Светлая</div>
                     </div>
                 </div>
                 
                 <div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--glass-border);">
                     <div class="settings-label">Статус</div>
-                    <select id="settings-status" class="settings-input" onchange="updateUserStatus()">
+                    <select id="settings-status" class="settings-input" onchange="window.updateUserStatus(this.value)">
                         <option value="online">🟢 Онлайн</option>
                         <option value="away">🟡 Отошёл</option>
                         <option value="dnd">🔴 Не беспокоить</option>
@@ -329,7 +329,105 @@
         <div id="dm-modal" class="modal"><div class="modal-content"><span class="close-btn" onclick="this.parentElement.parentElement.style.display='none'">&times;</span><h2>Найти</h2><input id="dm-username" class="settings-input" placeholder="Никнейм"><button class="btn" onclick="sendFriendRequest()">Отправить</button></div></div>
         <div id="create-group-modal" class="modal"><div class="modal-content"><span class="close-btn" onclick="this.parentElement.parentElement.style.display='none'">&times;</span><h2>Группа</h2><input id="group-name-input" class="settings-input" placeholder="Название"><button class="btn" onclick="createGroup()">Создать</button></div></div>
         <div id="add-member-modal" class="modal"><div class="modal-content"><span class="close-btn" onclick="this.parentElement.parentElement.style.display='none'">&times;</span><h2>Добавить</h2><input id="new-member-username" class="settings-input" placeholder="Никнейм"><button class="btn" onclick="addMemberToGroup()">Добавить</button></div></div>
-        <div id="user-profile-modal" class="modal"><div class="modal-content"><span class="close-btn" onclick="document.getElementById('user-profile-modal').style.display='none'">&times;</span><img id="view-avatar" style="width:100px;height:100px;border-radius:50%;margin-bottom:15px;object-fit:cover;" src=""><h2 id="view-username"></h2><p id="view-bio"></p><div id="view-details" style="text-align:left;margin-top:15px;"></div></div></div>
+        <div id="user-profile-modal" class="modal">
+            <div class="modal-content" style="max-width:500px;">
+                <span class="close-btn" onclick="document.getElementById('user-profile-modal').style.display='none'">&times;</span>
+                <div style="text-align:center;padding:20px 0;">
+                    <img id="view-avatar" style="width:120px;height:120px;border-radius:50%;margin-bottom:15px;object-fit:cover;border:3px solid var(--accent-primary);" src="">
+                    <h2 id="view-username"></h2>
+                    <p id="view-bio" style="color:var(--text-dim);margin-bottom:20px;"></p>
+                    <div id="view-details" style="text-align:left;margin-top:20px;padding:20px;background:rgba(0,0,0,0.2);border-radius:12px;"></div>
+                    <div style="margin-top:20px;">
+                        <button class="btn" onclick="window.startDMFromProfile()" style="margin-right:10px;">Написать</button>
+                        <button class="btn" onclick="window.sendFriendRequestFromProfile()" style="background:var(--success);">Добавить в друзья</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="account-settings-modal" class="modal">
+            <div class="modal-content" style="max-width:600px;max-height:90vh;overflow-y:auto;">
+                <span class="close-btn" onclick="document.getElementById('account-settings-modal').style.display='none'">&times;</span>
+                <h2 style="text-align:center;margin-bottom:30px;">Настройки</h2>
+                
+                <div class="settings-menu-item" onclick="window.openSettings()">
+                    <div style="display:flex;align-items:center;gap:15px;">
+                        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#ff6b6b,#ee5a6f);display:flex;align-items:center;justify-content:center;font-size:20px;">👤</div>
+                        <div style="flex:1;">
+                            <div style="font-weight:600;margin-bottom:3px;">Мой профиль</div>
+                            <div style="font-size:12px;color:var(--text-dim);">Имя, фото, био</div>
+                        </div>
+                        <div style="color:var(--text-dim);">›</div>
+                    </div>
+                </div>
+                
+                <div class="settings-menu-item" onclick="window.openNotificationsSettings()">
+                    <div style="display:flex;align-items:center;gap:15px;">
+                        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#ff6b6b,#ee5a6f);display:flex;align-items:center;justify-content:center;font-size:20px;">🔔</div>
+                        <div style="flex:1;">
+                            <div style="font-weight:600;margin-bottom:3px;">Уведомления и звуки</div>
+                            <div style="font-size:12px;color:var(--text-dim);">Настройка уведомлений</div>
+                        </div>
+                        <div style="color:var(--text-dim);">›</div>
+                    </div>
+                </div>
+                
+                <div class="settings-menu-item" onclick="window.openPrivacySettings()">
+                    <div style="display:flex;align-items:center;gap:15px;">
+                        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#4a90e2,#357abd);display:flex;align-items:center;justify-content:center;font-size:20px;">🔒</div>
+                        <div style="flex:1;">
+                            <div style="font-weight:600;margin-bottom:3px;">Приватность и безопасность</div>
+                            <div style="font-size:12px;color:var(--text-dim);">Блокировка, сессии</div>
+                        </div>
+                        <div style="color:var(--text-dim);">›</div>
+                    </div>
+                </div>
+                
+                <div class="settings-menu-item" onclick="window.openDataSettings()">
+                    <div style="display:flex;align-items:center;gap:15px;">
+                        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#4caf50,#45a049);display:flex;align-items:center;justify-content:center;font-size:20px;">💾</div>
+                        <div style="flex:1;">
+                            <div style="font-weight:600;margin-bottom:3px;">Данные и хранилище</div>
+                            <div style="font-size:12px;color:var(--text-dim);">Использование данных</div>
+                        </div>
+                        <div style="color:var(--text-dim);">›</div>
+                    </div>
+                </div>
+                
+                <div class="settings-menu-item" onclick="window.openAppearanceSettings()">
+                    <div style="display:flex;align-items:center;gap:15px;">
+                        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#4a90e2,#357abd);display:flex;align-items:center;justify-content:center;font-size:20px;">🎨</div>
+                        <div style="flex:1;">
+                            <div style="font-weight:600;margin-bottom:3px;">Внешний вид</div>
+                            <div style="font-size:12px;color:var(--text-dim);">Тема, шрифты</div>
+                        </div>
+                        <div style="color:var(--text-dim);">›</div>
+                    </div>
+                </div>
+                
+                <div class="settings-menu-item" onclick="window.openLanguageSettings()">
+                    <div style="display:flex;align-items:center;gap:15px;">
+                        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#9c27b0,#7b1fa2);display:flex;align-items:center;justify-content:center;font-size:20px;">🌐</div>
+                        <div style="flex:1;">
+                            <div style="font-weight:600;margin-bottom:3px;">Язык</div>
+                            <div style="font-size:12px;color:var(--text-dim);">Русский</div>
+                        </div>
+                        <div style="color:var(--text-dim);">›</div>
+                    </div>
+                </div>
+                
+                <div class="settings-menu-item" onclick="window.toggleStickerPicker()">
+                    <div style="display:flex;align-items:center;gap:15px;">
+                        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#ff9800,#f57c00);display:flex;align-items:center;justify-content:center;font-size:20px;">🎭</div>
+                        <div style="flex:1;">
+                            <div style="font-weight:600;margin-bottom:3px;">Стикеры и эмодзи</div>
+                            <div style="font-size:12px;color:var(--text-dim);">Управление стикерами</div>
+                        </div>
+                        <div style="color:var(--text-dim);">›</div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <div id="login-screen" class="auth-container">
             <div class="logo-f">F</div>
@@ -364,7 +462,7 @@
                 <div class="sidebar-title">ЧАТЫ <span class="icon-btn" style="color:var(--accent-primary)" onclick="document.getElementById('create-group-modal').style.display='flex'">+</span></div><div id="groups-list"></div>
                 <div class="sidebar-title">ЛИЧНЫЕ <span class="icon-btn" style="color:var(--accent-primary)" onclick="document.getElementById('dm-modal').style.display='flex'">+</span></div><div id="dm-list"></div>
                 <div id="requests-section" style="display:none;"><div class="sidebar-title" style="color:var(--success);">ЗАЯВКИ</div><div id="requests-list"></div></div>
-                <div class="user-panel" onclick="openAccountSettings()"><img id="my-avatar-img" class="my-avatar" src=""><div class="my-info"><div id="my-name-text" class="my-name"></div><div id="my-bio-text" class="my-bio"></div></div><div class="settings-btn">⚙️</div></div>
+                <div class="user-panel" onclick="window.openAccountSettings()"><img id="my-avatar-img" class="my-avatar" src=""><div class="my-info"><div id="my-name-text" class="my-name"></div><div id="my-bio-text" class="my-bio"></div></div><div class="settings-btn">⚙️</div></div>
             </div>
             <div class="chat-area" id="chat-area">
                 <div class="chat-header">
@@ -528,7 +626,7 @@
                 } catch(e) {}
             }
             
-            async function updateUserId() {
+            window.updateUserId = async function() {
                 const newId = document.getElementById("settings-userid").value;
                 if (!newId || newId.length !== 6 || !/^\d{6}$/.test(newId)) {
                     alert("ID должен состоять из 6 цифр");
@@ -1105,8 +1203,10 @@
             async function respondReq(id, act) { fetch("/respond_request", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({request_id:id,action:act})}).then(r=>{if(r.ok){loadRequests();if(act==='accept')loadDMs();}}); }
 
             // --- ПРОСМОТР ПРОФИЛЯ ДРУГИХ ПОЛЬЗОВАТЕЛЕЙ (УЛУЧШЕННЫЙ В СТИЛЕ TELEGRAM) ---
+            let currentProfileUsername = null;
             window.openUserProfile = async function(name) {
                 try {
+                    currentProfileUsername = name;
                     const r = await fetch("/get_profile?username=" + encodeURIComponent(name));
                     if (!r.ok) {
                         alert("Пользователь не найден");
@@ -1114,23 +1214,73 @@
                     }
                     const u = await r.json();
                     document.getElementById("view-avatar").src = u.avatar_url || getDefaultAvatar(u.username);
-                    document.getElementById("view-username").innerHTML = `<div style="display:flex;align-items:center;gap:10px;justify-content:center;"><span>${u.username}</span>${u.is_admin ? '<span style="font-size:20px;">👑</span>' : ''}</div>`;
+                    document.getElementById("view-username").innerHTML = `<div style="display:flex;align-items:center;gap:10px;justify-content:center;flex-wrap:wrap;"><span>${u.username}</span>${u.is_admin ? '<span style="font-size:20px;">👑</span>' : ''}</div>`;
                     document.getElementById("view-bio").innerText = u.bio || "Без статуса";
-                    let details = `<div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--glass-border);">`;
-                    if (u.user_id) details += `<div style="margin-bottom:12px;padding:10px;background:rgba(0,0,0,0.2);border-radius:8px;"><div style="font-size:11px;opacity:0.7;margin-bottom:4px;">ID пользователя</div><div style="font-weight:600;font-family:monospace;">${u.user_id}</div></div>`;
-                    if (u.real_name) details += `<div style="margin-bottom:8px;"><span style="opacity:0.7;font-size:13px;">Имя:</span> <span style="font-weight:500;">${u.real_name}</span></div>`;
-                    if (u.location) details += `<div style="margin-bottom:8px;"><span style="opacity:0.7;font-size:13px;">Город:</span> <span style="font-weight:500;">${u.location}</span></div>`;
-                    if (u.birth_date) details += `<div style="margin-bottom:8px;"><span style="opacity:0.7;font-size:13px;">Дата рождения:</span> <span style="font-weight:500;">${u.birth_date}</span></div>`;
-                    if (u.phone) details += `<div style="margin-bottom:8px;"><span style="opacity:0.7;font-size:13px;">Телефон:</span> <span style="font-weight:500;">${u.phone}</span></div>`;
-                    if (u.email) details += `<div style="margin-bottom:8px;"><span style="opacity:0.7;font-size:13px;">Email:</span> <span style="font-weight:500;">${u.email}</span></div>`;
-                    if (u.social_link) details += `<div style="margin-bottom:8px;"><span style="opacity:0.7;font-size:13px;">Соцсети:</span> <a href="${u.social_link}" target="_blank" style="color:var(--accent-primary);text-decoration:none;">${u.social_link}</a></div>`;
+                    let details = `<div style="display:grid;gap:15px;">`;
+                    if (u.user_id) details += `<div style="padding:12px;background:rgba(0,0,0,0.3);border-radius:10px;"><div style="font-size:11px;opacity:0.7;margin-bottom:6px;text-transform:uppercase;letter-spacing:1px;">ID пользователя</div><div style="font-weight:600;font-family:monospace;font-size:18px;color:var(--accent-primary);">${u.user_id}</div></div>`;
+                    if (u.phone) details += `<div style="padding:10px;background:rgba(0,0,0,0.2);border-radius:8px;"><div style="font-size:12px;opacity:0.7;margin-bottom:4px;">Телефон</div><div style="font-weight:500;">${u.phone}</div></div>`;
+                    if (u.email) details += `<div style="padding:10px;background:rgba(0,0,0,0.2);border-radius:8px;"><div style="font-size:12px;opacity:0.7;margin-bottom:4px;">Email</div><div style="font-weight:500;">${u.email}</div></div>`;
+                    if (u.real_name) details += `<div style="padding:10px;background:rgba(0,0,0,0.2);border-radius:8px;"><div style="font-size:12px;opacity:0.7;margin-bottom:4px;">Имя</div><div style="font-weight:500;">${u.real_name}</div></div>`;
+                    if (u.location) details += `<div style="padding:10px;background:rgba(0,0,0,0.2);border-radius:8px;"><div style="font-size:12px;opacity:0.7;margin-bottom:4px;">Город</div><div style="font-weight:500;">${u.location}</div></div>`;
+                    if (u.birth_date) details += `<div style="padding:10px;background:rgba(0,0,0,0.2);border-radius:8px;"><div style="font-size:12px;opacity:0.7;margin-bottom:4px;">Дата рождения</div><div style="font-weight:500;">${u.birth_date}</div></div>`;
+                    if (u.social_link) details += `<div style="padding:10px;background:rgba(0,0,0,0.2);border-radius:8px;"><div style="font-size:12px;opacity:0.7;margin-bottom:4px;">Соцсети</div><a href="${u.social_link}" target="_blank" style="color:var(--accent-primary);text-decoration:none;font-weight:500;">${u.social_link}</a></div>`;
                     details += `</div>`;
-                    if (!u.user_id && !u.real_name && !u.location && !u.birth_date && !u.phone && !u.email && !u.social_link) details = "<div style='opacity:0.6;margin-top:20px;padding-top:20px;border-top:1px solid var(--glass-border);'>Нет дополнительной информации</div>";
+                    if (!u.user_id && !u.real_name && !u.location && !u.birth_date && !u.phone && !u.email && !u.social_link) details = "<div style='opacity:0.6;padding:20px;text-align:center;'>Нет дополнительной информации</div>";
                     document.getElementById("view-details").innerHTML = details;
                     document.getElementById("user-profile-modal").style.display = "flex";
                 } catch (e) {
                     alert("Ошибка загрузки профиля");
                 }
+            }
+            
+            window.startDMFromProfile = function() {
+                if (currentProfileUsername) {
+                    document.getElementById("user-profile-modal").style.display = "none";
+                    let chatID = "dm_" + [username, currentProfileUsername].sort().join("_");
+                    switchChat(chatID, currentProfileUsername, true, null, null);
+                }
+            }
+            
+            window.sendFriendRequestFromProfile = function() {
+                if (currentProfileUsername) {
+                    fetch("/send_request", {
+                        method: "POST",
+                        headers: {"Content-Type": "application/json"},
+                        body: JSON.stringify({sender: username, receiver: currentProfileUsername})
+                    }).then(r => {
+                        if (r.ok) {
+                            alert("Запрос отправлен!");
+                            document.getElementById("user-profile-modal").style.display = "none";
+                        } else {
+                            alert("Ошибка отправки запроса");
+                        }
+                    });
+                }
+            }
+            
+            window.openAccountSettings = function() {
+                document.getElementById("account-settings-modal").style.display = "flex";
+            }
+            
+            window.openNotificationsSettings = function() {
+                alert("Настройки уведомлений (в разработке)");
+            }
+            
+            window.openPrivacySettings = function() {
+                alert("Настройки приватности (в разработке)");
+            }
+            
+            window.openDataSettings = function() {
+                alert("Настройки данных (в разработке)");
+            }
+            
+            window.openAppearanceSettings = function() {
+                openSettings();
+                document.getElementById("account-settings-modal").style.display = "none";
+            }
+            
+            window.openLanguageSettings = function() {
+                alert("Настройки языка (в разработке)");
             }
 
             // --- ЗВОНКИ (WebRTC) ---
@@ -1280,10 +1430,10 @@
             // --- НОВЫЕ ФУНКЦИИ: ТЕМЫ, СТАТУСЫ, ПРЕВЬЮ, ГОЛОСОВЫЕ КАНАЛЫ ---
             
             // ТЕМЫ ОФОРМЛЕНИЯ
-            window.changeTheme = async function(theme) {
+            window.changeTheme = async function(theme, btnEl) {
                 document.body.className = theme + '-theme';
                 document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
-                event.target.classList.add('active');
+                if (btnEl) btnEl.classList.add('active');
                 if (username) {
                     await fetch("/update_theme", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username:username,theme:theme})});
                     localStorage.setItem('flux_theme', theme);
