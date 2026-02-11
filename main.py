@@ -24,7 +24,16 @@ class AuthModel(BaseModel):
     real_name: str = ""
     birth_date: str = ""
 
-class ProfileUpdateModel(BaseModel): username: str; bio: str; avatar_url: str; wallpaper: str = ""; real_name: str = ""; location: str = ""; birth_date: str = ""; social_link: str = ""
+class ProfileUpdateModel(BaseModel): 
+    username: str
+    bio: str
+    avatar_url: str
+    wallpaper: str = ""
+    real_name: str = ""
+    location: str = ""
+    birth_date: str = ""
+    social_link: str = ""
+
 class FriendRequestModel(BaseModel): sender: str; receiver: str
 class RespondRequestModel(BaseModel): request_id: int; action: str 
 class CreateGroupModel(BaseModel): name: str; owner: str
@@ -34,7 +43,7 @@ class AddMemberModel(BaseModel): group_id: int; username: str
 async def startup():
     await init_db()
     async with AsyncSessionLocal() as session:
-        # Создаем таблицы (если их нет)
+        # Создаем таблицы, если их нет (данные не удаляем)
         await session.execute(text("""
             CREATE TABLE IF NOT EXISTS users (
                 id SERIAL PRIMARY KEY,
@@ -71,9 +80,8 @@ async def startup():
             "CREATE TABLE IF NOT EXISTS groups (id SERIAL PRIMARY KEY, name TEXT, owner TEXT)",
             "CREATE TABLE IF NOT EXISTS group_members (id SERIAL PRIMARY KEY, group_id INTEGER, username TEXT)"
         ]:
-            try: await session.execute(text(t))
+            try: await session.execute(text(t)); await session.commit()
             except: pass
-        await session.commit()
 
 class ConnectionManager:
     def __init__(self): self.active_connections: dict[str, WebSocket] = {}
@@ -111,7 +119,7 @@ async def register(user: AuthModel):
         await session.execute(text("INSERT INTO users (username, password, bio, is_admin, wallpaper, real_name, location, birth_date, social_link) VALUES (:u, :p, 'Новичок', :a, '', :rn, '', :bd, '')"), 
             {"u":user.username, "p":get_password_hash(user.password), "a":False, "rn":user.real_name, "bd":user.birth_date})
         
-        # ЗАЩИТА ОТ ОШИБКИ: Проверяем, есть ли уже чат, прежде чем создавать
+        # Проверка на существование чата с самим собой
         exists = (await session.execute(text("SELECT id FROM dms WHERE user1=:u AND user2=:u"), {"u":user.username})).scalar()
         if not exists:
             await session.execute(text("INSERT INTO dms (user1, user2) VALUES (:u, :u)"), {"u":user.username})
@@ -133,22 +141,21 @@ async def login(user: AuthModel):
 @app.post("/update_profile")
 async def update_profile(data: ProfileUpdateModel):
     async with AsyncSessionLocal() as session:
-        new_bio = data.bio.replace("#admin", "").strip() if "#admin" in data.bio else data.bio
-        is_admin = True if "#admin" in data.bio else False
-        q = "UPDATE users SET avatar_url=:a, bio=:b, real_name=:rn, location=:l, birth_date=:bd, social_link=:sl, wallpaper=:w" + (", is_admin=TRUE" if is_admin else "") + " WHERE username=:u"
-        await session.execute(text(q), {"a":data.avatar_url, "b":new_bio, "u":data.username, "rn":data.real_name, "l":data.location, "bd":data.birth_date, "sl":data.social_link, "w":data.wallpaper})
+        # Обновляем все поля
+        q = "UPDATE users SET avatar_url=:a, bio=:b, real_name=:rn, location=:l, birth_date=:bd, social_link=:sl, wallpaper=:w WHERE username=:u"
+        await session.execute(text(q), {"a":data.avatar_url, "b":data.bio, "u":data.username, "rn":data.real_name, "l":data.location, "bd":data.birth_date, "sl":data.social_link, "w":data.wallpaper})
         await session.commit()
-        res = await session.execute(text("SELECT is_admin FROM users WHERE username=:u"), {"u":data.username})
-        admin_status = res.scalar()
-    return {"message": "Updated", "bio": new_bio, "is_admin": admin_status}
+        
+        # Получаем актуальный статус админа для возврата
+        admin_status = (await session.execute(text("SELECT is_admin FROM users WHERE username=:u"), {"u":data.username})).scalar()
+    return {"message": "Updated", "bio": data.bio, "is_admin": admin_status}
 
 @app.get("/get_profile")
 async def get_profile(username: str):
     async with AsyncSessionLocal() as session:
-        res = await session.execute(text("SELECT username, bio, avatar_url, is_admin, real_name, location, birth_date, social_link, wallpaper FROM users WHERE username=:u"), {"u":username})
-        user = res.fetchone()
-        if not user: raise HTTPException(404, "User not found")
-        return {"username": user[0], "bio": user[1], "avatar_url": user[2], "is_admin": user[3], "real_name": user[4] or "", "location": user[5] or "", "birth_date": user[6] or "", "social_link": user[7] or "", "wallpaper": user[8] or ""}
+        row = (await session.execute(text("SELECT username, bio, avatar_url, is_admin, real_name, location, birth_date, social_link, wallpaper FROM users WHERE username=:u"), {"u":username})).fetchone()
+        if not row: raise HTTPException(404, "User not found")
+        return {"username": row[0], "bio": row[1], "avatar_url": row[2], "is_admin": row[3], "real_name": row[4] or "", "location": row[5] or "", "birth_date": row[6] or "", "social_link": row[7] or "", "wallpaper": row[8] or ""}
 
 @app.post("/send_request")
 async def send_request(data: FriendRequestModel):
@@ -195,8 +202,7 @@ async def get_dms(username: str):
 @app.post("/create_group")
 async def create_group(data: CreateGroupModel):
     async with AsyncSessionLocal() as session:
-        res = await session.execute(text("INSERT INTO groups (name, owner) VALUES (:n, :o) RETURNING id"), {"n":data.name, "o":data.owner})
-        gid = res.scalar()
+        gid = (await session.execute(text("INSERT INTO groups (name, owner) VALUES (:n, :o) RETURNING id"), {"n":data.name, "o":data.owner})).scalar()
         await session.execute(text("INSERT INTO group_members (group_id, username) VALUES (:gid, :u)"), {"gid":gid, "u":data.owner})
         await session.commit()
     return {"message": "Created", "group_id": gid, "name": data.name}
@@ -260,10 +266,13 @@ async def websocket_endpoint(websocket: WebSocket, username: str):
             elif data.get("type") == "message":
                 now = datetime.now().strftime("%H:%M")
                 async with AsyncSessionLocal() as session:
-                    nid = (await session.execute(text("INSERT INTO messages (username, content, channel, created_at, is_edited, reactions, reply_to, read_by, timer, viewed_at) VALUES (:u, :c, :ch, :t, FALSE, '{}', :rep, '[]', :tim, NULL) RETURNING id"), 
-                        {"u":data['username'], "c":data['content'], "ch":data['channel'], "t":now, "rep":data.get('reply_to'), "tim":data.get('timer', 0)})).scalar()
+                    # Создаем сообщение
+                    res = await session.execute(text("INSERT INTO messages (username, content, channel, created_at, is_edited, reactions, reply_to, read_by, timer, viewed_at) VALUES (:u, :c, :ch, :t, FALSE, '{}', :rep, '[]', :tim, NULL) RETURNING id"), 
+                        {"u":data['username'], "c":data['content'], "ch":data['channel'], "t":now, "rep":data.get('reply_to'), "tim":data.get('timer', 0)})
+                    nid = res.scalar()
                     await session.commit()
                     
+                    # ВАЖНО: Запрашиваем СВЕЖИЕ данные пользователя для отправки с сообщением
                     res_u = await session.execute(text("SELECT avatar_url, bio, is_admin FROM users WHERE username=:u"), {"u":data['username']})
                     u_row = res_u.fetchone()
                     
@@ -272,6 +281,8 @@ async def websocket_endpoint(websocket: WebSocket, username: str):
                         res_p = await session.execute(text("SELECT username, content FROM messages WHERE id=:pid"), {"pid":data.get('reply_to')})
                         parent = res_p.fetchone()
                         if parent: reply_content = {"username": parent[0], "content": parent[1]}
+                
+                # Отправляем сообщение всем с АКТУАЛЬНОЙ аватаркой
                 data.update({'id':nid, 'created_at':now, 'avatar_url':u_row[0] or "", 'bio':u_row[1] or "", 'is_admin':u_row[2] or False, 'is_edited': False, 'reactions': {}, 'reply_to': data.get('reply_to'), 'reply_preview': reply_content, 'read_by': [], 'timer': data.get('timer', 0), 'viewed_at': None})
                 await manager.broadcast(data)
 
