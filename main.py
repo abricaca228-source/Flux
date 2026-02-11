@@ -94,7 +94,30 @@ async def update_profile(data: ProfileUpdateModel):
         q = "UPDATE users SET avatar_url=:a, bio=:b, real_name=:rn, location=:l, birth_date=:bd, social_link=:sl, wallpaper=:w WHERE username=:u"
         await session.execute(text(q), {"a":data.avatar_url, "b":data.bio, "u":data.username, "rn":data.real_name, "l":data.location, "bd":data.birth_date, "sl":data.social_link, "w":data.wallpaper})
         await session.commit()
-        admin_status = (await session.execute(text("SELECT is_admin FROM users WHERE username=:u"), {"u":data.username})).scalar()
+        # Берём свежие данные профиля, чтобы отдать фронтенду полный объект,
+        # который сразу подойдёт для updateMyUI (аватар, обои, био, админ и т.д.).
+        row = (
+            await session.execute(
+                text(
+                    "SELECT username, bio, avatar_url, is_admin, real_name, location, birth_date, social_link, wallpaper "
+                    "FROM users WHERE username=:u"
+                ),
+                {"u": data.username},
+            )
+        ).fetchone()
+        if not row:
+            raise HTTPException(404, "User not found")
+        profile = {
+            "username": row[0],
+            "bio": row[1] or "",
+            "avatar_url": row[2] or "",
+            "is_admin": row[3] or False,
+            "real_name": row[4] or "",
+            "location": row[5] or "",
+            "birth_date": row[6] or "",
+            "social_link": row[7] or "",
+            "wallpaper": row[8] or "",
+        }
     
     # !!! ВАЖНО: Моментальное уведомление всем, что профиль обновился !!!
     await manager.broadcast({
@@ -103,7 +126,8 @@ async def update_profile(data: ProfileUpdateModel):
         "avatar_url": data.avatar_url,
         "bio": data.bio
     })
-    return {"message": "Updated", "bio": data.bio, "is_admin": admin_status}
+    # Возвращаем полный профиль для текущего пользователя
+    return profile
 
 @app.get("/get_profile")
 async def get_profile(username: str):

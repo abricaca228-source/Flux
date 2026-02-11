@@ -359,8 +359,18 @@
                     avatar_url:currentUserAvatar, wallpaper: currentUserWallpaper,
                     real_name:document.getElementById("settings-realname").value, location:document.getElementById("settings-location").value, birth_date:document.getElementById("settings-birthdate").value, social_link:document.getElementById("settings-social").value
                 }; 
-                let r=await fetch("/update_profile", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}); 
-                if(r.ok) { let d=await r.json(); updateMyUI(d); document.getElementById("settings-modal").style.display="none"; } 
+                try {
+                    let r=await fetch("/update_profile", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}); 
+                    if(r.ok) { 
+                        let d=await r.json(); 
+                        updateMyUI(d); 
+                        document.getElementById("settings-modal").style.display="none"; 
+                    } else {
+                        alert("Ошибка сохранения профиля");
+                    }
+                } catch (e) {
+                    alert("Ошибка сети при сохранении профиля");
+                }
             }
 
             function updateMyUI(d) {
@@ -494,8 +504,19 @@
 
                 var actions = `<div class="msg-actions"><span class="action-btn" onclick="startReply(${d.id}, '${d.username}')">${ICONS.reply}</span>${(me || myIsAdmin) && !d.content.startsWith("data:") && !isHidden ? `<span class="action-btn" onclick="startEdit(${d.id}, this)">${ICONS.edit}</span>` : ""}${(me || myIsAdmin) ? `<span class="action-btn" style="color:var(--danger)" onclick="delMsg(${d.id})">${ICONS.trash}</span>` : ""}<span class="action-btn" onclick="sendReaction(${d.id}, '👍')">👍</span><span class="action-btn" onclick="sendReaction(${d.id}, '❤️')">❤️</span><span class="action-btn" onclick="sendReaction(${d.id}, '😂')">😂</span></div>`;
 
-                var info = `<div class="${bubbleClass}">${replyHtml}${!me?`<span class="username">${d.username}</span>`:""}${contentHtml}${reactionsHtml}<div class="msg-meta">${ticks}<span class="timestamp">${d.created_at}</span></div>${actions}</div>`;
+                const nameHtml = !me ? `<span class="username">${d.username}</span>${d.is_admin ? ICONS.crown : ""}` : "";
+
+                var info = `<div class="${bubbleClass}">${replyHtml}${nameHtml}${contentHtml}${reactionsHtml}<div class="msg-meta">${ticks}<span class="timestamp">${d.created_at}</span></div>${actions}</div>`;
                 li.innerHTML = me ? info : `<img class="avatar" src="${d.avatar_url||getDefaultAvatar(d.username)}">` + info;
+
+                // Кликаем по аватару/нику, чтобы открыть профиль пользователя
+                if (!me) {
+                    const avatarEl = li.querySelector(".avatar");
+                    const nameEl = li.querySelector(".username");
+                    if (avatarEl) avatarEl.onclick = () => openUserProfile(d.username);
+                    if (nameEl) nameEl.onclick = () => openUserProfile(d.username);
+                }
+
                 l.appendChild(li); l.scrollTop=l.scrollHeight;
                 if (!me && !d.timer) ws.send(JSON.stringify({type:"mark_read", message_id: d.id}));
             }
@@ -575,6 +596,31 @@
             async function createGroup() { var n=document.getElementById("group-name-input").value; if(n) fetch("/create_group", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:n,owner:username})}).then(r=>{if(r.ok){document.getElementById("create-group-modal").style.display="none";loadGroups();}}); }
             async function addMemberToGroup() { var u=document.getElementById("new-member-username").value; if(u) fetch("/add_member", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({group_id:currentGroupId,username:u})}).then(r=>{if(r.ok){alert("Добавлен");document.getElementById("add-member-modal").style.display="none";}else alert("Ошибка")}); }
             async function respondReq(id, act) { fetch("/respond_request", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({request_id:id,action:act})}).then(r=>{if(r.ok){loadRequests();if(act==='accept')loadDMs();}}); }
+
+            // --- ПРОСМОТР ПРОФИЛЯ ДРУГИХ ПОЛЬЗОВАТЕЛЕЙ ---
+            window.openUserProfile = async function(name) {
+                try {
+                    const r = await fetch("/get_profile?username=" + encodeURIComponent(name));
+                    if (!r.ok) {
+                        alert("Пользователь не найден");
+                        return;
+                    }
+                    const u = await r.json();
+                    document.getElementById("view-avatar").src = u.avatar_url || getDefaultAvatar(u.username);
+                    document.getElementById("view-username").innerText = u.username + (u.is_admin ? " 👑" : "");
+                    document.getElementById("view-bio").innerText = u.bio || "Без статуса";
+                    let details = "";
+                    if (u.real_name) details += `<div><b>Имя:</b> ${u.real_name}</div>`;
+                    if (u.location) details += `<div><b>Город:</b> ${u.location}</div>`;
+                    if (u.birth_date) details += `<div><b>Дата рождения:</b> ${u.birth_date}</div>`;
+                    if (u.social_link) details += `<div><b>Соцсети:</b> <a href="${u.social_link}" target="_blank" style="color:var(--accent-primary)">${u.social_link}</a></div>`;
+                    if (!details) details = "<div style='opacity:0.6'>Нет дополнительной информации</div>";
+                    document.getElementById("view-details").innerHTML = details;
+                    document.getElementById("user-profile-modal").style.display = "flex";
+                } catch (e) {
+                    alert("Ошибка загрузки профиля");
+                }
+            }
 
             // --- ЗВОНКИ (WebRTC) ---
             function showCallUI(name, status, isIncoming) {
