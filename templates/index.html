@@ -436,8 +436,8 @@
                 <input type="text" id="loginUsername" class="login-input" placeholder="Никнейм" />
                 <input type="password" id="loginPassword" class="login-input" placeholder="Пароль" />
                 <div id="loginError" class="error-msg"></div>
-                <button class="btn" onclick="auth('login')">Войти</button>
-                <button class="link-btn" onclick="showRegister()">Нет аккаунта? Регистрация</button>
+                <button class="btn" onclick="window.auth('login')">Войти</button>
+                <button class="link-btn" onclick="window.showRegister()">Нет аккаунта? Регистрация</button>
             </div>
         </div>
 
@@ -451,13 +451,13 @@
                 <div style="text-align:left;color:#b8b8d0;font-size:12px;margin-bottom:5px;">Дата рождения:</div>
                 <input type="date" id="regBirthDate" class="login-input" />
                 <div id="regError" class="error-msg"></div>
-                <button class="btn" onclick="auth('register')">Создать аккаунт</button>
-                <button class="link-btn" onclick="showLogin()">Уже есть аккаунт? Войти</button>
+                <button class="btn" onclick="window.auth('register')">Создать аккаунт</button>
+                <button class="link-btn" onclick="window.showLogin()">Уже есть аккаунт? Войти</button>
             </div>
         </div>
 
         <div id="app-container">
-            <div id="overlay" onclick="toggleSidebar()"></div>
+            <div id="overlay" onclick="window.toggleSidebar()"></div>
             <div class="sidebar" id="sidebar">
                 <div class="sidebar-title">ЧАТЫ <span class="icon-btn" style="color:var(--accent-primary)" onclick="document.getElementById('create-group-modal').style.display='flex'">+</span></div><div id="groups-list"></div>
                 <div class="sidebar-title">ЛИЧНЫЕ <span class="icon-btn" style="color:var(--accent-primary)" onclick="document.getElementById('dm-modal').style.display='flex'">+</span></div><div id="dm-list"></div>
@@ -467,43 +467,43 @@
             <div class="chat-area" id="chat-area">
                 <div class="chat-header">
                     <div class="header-left">
-                        <span class="hamburger" onclick="toggleSidebar()">☰</span>
+                        <span class="hamburger" onclick="window.toggleSidebar()">☰</span>
                         <div class="chat-info">
                             <div id="header-title">Flux</div>
                             <div id="header-status"></div>
                         </div>
                     </div>
                     <div class="header-actions">
-                        <span class="search-btn" onclick="toggleSearch()"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg></span>
-                        <span id="call-btn" class="call-btn" onclick="startCall()">📞</span>
+                        <span class="search-btn" onclick="window.toggleSearch()"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg></span>
+                        <span id="call-btn" class="call-btn" onclick="window.startCall()">📞</span>
                         <span id="add-member-btn" class="add-member-header-btn" onclick="document.getElementById('add-member-modal').style.display='flex'">+Человек</span>
                     </div>
                 </div>
                 <div id="search-bar">
                     <div class="search-filters">
-                        <div class="search-filter-btn active" onclick="setSearchFilter('all', this)">Все</div>
-                        <div class="search-filter-btn" onclick="setSearchFilter('images', this)">Картинки</div>
-                        <div class="search-filter-btn" onclick="setSearchFilter('files', this)">Файлы</div>
-                        <div class="search-filter-btn" onclick="setSearchFilter('links', this)">Ссылки</div>
+                        <div class="search-filter-btn active" onclick="window.setSearchFilter('all', this)">Все</div>
+                        <div class="search-filter-btn" onclick="window.setSearchFilter('images', this)">Картинки</div>
+                        <div class="search-filter-btn" onclick="window.setSearchFilter('files', this)">Файлы</div>
+                        <div class="search-filter-btn" onclick="window.setSearchFilter('links', this)">Ссылки</div>
                     </div>
-                    <input type="text" class="search-input" placeholder="Поиск в чате..." oninput="doSearch(this.value)">
+                    <input type="text" class="search-input" placeholder="Поиск в чате..." oninput="window.doSearch(this.value)">
                     <div id="search-results"></div>
                 </div>
                 <div class="drag-indicator" id="drag-indicator">📎 Перетащите файл сюда</div>
                 <div class="copy-indicator" id="copy-indicator">✓ Скопировано!</div>
                 <ul id='messages'></ul>
-                <div id="reply-bar">Ответ: <span id="reply-username"></span><div id="reply-close" onclick="cancelReply()">✕</div></div>
-                <form action="" onsubmit="sendMessage(event)">
+                <div id="reply-bar">Ответ: <span id="reply-username"></span><div id="reply-close" onclick="window.cancelReply()">✕</div></div>
+                <form action="" onsubmit="window.sendMessage(event)">
                     <div id="edit-indicator">Редактирование... (Esc отмена)</div>
                     <div class="input-wrapper" id="input-box">
-                        <label class="icon-btn-input"><input type="file" id="fileInput" style="display: none;" onchange="handleFileSelect(this)"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5a2.5 2.5 0 0 1 5 0v10.5a1 1 0 0 1-2 0V6H10v9.5a2.5 2.5 0 0 0 5 0V5c0-2.21-1.79-4-4-4S7 2.79 7 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z"/></svg></label>
-                        <div class="icon-btn-input spy-btn" id="spy-btn" onclick="toggleSpyMode()"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M11 20H13V22H11V20ZM11 2H13V5H11V2ZM19.53 18.12L20.95 19.53L19.53 19.53L18.12 18.12C17.27 18.7 16.32 19.14 15.31 19.43V21.43C16.89 21.1 18.33 20.45 19.53 19.53ZM4.47 18.12C3.62 17.27 2.97 16.32 2.57 15.31H4.57C4.86 16.32 5.3 17.27 5.88 18.12L4.47 19.53L5.88 19.53L4.47 18.12ZM2.57 8.69C2.97 7.68 3.62 6.73 4.47 5.88L5.88 4.47L4.47 4.47L2.57 5.88C2.28 6.89 2.1 8 2.1 9.17H4.1C4.1 8.69 4.19 8.23 4.34 7.8L2.57 8.69ZM12 7C9.24 7 7 9.24 7 12C7 14.76 9.24 17 12 17C14.76 17 17 14.76 17 12C17 9.24 14.76 7 12 7ZM19.66 7.8L17.89 8.69C18.04 9.12 18.1 9.58 18.1 10.05H20.1C20.1 8.88 19.92 7.77 19.66 6.75V7.8Z"/></svg></div>
-                        <div class="icon-btn-input" id="emoji-btn" onclick="toggleEmojiPicker()" title="Эмодзи">😀</div>
-                        <div class="icon-btn-input" id="sticker-btn" onclick="toggleStickerPicker()" title="Стикеры">🎭</div>
+                        <label class="icon-btn-input"><input type="file" id="fileInput" style="display: none;" onchange="window.handleFileSelect(this)"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5a2.5 2.5 0 0 1 5 0v10.5a1 1 0 0 1-2 0V6H10v9.5a2.5 2.5 0 0 0 5 0V5c0-2.21-1.79-4-4-4S7 2.79 7 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z"/></svg></label>
+                        <div class="icon-btn-input spy-btn" id="spy-btn" onclick="window.toggleSpyMode()"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M11 20H13V22H11V20ZM11 2H13V5H11V2ZM19.53 18.12L20.95 19.53L19.53 19.53L18.12 18.12C17.27 18.7 16.32 19.14 15.31 19.43V21.43C16.89 21.1 18.33 20.45 19.53 19.53ZM4.47 18.12C3.62 17.27 2.97 16.32 2.57 15.31H4.57C4.86 16.32 5.3 17.27 5.88 18.12L4.47 19.53L5.88 19.53L4.47 18.12ZM2.57 8.69C2.97 7.68 3.62 6.73 4.47 5.88L5.88 4.47L4.47 4.47L2.57 5.88C2.28 6.89 2.1 8 2.1 9.17H4.1C4.1 8.69 4.19 8.23 4.34 7.8L2.57 8.69ZM12 7C9.24 7 7 9.24 7 12C7 14.76 9.24 17 12 17C14.76 17 17 14.76 17 12C17 9.24 14.76 7 12 7ZM19.66 7.8L17.89 8.69C18.04 9.12 18.1 9.58 18.1 10.05H20.1C20.1 8.88 19.92 7.77 19.66 6.75V7.8Z"/></svg></div>
+                        <div class="icon-btn-input" id="emoji-btn" onclick="window.toggleEmojiPicker()" title="Эмодзи">😀</div>
+                        <div class="icon-btn-input" id="sticker-btn" onclick="window.toggleStickerPicker()" title="Стикеры">🎭</div>
                         <div class="mention-autocomplete" id="mention-autocomplete"></div>
                         <div class="sticker-picker" id="sticker-picker"></div>
-                        <input type="text" id="messageText" autocomplete="off" placeholder="Написать сообщение..." onkeydown="handleMessageKeydown(event)" oninput="handleMessageInput(event)"/>
-                        <div id="mic-btn" class="icon-btn-input mic-btn" onclick="toggleMic()"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg></div>
+                        <input type="text" id="messageText" autocomplete="off" placeholder="Написать сообщение..." onkeydown="window.handleMessageKeydown(event)" oninput="window.handleMessageInput(event)"/>
+                        <div id="mic-btn" class="icon-btn-input mic-btn" onclick="window.toggleMic()"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg></div>
                     </div>
                 </form>
             </div>
@@ -512,7 +512,7 @@
         <script>
             // --- CROPPER & WALLPAPER ---
             var cropper;
-            function startCropper(input) {
+            window.startCropper = function(input) {
                 if (input.files && input.files[0]) {
                     var reader = new FileReader();
                     reader.onload = function(e) {
@@ -525,7 +525,7 @@
                     reader.readAsDataURL(input.files[0]);
                 }
             }
-            function performCrop() {
+            window.performCrop = function() {
                 var canvas = cropper.getCroppedCanvas({width: 200, height: 200});
                 currentUserAvatar = canvas.toDataURL(); 
                 document.getElementById('settings-avatar-preview').src = currentUserAvatar;
@@ -534,7 +534,7 @@
                 document.getElementById('crop-btn').style.display = 'none';
             }
             
-            function previewWallpaper(i) { 
+            window.previewWallpaper = function(i) { 
                 if(i.files[0]) { 
                     var r=new FileReader(); 
                     r.onload=e=> { 
@@ -558,10 +558,10 @@
             }
 
             // --- AUTH ---
-            function showRegister() { document.getElementById("login-screen").style.display = "none"; document.getElementById("register-screen").style.display = "flex"; }
-            function showLogin() { document.getElementById("login-screen").style.display = "flex"; document.getElementById("register-screen").style.display = "none"; }
+            window.showRegister = function() { document.getElementById("login-screen").style.display = "none"; document.getElementById("register-screen").style.display = "flex"; }
+            window.showLogin = function() { document.getElementById("login-screen").style.display = "flex"; document.getElementById("register-screen").style.display = "none"; }
 
-            async function auth(type) {
+            window.auth = async function(type) {
                 var body = {};
                 if (type === 'login') {
                     body.username = document.getElementById("loginUsername").value;
@@ -602,10 +602,10 @@
             const rtcConfig = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }, { urls: "stun:stun1.l.google.com:19302" }] };
             let lastDate = null;
 
-            function toggleSidebar() { document.getElementById("sidebar").classList.toggle("open"); document.getElementById("overlay").classList.toggle("show"); }
-            function closeSidebarOnMobile() { if(window.innerWidth<=768) toggleSidebar(); }
+            window.toggleSidebar = function() { document.getElementById("sidebar").classList.toggle("open"); document.getElementById("overlay").classList.toggle("show"); }
+            function closeSidebarOnMobile() { if(window.innerWidth<=768) window.toggleSidebar(); }
             function getDefaultAvatar(n) { return `https://ui-avatars.com/api/?name=${n}&background=0f0c29&color=00d2ff&size=128&bold=true`; }
-            async function openSettings() { 
+            window.openSettings = async function() { 
                 document.getElementById("settings-modal").style.display='flex'; 
                 document.getElementById("settings-avatar-preview").src=currentUserAvatar; 
                 document.getElementById("settings-bio").value=document.getElementById("my-bio-text").innerText;
@@ -649,7 +649,7 @@
                 }
             }
 
-            async function saveProfile() { 
+            window.saveProfile = async function() { 
                 let body={
                     username:username, bio:document.getElementById("settings-bio").value, 
                     avatar_url:currentUserAvatar, wallpaper: currentUserWallpaper,
@@ -772,7 +772,7 @@
                 }
             }
 
-            function revealSpy(id) { ws.send(JSON.stringify({type: "spy_viewed", message_id: id})); }
+            window.revealSpy = function(id) { ws.send(JSON.stringify({type: "spy_viewed", message_id: id})); }
 
             function startSpyTimer(id, seconds) {
                 let timerEl = document.getElementById(`timer-${id}`); if (!timerEl) return;
@@ -820,7 +820,7 @@
                     }
                     else {
                         // Парсим упоминания @username и делаем их кликабельными
-                        let processedContent = d.content.replace(/@(\w+)/g, '<span class="mention" onclick="openUserProfile(\'$1\')">@$1</span>');
+                        let processedContent = d.content.replace(/@(\w+)/g, '<span class="mention" onclick="window.openUserProfile(\'$1\')">@$1</span>');
                         // Если сообщение переслано, добавляем метку
                         let forwardedLabel = d.forwarded_from ? `<div class="forwarded-label">Переслано от ${d.forwarded_from}</div>` : "";
                         contentHtml = `${spyHeader}${forwardedLabel}<span class="content-text">${processedContent}</span>`;
@@ -837,11 +837,11 @@
                     reactionsHtml += '</div>';
                 }
 
-                var pinBtn = (myIsAdmin || me) ? `<span class="action-btn" onclick="togglePin(${d.id})" title="${d.is_pinned ? 'Открепить' : 'Закрепить'}">${ICONS.pin}</span>` : "";
-                var forwardBtn = !d.content.startsWith("data:") && !isHidden ? `<span class="action-btn" onclick="forwardMessage(${d.id})" title="Переслать">${ICONS.forward}</span>` : "";
-                var copyBtn = `<span class="action-btn" onclick="copyMessage(${d.id})" title="Копировать">📋</span>`;
-                var themeBtn = (me || myIsAdmin) ? `<span class="action-btn" onclick="showMessageThemePicker(${d.id})" title="Тема">🎨</span>` : "";
-                var actions = `<div class="msg-actions">${copyBtn}<span class="action-btn" onclick="startReply(${d.id}, '${d.username}')">${ICONS.reply}</span>${forwardBtn}${pinBtn}${themeBtn}${(me || myIsAdmin) && !d.content.startsWith("data:") && !isHidden ? `<span class="action-btn" onclick="startEdit(${d.id}, this)">${ICONS.edit}</span>` : ""}${(me || myIsAdmin) ? `<span class="action-btn" style="color:var(--danger)" onclick="delMsg(${d.id})">${ICONS.trash}</span>` : ""}<span class="action-btn" onclick="sendReaction(${d.id}, '👍')">👍</span><span class="action-btn" onclick="sendReaction(${d.id}, '❤️')">❤️</span><span class="action-btn" onclick="sendReaction(${d.id}, '😂')">😂</span></div>`;
+                var pinBtn = (myIsAdmin || me) ? `<span class="action-btn" onclick="window.togglePin(${d.id})" title="${d.is_pinned ? 'Открепить' : 'Закрепить'}">${ICONS.pin}</span>` : "";
+                var forwardBtn = !d.content.startsWith("data:") && !isHidden ? `<span class="action-btn" onclick="window.forwardMessage(${d.id})" title="Переслать">${ICONS.forward}</span>` : "";
+                var copyBtn = `<span class="action-btn" onclick="window.copyMessage(${d.id})" title="Копировать">📋</span>`;
+                var themeBtn = (me || myIsAdmin) ? `<span class="action-btn" onclick="window.showMessageThemePicker(${d.id})" title="Тема">🎨</span>` : "";
+                var actions = `<div class="msg-actions">${copyBtn}<span class="action-btn" onclick="window.startReply(${d.id}, '${d.username}')">${ICONS.reply}</span>${forwardBtn}${pinBtn}${themeBtn}${(me || myIsAdmin) && !d.content.startsWith("data:") && !isHidden ? `<span class="action-btn" onclick="window.startEdit(${d.id}, this)">${ICONS.edit}</span>` : ""}${(me || myIsAdmin) ? `<span class="action-btn" style="color:var(--danger)" onclick="window.delMsg(${d.id})">${ICONS.trash}</span>` : ""}<span class="action-btn" onclick="window.sendReaction(${d.id}, '👍')">👍</span><span class="action-btn" onclick="window.sendReaction(${d.id}, '❤️')">❤️</span><span class="action-btn" onclick="window.sendReaction(${d.id}, '😂')">😂</span></div>`;
 
                 const nameHtml = !me ? `<span class="username">${d.username}</span>${d.is_admin ? ICONS.crown : ""}` : "";
 
@@ -887,13 +887,13 @@
             window.toggleSearch = function() { var sb = document.getElementById("search-bar"); sb.style.display = (sb.style.display === "block") ? "none" : "block"; if(sb.style.display === "block") document.querySelector(".search-input").focus(); }
             let searchTimeout;
             let searchFilter = 'all';
-            function setSearchFilter(filter, el) {
+            window.setSearchFilter = function(filter, el) {
                 searchFilter = filter;
                 document.querySelectorAll('.search-filter-btn').forEach(b => b.classList.remove('active'));
                 el.classList.add('active');
-                doSearch(document.querySelector('.search-input').value);
+                window.doSearch(document.querySelector('.search-input').value);
             }
-            function doSearch(query) { clearTimeout(searchTimeout); searchTimeout = setTimeout(async () => { if(query.length < 2) { document.getElementById("search-results").innerHTML=""; return; } let r = await fetch(`/search?channel=${currentChannel}&query=${query}`); let data = await r.json(); let html = ""; data.forEach(m => { 
+            window.doSearch = function(query) { clearTimeout(searchTimeout); searchTimeout = setTimeout(async () => { if(query.length < 2) { document.getElementById("search-results").innerHTML=""; return; } let r = await fetch(`/search?channel=${currentChannel}&query=${query}`); let data = await r.json(); let html = ""; data.forEach(m => { 
                 if (searchFilter === 'images' && !m.content.startsWith('data:image')) return;
                 if (searchFilter === 'files' && !m.content.startsWith('data:')) return;
                 if (searchFilter === 'links' && !m.content.match(/https?:\/\//)) return;
@@ -903,7 +903,7 @@
             // АВТОДОПОЛНЕНИЕ @USERNAME
             let mentionSuggestions = [];
             let mentionIndex = -1;
-            function handleMessageInput(e) {
+            window.handleMessageInput = function(e) {
                 let input = e.target;
                 let text = input.value;
                 let cursorPos = input.selectionStart;
@@ -932,7 +932,7 @@
                     autocomplete.classList.remove('show');
                 }
             }
-            function handleMessageKeydown(e) {
+            window.handleMessageKeydown = function(e) {
                 let autocomplete = document.getElementById("mention-autocomplete");
                 if (autocomplete.classList.contains('show')) {
                     if (e.key === 'ArrowDown') {
@@ -956,7 +956,7 @@
                     el.classList.toggle('active', i === mentionIndex);
                 });
             }
-            function selectMention(username) {
+            window.selectMention = function(username) {
                 let input = document.getElementById("messageText");
                 let text = input.value;
                 let cursorPos = input.selectionStart;
@@ -1071,14 +1071,14 @@
             window.toggleSpyMode = function() { isSpyMode = !isSpyMode; document.getElementById("spy-btn").classList.toggle("active"); document.querySelector(".input-wrapper").classList.toggle("spy-active"); }
             window.startReply = function(id, username) { replyToId = id; document.getElementById("reply-bar").style.display = "flex"; document.getElementById("reply-username").innerText = username; document.getElementById("messageText").focus(); }
             window.cancelReply = function() { replyToId = null; document.getElementById("reply-bar").style.display = "none"; }
-            window.toggleAudio = function(id) { var a=document.getElementById('audio-'+id); var btn=a.parentElement.querySelector('.play-icon'); if(a.paused){a.play();btn.innerText="⏸";}else{a.pause();btn.innerText="▶";} };
-            window.updateAudioProgress = function(id) { var a=document.getElementById('audio-'+id); if(a.duration) document.getElementById('prog-'+id).style.width=((a.currentTime/a.duration)*100)+'%'; };
-            window.setAudioDuration = function(id) { var a=document.getElementById('audio-'+id); if(a.duration) { var m=Math.floor(a.duration/60), s=Math.floor(a.duration%60); document.getElementById('time-'+id).innerText=m+':'+(s<10?'0'+s:s); } };
-            window.seekAudio = function(e,id){ var a=document.getElementById('audio-'+id); var c=e.currentTarget; var p=(e.offsetX/c.clientWidth); a.currentTime=p*a.duration; };
-            window.resetAudio = function(id){ document.getElementById('audio-'+id).parentElement.querySelector('.play-icon').innerText="▶"; document.getElementById('prog-'+id).style.width='0%'; };
+            window.toggleAudio = function(id) { var a=document.getElementById('audio-'+id); if(!a) return; var btn=a.parentElement.querySelector('.play-icon'); if(a.paused){a.play();if(btn)btn.innerText="⏸";}else{a.pause();if(btn)btn.innerText="▶";} };
+            window.updateAudioProgress = function(id) { var a=document.getElementById('audio-'+id); if(a && a.duration) { var prog=document.getElementById('prog-'+id); if(prog)prog.style.width=((a.currentTime/a.duration)*100)+'%'; } };
+            window.setAudioDuration = function(id) { var a=document.getElementById('audio-'+id); if(a && a.duration) { var m=Math.floor(a.duration/60), s=Math.floor(a.duration%60); var timeEl=document.getElementById('time-'+id); if(timeEl)timeEl.innerText=m+':'+(s<10?'0'+s:s); } };
+            window.seekAudio = function(e,id){ var a=document.getElementById('audio-'+id); if(!a) return; var c=e.currentTarget; var p=(e.offsetX/c.clientWidth); a.currentTime=p*a.duration; };
+            window.resetAudio = function(id){ var a=document.getElementById('audio-'+id); if(!a) return; var btn=a.parentElement.querySelector('.play-icon'); if(btn)btn.innerText="▶"; var prog=document.getElementById('prog-'+id); if(prog)prog.style.width='0%'; };
 
             // --- ГОЛОСОВЫЕ СООБЩЕНИЯ (иконка микрофона) ---
-            async function toggleMic() {
+            window.toggleMic = async function() {
                 const micBtn = document.getElementById("mic-btn");
                 if (!isRecording) {
                     try {
@@ -1122,14 +1122,15 @@
                     if (micBtn) micBtn.classList.remove("recording");
                 }
             }
-            function handleFileSelect(i) { if(i.files[0]) { var r=new FileReader(); let file = i.files[0]; r.onload=e=> { let content = e.target.result; if (!file.type.startsWith("image/") && !file.type.startsWith("audio/")) { content = `[FILE:${file.name}]${content}`; } ws.send(JSON.stringify({type:"message",channel:currentChannel,username:username,content:content})); }; r.readAsDataURL(file); i.value=''; } }
-            document.getElementById("messageText").addEventListener("keydown", function(e) { if(e.key === "Escape") { cancelReply(); } });
-            function sendMessage(e) { e.preventDefault(); var i=document.getElementById("messageText"); if(!i.value.trim()) return; if (editingMessageId) { ws.send(JSON.stringify({type: "edit_message", message_id: editingMessageId, new_content: i.value, channel: currentChannel })); cancelEdit(); } else { ws.send(JSON.stringify({type:"message",channel:currentChannel,username:username,content:i.value,reply_to: replyToId,timer: isSpyMode ? 10 : 0})); i.value=''; cancelReply(); if(isSpyMode) toggleSpyMode(); } }
+            window.handleFileSelect = function(i) { if(i.files[0]) { var r=new FileReader(); let file = i.files[0]; r.onload=e=> { let content = e.target.result; if (!file.type.startsWith("image/") && !file.type.startsWith("audio/")) { content = `[FILE:${file.name}]${content}`; } ws.send(JSON.stringify({type:"message",channel:currentChannel,username:username,content:content})); }; r.readAsDataURL(file); i.value=''; } }
+            document.getElementById("messageText").addEventListener("keydown", function(e) { if(e.key === "Escape") { window.cancelReply(); } });
+            window.sendMessage = function(e) { e.preventDefault(); var i=document.getElementById("messageText"); if(!i.value.trim()) return; if (editingMessageId) { ws.send(JSON.stringify({type: "edit_message", message_id: editingMessageId, new_content: i.value, channel: currentChannel })); window.cancelEdit(); } else { ws.send(JSON.stringify({type:"message",channel:currentChannel,username:username,content:i.value,reply_to: replyToId,timer: isSpyMode ? 10 : 0})); i.value=''; window.cancelReply(); if(isSpyMode) window.toggleSpyMode(); } }
             window.startEdit = function(id, btn) { let row = document.getElementById("msg-" + id); let textSpan = row.querySelector(".content-text"); if(!textSpan) return; editingMessageId = id; let input = document.getElementById("messageText"); input.value = textSpan.innerText; input.focus(); document.getElementById("input-box").classList.add("editing"); document.getElementById("edit-indicator").style.display = "block"; };
             window.cancelEdit = function() { editingMessageId = null; document.getElementById("messageText").value = ""; document.getElementById("input-box").classList.remove("editing"); document.getElementById("edit-indicator").style.display = "none"; }
+            window.cancelReply = function() { replyToId = null; document.getElementById("reply-bar").style.display = "none"; }
             let lastTypingTime = 0; document.getElementById("messageText").addEventListener("input", () => { let now = Date.now(); if (now - lastTypingTime > 2000 && ws && currentChannel) { ws.send(JSON.stringify({type: "typing", channel: currentChannel, username: username})); lastTypingTime = now; } });
             function requestHistory() { if(ws&&ws.readyState===1) { ws.send(JSON.stringify({type:"history",channel:currentChannel})); loadPinnedMessages(); } }
-            function delMsg(id) { if(confirm("Удалить?")) ws.send(JSON.stringify({type:"delete", message_id:id})); }
+            window.delMsg = function(id) { if(confirm("Удалить?")) ws.send(JSON.stringify({type:"delete", message_id:id})); }
             
             // --- ЗАКРЕПЛЁННЫЕ СООБЩЕНИЯ ---
             async function loadPinnedMessages() {
@@ -1170,7 +1171,7 @@
                 } catch(e) { console.error(e); }
             }
             
-            async function togglePin(msgId) {
+            window.togglePin = async function(msgId) {
                 let row = document.getElementById("msg-" + msgId);
                 if (!row) return;
                 let isPinned = row.querySelector(".pinned-indicator") !== null;
@@ -1197,10 +1198,10 @@
             async function loadGroups() { let r=await fetch("/get_my_groups?username="+username); let d=await r.json(); document.getElementById("groups-list").innerHTML=""; d.forEach(g => { let div=document.createElement("div"); div.className="channel"; div.innerText=g.name; div.onclick=(ev)=>switchChat("group_"+g.id, g.name, false, g.id, ev); document.getElementById("groups-list").appendChild(div); }); }
             async function loadRequests() { let r=await fetch("/get_requests?username="+username); let d=await r.json(); document.getElementById("requests-list").innerHTML=""; document.getElementById("requests-section").style.display=d.length?"block":"none"; d.forEach(q => { let div=document.createElement("div"); div.className="channel"; div.style.cursor="default"; div.innerHTML=`${q.sender} <span class="icon-btn" onclick="respondReq(${q.id},'accept')" style="margin-left:auto">✅</span><span class="icon-btn" onclick="respondReq(${q.id},'reject')">❌</span>`; document.getElementById("requests-list").appendChild(div); }); }
             function switchChat(id, name, isDm, gid, ev) { currentChannel=id; currentGroupId=gid; document.querySelectorAll('.channel').forEach(c=>c.classList.remove('active')); if(ev && ev.currentTarget){ev.currentTarget.classList.add('active');} document.getElementById("header-title").innerText=name; document.getElementById("add-member-btn").style.display=gid?"block":"none"; document.getElementById("call-btn").style.display=isDm?"flex":"none"; document.getElementById("messages").innerHTML=""; requestHistory(); closeSidebarOnMobile(); if(gid) loadVoiceChannels(gid); }
-            async function sendFriendRequest() { var u=document.getElementById("dm-username").value; if(u) fetch("/send_request", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sender:username,receiver:u})}).then(r=>{if(r.ok){alert("Отправлено");document.getElementById("dm-modal").style.display="none";}else alert("Ошибка")}); }
-            async function createGroup() { var n=document.getElementById("group-name-input").value; if(n) fetch("/create_group", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:n,owner:username})}).then(r=>{if(r.ok){document.getElementById("create-group-modal").style.display="none";loadGroups();}}); }
-            async function addMemberToGroup() { var u=document.getElementById("new-member-username").value; if(u) fetch("/add_member", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({group_id:currentGroupId,username:u})}).then(r=>{if(r.ok){alert("Добавлен");document.getElementById("add-member-modal").style.display="none";}else alert("Ошибка")}); }
-            async function respondReq(id, act) { fetch("/respond_request", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({request_id:id,action:act})}).then(r=>{if(r.ok){loadRequests();if(act==='accept')loadDMs();}}); }
+            window.sendFriendRequest = async function() { var u=document.getElementById("dm-username").value; if(u) fetch("/send_request", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sender:username,receiver:u})}).then(r=>{if(r.ok){alert("Отправлено");document.getElementById("dm-modal").style.display="none";}else alert("Ошибка")}); }
+            async             window.createGroup = function() { var n=document.getElementById("group-name-input").value; if(n) fetch("/create_group", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:n,owner:username})}).then(r=>{if(r.ok){document.getElementById("create-group-modal").style.display="none";loadGroups();}}); }
+            window.addMemberToGroup = async function() { var u=document.getElementById("new-member-username").value; if(u) fetch("/add_member", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({group_id:currentGroupId,username:u})}).then(r=>{if(r.ok){alert("Добавлен");document.getElementById("add-member-modal").style.display="none";}else alert("Ошибка")}); }
+            window.respondReq = async function(id, act) { fetch("/respond_request", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({request_id:id,action:act})}).then(r=>{if(r.ok){loadRequests();if(act==='accept')loadDMs();}}); }
 
             // --- ПРОСМОТР ПРОФИЛЯ ДРУГИХ ПОЛЬЗОВАТЕЛЕЙ (УЛУЧШЕННЫЙ В СТИЛЕ TELEGRAM) ---
             let currentProfileUsername = null;
@@ -1314,7 +1315,7 @@
                 return u1 === username ? u2 : u1;
             }
 
-            async function startCall() {
+            window.startCall = async function() {
                 const target = getCurrentDmTarget();
                 if (!target) {
                     alert("Звонки доступны только в личных чатах");
