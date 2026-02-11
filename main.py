@@ -32,18 +32,22 @@ class AddMemberModel(BaseModel): group_id: int; username: str
 @app.on_event("startup")
 async def startup():
     await init_db()
-    async with AsyncSessionLocal() as session:
-        # Создаем таблицы (данные сохраняются)
-        await session.execute(text("""CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, username TEXT UNIQUE, password TEXT, bio TEXT, avatar_url TEXT, is_admin BOOLEAN DEFAULT FALSE, wallpaper TEXT DEFAULT '', real_name TEXT DEFAULT '', location TEXT DEFAULT '', birth_date TEXT DEFAULT '', social_link TEXT DEFAULT '')"""))
-        await session.execute(text("""CREATE TABLE IF NOT EXISTS messages (id SERIAL PRIMARY KEY, username TEXT, content TEXT, channel TEXT, created_at TEXT, is_edited BOOLEAN DEFAULT FALSE, reactions TEXT DEFAULT '{}', reply_to INTEGER DEFAULT NULL, read_by TEXT DEFAULT '[]', timer INTEGER DEFAULT 0, viewed_at TEXT DEFAULT NULL)"""))
-        for t in ["CREATE TABLE IF NOT EXISTS friend_requests (id SERIAL PRIMARY KEY, sender TEXT, receiver TEXT, status TEXT)", "CREATE TABLE IF NOT EXISTS dms (id SERIAL PRIMARY KEY, user1 TEXT, user2 TEXT)", "CREATE TABLE IF NOT EXISTS groups (id SERIAL PRIMARY KEY, name TEXT, owner TEXT)", "CREATE TABLE IF NOT EXISTS group_members (id SERIAL PRIMARY KEY, group_id INTEGER, username TEXT)"]:
-            try: await session.execute(text(t)); await session.commit()
-            except: pass
 
 class ConnectionManager:
     def __init__(self): self.active_connections: dict[str, WebSocket] = {}
     async def connect(self, websocket: WebSocket, username: str):
+        # При подключении сразу шлём список уже онлайн-юзеров,
+        # чтобы клиент мог подсветить статусы, как в Discord/Telegram.
         await websocket.accept()
+        try:
+            await websocket.send_text(json.dumps({
+                "type": "initial_status",
+                "users": list(self.active_connections.keys())
+            }))
+        except Exception:
+            # Если по какой-то причине не получилось отправить — не рвём подключение
+            pass
+
         self.active_connections[username] = websocket
         await self.broadcast({"type": "status", "username": username, "status": "online"})
     def disconnect(self, username: str):
