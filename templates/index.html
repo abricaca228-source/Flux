@@ -283,10 +283,10 @@
                 <div class="settings-grid">
                     <div class="settings-section">
                         <div class="settings-label">Основная информация</div>
-                        <input id="settings-realname" class="settings-input" placeholder="Имя Фамилия">
-                        <input id="settings-bio" class="settings-input" placeholder="Статус (Bio)">
-                        <input id="settings-location" class="settings-input" placeholder="Город">
-                        <input id="settings-birthdate" class="settings-input" type="date">
+                    <input id="settings-realname" class="settings-input" placeholder="Имя Фамилия">
+                    <input id="settings-bio" class="settings-input" placeholder="Статус (Bio)">
+                    <input id="settings-location" class="settings-input" placeholder="Город">
+                    <input id="settings-birthdate" class="settings-input" type="date">
                     </div>
                     <div class="settings-section">
                         <div class="settings-label">Контакты</div>
@@ -364,7 +364,7 @@
                 <div class="sidebar-title">ЧАТЫ <span class="icon-btn" style="color:var(--accent-primary)" onclick="document.getElementById('create-group-modal').style.display='flex'">+</span></div><div id="groups-list"></div>
                 <div class="sidebar-title">ЛИЧНЫЕ <span class="icon-btn" style="color:var(--accent-primary)" onclick="document.getElementById('dm-modal').style.display='flex'">+</span></div><div id="dm-list"></div>
                 <div id="requests-section" style="display:none;"><div class="sidebar-title" style="color:var(--success);">ЗАЯВКИ</div><div id="requests-list"></div></div>
-                <div class="user-panel" onclick="openSettings()"><img id="my-avatar-img" class="my-avatar" src=""><div class="my-info"><div id="my-name-text" class="my-name"></div><div id="my-bio-text" class="my-bio"></div></div><div class="settings-btn">⚙️</div></div>
+                <div class="user-panel" onclick="openAccountSettings()"><img id="my-avatar-img" class="my-avatar" src=""><div class="my-info"><div id="my-name-text" class="my-name"></div><div id="my-bio-text" class="my-bio"></div></div><div class="settings-btn">⚙️</div></div>
             </div>
             <div class="chat-area" id="chat-area">
                 <div class="chat-header">
@@ -400,7 +400,10 @@
                     <div class="input-wrapper" id="input-box">
                         <label class="icon-btn-input"><input type="file" id="fileInput" style="display: none;" onchange="handleFileSelect(this)"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5a2.5 2.5 0 0 1 5 0v10.5a1 1 0 0 1-2 0V6H10v9.5a2.5 2.5 0 0 0 5 0V5c0-2.21-1.79-4-4-4S7 2.79 7 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z"/></svg></label>
                         <div class="icon-btn-input spy-btn" id="spy-btn" onclick="toggleSpyMode()"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M11 20H13V22H11V20ZM11 2H13V5H11V2ZM19.53 18.12L20.95 19.53L19.53 19.53L18.12 18.12C17.27 18.7 16.32 19.14 15.31 19.43V21.43C16.89 21.1 18.33 20.45 19.53 19.53ZM4.47 18.12C3.62 17.27 2.97 16.32 2.57 15.31H4.57C4.86 16.32 5.3 17.27 5.88 18.12L4.47 19.53L5.88 19.53L4.47 18.12ZM2.57 8.69C2.97 7.68 3.62 6.73 4.47 5.88L5.88 4.47L4.47 4.47L2.57 5.88C2.28 6.89 2.1 8 2.1 9.17H4.1C4.1 8.69 4.19 8.23 4.34 7.8L2.57 8.69ZM12 7C9.24 7 7 9.24 7 12C7 14.76 9.24 17 12 17C14.76 17 17 14.76 17 12C17 9.24 14.76 7 12 7ZM19.66 7.8L17.89 8.69C18.04 9.12 18.1 9.58 18.1 10.05H20.1C20.1 8.88 19.92 7.77 19.66 6.75V7.8Z"/></svg></div>
+                        <div class="icon-btn-input" id="emoji-btn" onclick="toggleEmojiPicker()" title="Эмодзи">😀</div>
+                        <div class="icon-btn-input" id="sticker-btn" onclick="toggleStickerPicker()" title="Стикеры">🎭</div>
                         <div class="mention-autocomplete" id="mention-autocomplete"></div>
+                        <div class="sticker-picker" id="sticker-picker"></div>
                         <input type="text" id="messageText" autocomplete="off" placeholder="Написать сообщение..." onkeydown="handleMessageKeydown(event)" oninput="handleMessageInput(event)"/>
                         <div id="mic-btn" class="icon-btn-input mic-btn" onclick="toggleMic()"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg></div>
                     </div>
@@ -1357,16 +1360,105 @@
                 picker.classList.toggle("show");
             }
             
+            // ФУНКЦИИ ДЛЯ СТИКЕРОВ
+            let currentStickerPack = null;
+            window.toggleStickerPicker = async function() {
+                let picker = document.getElementById("sticker-picker");
+                if (!picker) {
+                    picker = document.createElement("div");
+                    picker.id = "sticker-picker";
+                    picker.className = "sticker-picker";
+                    document.querySelector(".input-wrapper").appendChild(picker);
+                }
+                
+                if (picker.classList.contains("show")) {
+                    picker.classList.remove("show");
+                    return;
+                }
+                
+                // Загружаем наборы стикеров
+                try {
+                    const packs = await fetch(`/get_sticker_packs?username=${username}`).then(r => r.json());
+                    if (packs.length === 0) {
+                        picker.innerHTML = "<div style='padding:20px;text-align:center;opacity:0.7;'>Нет доступных стикеров. Создайте набор через API.</div>";
+                        picker.classList.add("show");
+                        return;
+                    }
+                    
+                    let html = '<div class="sticker-pack-tabs">';
+                    packs.forEach((pack, i) => {
+                        html += `<div class="sticker-pack-tab ${i === 0 ? 'active' : ''}" onclick="loadStickers('${pack.name}', this)">${pack.title || pack.name}</div>`;
+                    });
+                    html += '</div><div class="sticker-grid" id="sticker-grid"></div>';
+                    picker.innerHTML = html;
+                    
+                    if (packs.length > 0) {
+                        currentStickerPack = packs[0].name;
+                        loadStickers(packs[0].name);
+                    }
+                } catch(e) {
+                    picker.innerHTML = "<div style='padding:20px;text-align:center;opacity:0.7;'>Ошибка загрузки стикеров</div>";
+                }
+                
+                picker.classList.add("show");
+            }
+            
+            window.loadStickers = async function(packName, tabEl) {
+                currentStickerPack = packName;
+                if (tabEl) {
+                    document.querySelectorAll(".sticker-pack-tab").forEach(t => t.classList.remove("active"));
+                    tabEl.classList.add("active");
+                }
+                
+                try {
+                    const stickers = await fetch(`/get_stickers?pack_name=${packName}`).then(r => r.json());
+                    const grid = document.getElementById("sticker-grid");
+                    if (!grid) return;
+                    
+                    grid.innerHTML = stickers.map(s => 
+                        `<div class="sticker-item" onclick="sendSticker('${s.sticker_data.replace(/'/g, "\\'")}')">
+                            <img src="${s.sticker_data}" alt="${s.name}" onerror="this.parentElement.style.display='none'">
+                        </div>`
+                    ).join('');
+                } catch(e) {
+                    console.error("Error loading stickers:", e);
+                }
+            }
+            
+            window.sendSticker = function(stickerData) {
+                if (ws && currentChannel) {
+                    ws.send(JSON.stringify({
+                        type: "message",
+                        channel: currentChannel,
+                        username: username,
+                        content: stickerData
+                    }));
+                    document.getElementById("sticker-picker").classList.remove("show");
+                }
+            }
+            
             // Добавляем кнопки эмодзи и стикеров в input
             setTimeout(() => {
                 let inputWrapper = document.querySelector(".input-wrapper");
-                if (inputWrapper && !document.getElementById("emoji-btn")) {
-                    let emojiBtn = document.createElement("div");
-                    emojiBtn.id = "emoji-btn";
-                    emojiBtn.className = "icon-btn-input";
-                    emojiBtn.innerHTML = "😀";
-                    emojiBtn.onclick = toggleEmojiPicker;
-                    inputWrapper.insertBefore(emojiBtn, inputWrapper.querySelector("#messageText"));
+                if (inputWrapper) {
+                    if (!document.getElementById("emoji-btn")) {
+                        let emojiBtn = document.createElement("div");
+                        emojiBtn.id = "emoji-btn";
+                        emojiBtn.className = "icon-btn-input";
+                        emojiBtn.innerHTML = "😀";
+                        emojiBtn.onclick = toggleEmojiPicker;
+                        emojiBtn.title = "Эмодзи";
+                        inputWrapper.insertBefore(emojiBtn, inputWrapper.querySelector("#messageText"));
+                    }
+                    if (!document.getElementById("sticker-btn")) {
+                        let stickerBtn = document.createElement("div");
+                        stickerBtn.id = "sticker-btn";
+                        stickerBtn.className = "icon-btn-input";
+                        stickerBtn.innerHTML = "🎭";
+                        stickerBtn.onclick = toggleStickerPicker;
+                        stickerBtn.title = "Стикеры";
+                        inputWrapper.insertBefore(stickerBtn, inputWrapper.querySelector("#messageText"));
+                    }
                 }
             }, 1000);
             
