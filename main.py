@@ -40,6 +40,10 @@ class MessageThemeModel(BaseModel): message_id: int; theme: str
 class GetUsersModel(BaseModel): query: str
 class SetRoleModel(BaseModel): group_id: int; username: str; role: str
 class NotificationSettingsModel(BaseModel): username: str; settings: dict
+class UserIdUpdateModel(BaseModel): username: str; new_user_id: str
+class StickerModel(BaseModel): name: str; pack_name: str; sticker_data: str; is_animated: bool = False
+class StickerPackModel(BaseModel): name: str; title: str; icon: str = None
+class AddStickerPackModel(BaseModel): username: str; pack_id: int
 
 @app.on_event("startup")
 async def startup():
