@@ -592,10 +592,10 @@
                             document.getElementById("app-container").style.display="flex";
                             connectWS();
                             try {
-                                document.getElementById("settings-realname").value = d.real_name || "";
-                                document.getElementById("settings-birthdate").value = d.birth_date || "";
-                                document.getElementById("settings-location").value = d.location || "";
-                                document.getElementById("settings-social").value = d.social_link || "";
+                            document.getElementById("settings-realname").value = d.real_name || "";
+                            document.getElementById("settings-birthdate").value = d.birth_date || "";
+                            document.getElementById("settings-location").value = d.location || "";
+                            document.getElementById("settings-social").value = d.social_link || "";
                             } catch(e) {}
                         }
                     } else { 
@@ -707,10 +707,10 @@
                 ws.onopen = () => { if(currentChannel) requestHistory(); };
                 ws.onmessage = e => {
                     var d = JSON.parse(e.data);
-                    if(d.type==="call_offer") { d.sender=d.sender||"Неизвестный"; handleOffer(d); }
-                    else if(d.type==="call_answer") handleAnswer(d);
-                    else if(d.type==="new_ice_candidate") handleCandidate(d);
-                    else if(d.type==="hang_up") closeCall();
+                    if(d.type==="call_offer") { d.sender=d.sender||"Неизвестный"; if(typeof handleOffer === 'function') handleOffer(d); }
+                    else if(d.type==="call_answer") { if(typeof handleAnswer === 'function') handleAnswer(d); }
+                    else if(d.type==="new_ice_candidate") { if(typeof handleCandidate === 'function') handleCandidate(d); }
+                    else if(d.type==="hang_up") { if(typeof closeCall === 'function') closeCall(); }
                     else if(d.type==="initial_status") d.users.forEach(u=>updateStatus(u,'online'));
                     else if(d.type==="status") updateStatus(d.username, d.status);
                     else if(d.type==="profile_update") {
@@ -1054,7 +1054,7 @@
                         let dt = new DataTransfer();
                         dt.items.add(file);
                         input.files = dt.files;
-                        handleFileSelect(input);
+                        window.handleFileSelect(input);
                     });
                 }, false);
             }
@@ -1070,21 +1070,7 @@
             }
             
             // ОБНОВЛЯЕМ ОБРАБОТКУ СООБЩЕНИЙ ДЛЯ УВЕДОМЛЕНИЙ
-            let originalOnMessage = ws.onmessage;
-            if (ws) {
-                ws.onmessage = function(e) {
-                    originalOnMessage(e);
-                    try {
-                        let d = JSON.parse(e.data);
-                        if (d.type === 'message' && d.username !== myUsername && document.hidden) {
-                            showNotification(d.username, d.content.substring(0, 50), d.avatar_url);
-                        }
-                        if (d.type === 'mention' && d.from !== myUsername) {
-                            showNotification('Упоминание от ' + d.from, d.content);
-                        }
-                    } catch(e) {}
-                };
-            }
+            // Уведомления обрабатываются внутри connectWS
             window.sendReaction = function(id, emoji) { if(ws) ws.send(JSON.stringify({ type: "reaction", message_id: id, emoji: emoji })); }
             window.toggleSpyMode = function() { isSpyMode = !isSpyMode; document.getElementById("spy-btn").classList.toggle("active"); document.querySelector(".input-wrapper").classList.toggle("spy-active"); }
             window.startReply = function(id, username) { replyToId = id; document.getElementById("reply-bar").style.display = "flex"; document.getElementById("reply-username").innerText = username; document.getElementById("messageText").focus(); }
@@ -1120,8 +1106,8 @@
                                         reply_to: replyToId,
                                         timer: isSpyMode ? 10 : 0
                                     }));
-                                    cancelReply();
-                                    if (isSpyMode) toggleSpyMode();
+                                    window.cancelReply();
+                                    if (isSpyMode) window.toggleSpyMode();
                                 }
                             };
                             reader.readAsDataURL(blob);
@@ -1141,13 +1127,18 @@
                 }
             }
             window.handleFileSelect = function(i) { if(i.files[0]) { var r=new FileReader(); let file = i.files[0]; r.onload=e=> { let content = e.target.result; if (!file.type.startsWith("image/") && !file.type.startsWith("audio/")) { content = `[FILE:${file.name}]${content}`; } ws.send(JSON.stringify({type:"message",channel:currentChannel,username:username,content:content})); }; r.readAsDataURL(file); i.value=''; } }
-            document.getElementById("messageText").addEventListener("keydown", function(e) { if(e.key === "Escape") { window.cancelReply(); } });
+            if(document.getElementById("messageText")) {
+                document.getElementById("messageText").addEventListener("keydown", function(e) { if(e.key === "Escape") { window.cancelReply(); } });
+            }
             window.sendMessage = function(e) { e.preventDefault(); var i=document.getElementById("messageText"); if(!i.value.trim()) return; if (editingMessageId) { ws.send(JSON.stringify({type: "edit_message", message_id: editingMessageId, new_content: i.value, channel: currentChannel })); window.cancelEdit(); } else { ws.send(JSON.stringify({type:"message",channel:currentChannel,username:username,content:i.value,reply_to: replyToId,timer: isSpyMode ? 10 : 0})); i.value=''; window.cancelReply(); if(isSpyMode) window.toggleSpyMode(); } }
             window.startEdit = function(id, btn) { let row = document.getElementById("msg-" + id); let textSpan = row.querySelector(".content-text"); if(!textSpan) return; editingMessageId = id; let input = document.getElementById("messageText"); input.value = textSpan.innerText; input.focus(); document.getElementById("input-box").classList.add("editing"); document.getElementById("edit-indicator").style.display = "block"; };
             window.cancelEdit = function() { editingMessageId = null; document.getElementById("messageText").value = ""; document.getElementById("input-box").classList.remove("editing"); document.getElementById("edit-indicator").style.display = "none"; }
             window.cancelReply = function() { replyToId = null; document.getElementById("reply-bar").style.display = "none"; }
-            let lastTypingTime = 0; document.getElementById("messageText").addEventListener("input", () => { let now = Date.now(); if (now - lastTypingTime > 2000 && ws && currentChannel) { ws.send(JSON.stringify({type: "typing", channel: currentChannel, username: username})); lastTypingTime = now; } });
-            function requestHistory() { if(ws&&ws.readyState===1) { ws.send(JSON.stringify({type:"history",channel:currentChannel})); loadPinnedMessages(); } }
+            let lastTypingTime = 0; 
+            if(document.getElementById("messageText")) {
+                document.getElementById("messageText").addEventListener("input", () => { let now = Date.now(); if (now - lastTypingTime > 2000 && ws && currentChannel) { ws.send(JSON.stringify({type: "typing", channel: currentChannel, username: username})); lastTypingTime = now; } });
+            }
+            window.requestHistory = function() { if(ws&&ws.readyState===1) { ws.send(JSON.stringify({type:"history",channel:currentChannel})); if(typeof loadPinnedMessages === 'function') loadPinnedMessages(); } }
             window.delMsg = function(id) { if(confirm("Удалить?")) ws.send(JSON.stringify({type:"delete", message_id:id})); }
             
             // --- ЗАКРЕПЛЁННЫЕ СООБЩЕНИЯ ---
@@ -1294,7 +1285,7 @@
             }
             
             window.openAppearanceSettings = function() {
-                openSettings();
+                window.openSettings();
                 document.getElementById("account-settings-modal").style.display = "none";
             }
             
