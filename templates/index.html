@@ -11,6 +11,48 @@
         
         <style>
             :root { --bg-deep:#0f0c29; --bg-medium:#1a163a; --bg-light:#302b63; --accent-primary:#00d2ff; --accent-secondary:#3a7bd5; --text-main:#ffffff; --text-dim:#b8b8d0; --danger:#ff416c; --success:#00f260; --glass:rgba(255,255,255,0.05); --glass-border:rgba(255,255,255,0.1); }
+            
+            /* ТЕМЫ ОФОРМЛЕНИЯ */
+            body.light-theme { --bg-deep:#f5f5f5; --bg-medium:#ffffff; --bg-light:#e8e8e8; --text-main:#1a1a1a; --text-dim:#666666; --glass:rgba(0,0,0,0.05); --glass-border:rgba(0,0,0,0.1); background: #f5f5f5; }
+            body.light-theme .sidebar { background: rgba(255, 255, 255, 0.98); }
+            body.light-theme .msg-row.other .msg-bubble { background: rgba(0,0,0,0.05); }
+            body.light-theme .msg-row.me .msg-bubble { background: linear-gradient(135deg, #5865f2, #00d2ff); color: white; }
+            
+            /* ПРЕВЬЮ ССЫЛОК */
+            .link-preview { margin-top: 8px; border: 1px solid var(--glass-border); border-radius: 8px; overflow: hidden; max-width: 400px; background: rgba(0,0,0,0.2); }
+            .link-preview-image { width: 100%; max-height: 200px; object-fit: cover; }
+            .link-preview-content { padding: 10px; }
+            .link-preview-title { font-weight: bold; font-size: 14px; margin-bottom: 4px; color: var(--accent-primary); }
+            .link-preview-description { font-size: 12px; color: var(--text-dim); }
+            .link-preview-url { font-size: 10px; color: var(--text-dim); opacity: 0.7; margin-top: 4px; }
+            
+            /* ГОЛОСОВЫЕ КАНАЛЫ */
+            .voice-channel { padding: 8px 15px; margin: 2px 10px; border-radius: 12px; cursor: pointer; color: var(--text-dim); font-weight: 600; display: flex; align-items: center; transition: 0.2s; font-size: 14px; }
+            .voice-channel:hover { background: var(--glass); color: white; }
+            .voice-channel.active { background: linear-gradient(90deg, rgba(0, 242, 96, 0.2), transparent); color: var(--success); border-left: 3px solid var(--success); }
+            .voice-icon { margin-right: 8px; font-size: 16px; }
+            .voice-members-count { margin-left: auto; font-size: 11px; opacity: 0.7; }
+            
+            /* РАСШИРЕННЫЕ ЭМОДЗИ */
+            .emoji-picker { display: none; position: absolute; bottom: 60px; right: 20px; background: rgba(15, 12, 41, 0.98); border: 1px solid var(--glass-border); border-radius: 12px; padding: 10px; width: 300px; max-height: 300px; overflow-y: auto; z-index: 1000; }
+            .emoji-picker.show { display: block; }
+            .emoji-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; }
+            .emoji-item { font-size: 20px; cursor: pointer; padding: 5px; text-align: center; border-radius: 4px; transition: 0.2s; }
+            .emoji-item:hover { background: var(--glass); transform: scale(1.2); }
+            
+            /* СТАТУСЫ ПОЛЬЗОВАТЕЛЕЙ */
+            .status-badge { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-left: 5px; }
+            .status-online { background: var(--success); box-shadow: 0 0 5px var(--success); }
+            .status-offline { background: #666; }
+            .status-away { background: #ffaa00; }
+            .status-dnd { background: var(--danger); }
+            
+            /* НАСТРОЙКИ ТЕМЫ */
+            .theme-selector { display: flex; gap: 10px; margin-top: 10px; }
+            .theme-btn { flex: 1; padding: 8px; border: 2px solid var(--glass-border); border-radius: 8px; cursor: pointer; text-align: center; transition: 0.2s; }
+            .theme-btn.active { border-color: var(--accent-primary); background: rgba(0, 210, 255, 0.1); }
+            .theme-btn.dark { background: linear-gradient(135deg, #0f0c29, #1a163a); color: white; }
+            .theme-btn.light { background: linear-gradient(135deg, #f5f5f5, #ffffff); color: #1a1a1a; }
             * { box-sizing: border-box; }
             body { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background: linear-gradient(135deg, var(--bg-deep), #24243e); color: var(--text-main); font-family: 'Exo 2', sans-serif; }
             #app-container { display: none; width: 100%; height: 100%; display: flex; }
@@ -59,6 +101,18 @@
             .spy-msg { border: 2px solid var(--danger) !important; background: rgba(255, 65, 108, 0.1) !important; color: white !important; }
             .spy-header { font-size: 11px; color: var(--danger); font-weight: 800; margin-bottom: 5px; display: flex; align-items: center; gap: 5px; text-transform: uppercase; letter-spacing: 1px; }
             .spy-timer { background: var(--danger); color: white; padding: 2px 6px; border-radius: 4px; font-family: monospace; }
+
+            /* УПОМИНАНИЯ И ПЕРЕСЫЛКА */
+            .mention { color: var(--accent-primary); font-weight: bold; cursor: pointer; background: rgba(0, 210, 255, 0.15); padding: 2px 4px; border-radius: 4px; }
+            .mention:hover { background: rgba(0, 210, 255, 0.25); }
+            .forwarded-label { font-size: 10px; color: var(--text-dim); opacity: 0.7; margin-bottom: 4px; display: flex; align-items: center; gap: 4px; }
+            .forwarded-label::before { content: "↪"; font-size: 12px; }
+            .pinned-indicator { position: absolute; top: -8px; right: 10px; background: var(--success); color: white; font-size: 10px; padding: 2px 6px; border-radius: 8px; font-weight: bold; }
+            .pinned-messages-bar { background: rgba(0, 242, 96, 0.1); border-left: 3px solid var(--success); padding: 10px; margin-bottom: 15px; border-radius: 8px; }
+            .pinned-messages-bar .pinned-title { font-size: 11px; color: var(--success); font-weight: bold; margin-bottom: 5px; text-transform: uppercase; }
+            .pinned-item { font-size: 12px; color: var(--text-dim); cursor: pointer; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+            .pinned-item:hover { color: white; }
+            .pinned-item:last-child { border-bottom: none; }
 
             .msg-meta { display: flex; align-items: center; justify-content: flex-end; gap: 4px; margin-top: 4px; }
             .read-ticks { font-size: 11px; color: #00ffea; font-weight: 900; text-shadow: 0 0 5px rgba(0,255,234,0.5); }
@@ -339,7 +393,7 @@
                 } catch(e) { alert("Network Error"); }
             }
 
-            const ICONS = {crown:`<span style="color:gold;margin-left:4px">👑</span>`, trash: `🗑️`, edit: `✏️`, reply: `↩️`};
+            const ICONS = {crown:`<span style="color:gold;margin-left:4px">👑</span>`, trash: `🗑️`, edit: `✏️`, reply: `↩️`, pin: `📌`, forward: `↪`};
             const notifSound = new Audio("https://cdn.freesound.org/previews/235/235911_2391840-lq.mp3");
             const ringtone = new Audio("https://cdn.freesound.org/previews/351/351239_1241198-lq.mp3"); ringtone.loop=true;
             var ws, username, currentUserAvatar, currentUserWallpaper="", tempWallpaperBase64, myIsAdmin, currentChannel, currentGroupId;
@@ -430,8 +484,15 @@
                     }
                     else if(d.type==="reaction_update") { requestHistory(); } 
                     else if(d.type==="edit_update") { requestHistory(); }
-                    else if(Array.isArray(d)) { document.getElementById('messages').innerHTML=''; lastDate = null; d.reverse().forEach(addMsg); }
-                    else if(d.type==="delete") { var el=document.getElementById("msg-"+d.message_id); if(el)el.remove(); }
+                    else if(d.type==="message_pinned") { if(d.channel === currentChannel) loadPinnedMessages(); requestHistory(); }
+                    else if(d.type==="mention") { 
+                        if(d.channel !== currentChannel) {
+                            notifSound.play().catch(()=>{});
+                            alert(`Вас упомянули в ${d.channel}: ${d.from}: ${d.content}`);
+                        }
+                    }
+                    else if(Array.isArray(d)) { document.getElementById('messages').innerHTML=''; lastDate = null; d.reverse().forEach(addMsg); loadPinnedMessages(); }
+                    else if(d.type==="delete") { var el=document.getElementById("msg-"+d.message_id); if(el)el.remove(); loadPinnedMessages(); }
                     else if(d.channel===currentChannel) { addMsg(d); if(d.username!==username) { notifSound.play().catch(()=>{}); ws.send(JSON.stringify({type:"mark_read", message_id: d.id})); } }
                 };
             }
@@ -439,8 +500,10 @@
             // --- ONLINE-СТАТУСЫ ---
             function updateStatus(user, status) {
                 const dot = document.getElementById("status-" + user);
-                if (!dot) return;
-                dot.style.display = status === "online" ? "inline-block" : "none";
+                if (dot) {
+                    dot.className = "status-badge status-" + status;
+                    dot.style.display = status === "offline" ? "none" : "inline-block";
+                }
             }
 
             function revealSpy(id) { ws.send(JSON.stringify({type: "spy_viewed", message_id: id})); }
@@ -489,7 +552,13 @@
                         let closeBracket = d.content.indexOf("]"); let fileName = d.content.substring(6, closeBracket); let fileData = d.content.substring(closeBracket + 1);
                         contentHtml = `${spyHeader}<div class="file-card" onclick="downloadFile('${fileName}', '${fileData}')"><div class="file-icon">📄</div><div class="file-info"><div class="file-name">${fileName}</div><div class="file-type">Скачать</div></div></div>`;
                     }
-                    else contentHtml = `${spyHeader}<span class="content-text">${d.content}</span>`;
+                    else {
+                        // Парсим упоминания @username и делаем их кликабельными
+                        let processedContent = d.content.replace(/@(\w+)/g, '<span class="mention" onclick="openUserProfile(\'$1\')">@$1</span>');
+                        // Если сообщение переслано, добавляем метку
+                        let forwardedLabel = d.forwarded_from ? `<div class="forwarded-label">Переслано от ${d.forwarded_from}</div>` : "";
+                        contentHtml = `${spyHeader}${forwardedLabel}<span class="content-text">${processedContent}</span>`;
+                    }
                 }
 
                 let ticks = me ? `<span class="read-ticks">${d.read_by && d.read_by.length > 0 ? "✓✓" : "✓"}</span>` : "";
@@ -502,11 +571,15 @@
                     reactionsHtml += '</div>';
                 }
 
-                var actions = `<div class="msg-actions"><span class="action-btn" onclick="startReply(${d.id}, '${d.username}')">${ICONS.reply}</span>${(me || myIsAdmin) && !d.content.startsWith("data:") && !isHidden ? `<span class="action-btn" onclick="startEdit(${d.id}, this)">${ICONS.edit}</span>` : ""}${(me || myIsAdmin) ? `<span class="action-btn" style="color:var(--danger)" onclick="delMsg(${d.id})">${ICONS.trash}</span>` : ""}<span class="action-btn" onclick="sendReaction(${d.id}, '👍')">👍</span><span class="action-btn" onclick="sendReaction(${d.id}, '❤️')">❤️</span><span class="action-btn" onclick="sendReaction(${d.id}, '😂')">😂</span></div>`;
+                var pinBtn = (myIsAdmin || me) ? `<span class="action-btn" onclick="togglePin(${d.id})" title="${d.is_pinned ? 'Открепить' : 'Закрепить'}">${ICONS.pin}</span>` : "";
+                var forwardBtn = !d.content.startsWith("data:") && !isHidden ? `<span class="action-btn" onclick="forwardMessage(${d.id})" title="Переслать">${ICONS.forward}</span>` : "";
+                var actions = `<div class="msg-actions"><span class="action-btn" onclick="startReply(${d.id}, '${d.username}')">${ICONS.reply}</span>${forwardBtn}${pinBtn}${(me || myIsAdmin) && !d.content.startsWith("data:") && !isHidden ? `<span class="action-btn" onclick="startEdit(${d.id}, this)">${ICONS.edit}</span>` : ""}${(me || myIsAdmin) ? `<span class="action-btn" style="color:var(--danger)" onclick="delMsg(${d.id})">${ICONS.trash}</span>` : ""}<span class="action-btn" onclick="sendReaction(${d.id}, '👍')">👍</span><span class="action-btn" onclick="sendReaction(${d.id}, '❤️')">❤️</span><span class="action-btn" onclick="sendReaction(${d.id}, '😂')">😂</span></div>`;
 
                 const nameHtml = !me ? `<span class="username">${d.username}</span>${d.is_admin ? ICONS.crown : ""}` : "";
 
-                var info = `<div class="${bubbleClass}">${replyHtml}${nameHtml}${contentHtml}${reactionsHtml}<div class="msg-meta">${ticks}<span class="timestamp">${d.created_at}</span></div>${actions}</div>`;
+                // Индикатор закреплённого сообщения
+                let pinnedBadge = d.is_pinned ? `<div class="pinned-indicator">📌</div>` : "";
+                var info = `<div class="${bubbleClass}" style="position:relative;">${pinnedBadge}${replyHtml}${nameHtml}${contentHtml}${reactionsHtml}<div class="msg-meta">${ticks}<span class="timestamp">${d.created_at}</span></div>${actions}</div>`;
                 li.innerHTML = me ? info : `<img class="avatar" src="${d.avatar_url||getDefaultAvatar(d.username)}">` + info;
 
                 // Кликаем по аватару/нику, чтобы открыть профиль пользователя
@@ -519,6 +592,25 @@
 
                 l.appendChild(li); l.scrollTop=l.scrollHeight;
                 if (!me && !d.timer) ws.send(JSON.stringify({type:"mark_read", message_id: d.id}));
+                
+                // Добавляем превью ссылки если есть
+                if (d.link_preview && d.link_preview.title) {
+                    setTimeout(() => {
+                        let bubble = li.querySelector('.msg-bubble');
+                        if (bubble) {
+                            let previewDiv = document.createElement("div");
+                            previewDiv.className = "link-preview";
+                            let html = `<div class="link-preview-content">`;
+                            if (d.link_preview.image) html += `<img src="${d.link_preview.image}" class="link-preview-image" onerror="this.style.display='none'">`;
+                            html += `<div class="link-preview-title">${d.link_preview.title}</div>`;
+                            if (d.link_preview.description) html += `<div class="link-preview-description">${d.link_preview.description}</div>`;
+                            html += `<div class="link-preview-url">${d.link_preview.url}</div></div>`;
+                            previewDiv.innerHTML = html;
+                            previewDiv.onclick = () => window.open(d.link_preview.url, '_blank');
+                            bubble.appendChild(previewDiv);
+                        }
+                    }, 100);
+                }
             }
 
             window.downloadFile = function(name, data) { var a = document.createElement("a"); a.href = data; a.download = name; document.body.appendChild(a); a.click(); document.body.removeChild(a); }
@@ -586,12 +678,75 @@
             window.startEdit = function(id, btn) { let row = document.getElementById("msg-" + id); let textSpan = row.querySelector(".content-text"); if(!textSpan) return; editingMessageId = id; let input = document.getElementById("messageText"); input.value = textSpan.innerText; input.focus(); document.getElementById("input-box").classList.add("editing"); document.getElementById("edit-indicator").style.display = "block"; };
             window.cancelEdit = function() { editingMessageId = null; document.getElementById("messageText").value = ""; document.getElementById("input-box").classList.remove("editing"); document.getElementById("edit-indicator").style.display = "none"; }
             let lastTypingTime = 0; document.getElementById("messageText").addEventListener("input", () => { let now = Date.now(); if (now - lastTypingTime > 2000 && ws && currentChannel) { ws.send(JSON.stringify({type: "typing", channel: currentChannel, username: username})); lastTypingTime = now; } });
-            function requestHistory() { if(ws&&ws.readyState===1) ws.send(JSON.stringify({type:"history",channel:currentChannel})); }
+            function requestHistory() { if(ws&&ws.readyState===1) { ws.send(JSON.stringify({type:"history",channel:currentChannel})); loadPinnedMessages(); } }
             function delMsg(id) { if(confirm("Удалить?")) ws.send(JSON.stringify({type:"delete", message_id:id})); }
+            
+            // --- ЗАКРЕПЛЁННЫЕ СООБЩЕНИЯ ---
+            async function loadPinnedMessages() {
+                if (!currentChannel) return;
+                try {
+                    let r = await fetch(`/get_pinned?channel=${currentChannel}`);
+                    let pinned = await r.json();
+                    let bar = document.getElementById("pinned-bar");
+                    if (!bar) {
+                        bar = document.createElement("div");
+                        bar.id = "pinned-bar";
+                        bar.className = "pinned-messages-bar";
+                        document.getElementById("messages").insertBefore(bar, document.getElementById("messages").firstChild);
+                    }
+                    if (pinned.length === 0) {
+                        bar.style.display = "none";
+                        return;
+                    }
+                    bar.style.display = "block";
+                    bar.innerHTML = `<div class="pinned-title">📌 Закреплённые сообщения (${pinned.length})</div>`;
+                    pinned.forEach(p => {
+                        let item = document.createElement("div");
+                        item.className = "pinned-item";
+                        item.innerHTML = `<b>${p.username}</b>: ${p.content.substring(0, 50)}${p.content.length > 50 ? "..." : ""}`;
+                        item.onclick = () => {
+                            document.getElementById("messages").scrollTop = 0;
+                            setTimeout(() => {
+                                let msgEl = document.getElementById("msg-" + p.message_id);
+                                if (msgEl) {
+                                    msgEl.scrollIntoView({ behavior: "smooth", block: "center" });
+                                    msgEl.style.background = "rgba(0, 242, 96, 0.2)";
+                                    setTimeout(() => msgEl.style.background = "", 2000);
+                                }
+                            }, 100);
+                        };
+                        bar.appendChild(item);
+                    });
+                } catch(e) { console.error(e); }
+            }
+            
+            async function togglePin(msgId) {
+                let row = document.getElementById("msg-" + msgId);
+                if (!row) return;
+                let isPinned = row.querySelector(".pinned-indicator") !== null;
+                if (isPinned) {
+                    let r = await fetch("/unpin_message", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message_id:msgId})});
+                    if (r.ok) { loadPinnedMessages(); requestHistory(); }
+                } else {
+                    let r = await fetch("/pin_message", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message_id:msgId,channel:currentChannel,username:username})});
+                    if (r.ok) { loadPinnedMessages(); requestHistory(); }
+                }
+            }
+            
+            // --- ПЕРЕСЫЛКА СООБЩЕНИЙ ---
+            window.forwardMessage = async function(msgId) {
+                let targetChannel = prompt("Введите ID канала или имя пользователя для пересылки:");
+                if (!targetChannel) return;
+                try {
+                    let r = await fetch("/forward_message", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message_id:msgId,target_channel:targetChannel,username:username})});
+                    if (r.ok) alert("Сообщение переслано!");
+                    else alert("Ошибка пересылки");
+                } catch(e) { alert("Ошибка"); }
+            }
             async function loadDMs() { let r=await fetch("/get_dms?username="+username); let d=await r.json(); document.getElementById("dm-list").innerHTML=""; d.forEach(u => { let name = u === "Избранное" ? "Избранное (Saved)" : u; let div=document.createElement("div"); div.className="channel"; div.innerHTML=`<img src="${getDefaultAvatar(u)}" class="dm-avatar"><span style="flex-grow:1">${name}<span id="status-${u}" class="status-dot"></span></span>`; let chatID = u === "Избранное" ? "dm_"+username+"_"+username : "dm_"+[username,u].sort().join("_"); div.onclick=(ev)=>switchChat(chatID, name, true, null, ev); document.getElementById("dm-list").appendChild(div); }); }
             async function loadGroups() { let r=await fetch("/get_my_groups?username="+username); let d=await r.json(); document.getElementById("groups-list").innerHTML=""; d.forEach(g => { let div=document.createElement("div"); div.className="channel"; div.innerText=g.name; div.onclick=(ev)=>switchChat("group_"+g.id, g.name, false, g.id, ev); document.getElementById("groups-list").appendChild(div); }); }
             async function loadRequests() { let r=await fetch("/get_requests?username="+username); let d=await r.json(); document.getElementById("requests-list").innerHTML=""; document.getElementById("requests-section").style.display=d.length?"block":"none"; d.forEach(q => { let div=document.createElement("div"); div.className="channel"; div.style.cursor="default"; div.innerHTML=`${q.sender} <span class="icon-btn" onclick="respondReq(${q.id},'accept')" style="margin-left:auto">✅</span><span class="icon-btn" onclick="respondReq(${q.id},'reject')">❌</span>`; document.getElementById("requests-list").appendChild(div); }); }
-            function switchChat(id, name, isDm, gid, ev) { currentChannel=id; currentGroupId=gid; document.querySelectorAll('.channel').forEach(c=>c.classList.remove('active')); if(ev && ev.currentTarget){ev.currentTarget.classList.add('active');} document.getElementById("header-title").innerText=name; document.getElementById("add-member-btn").style.display=gid?"block":"none"; document.getElementById("call-btn").style.display=isDm?"flex":"none"; document.getElementById("messages").innerHTML=""; requestHistory(); closeSidebarOnMobile(); }
+            function switchChat(id, name, isDm, gid, ev) { currentChannel=id; currentGroupId=gid; document.querySelectorAll('.channel').forEach(c=>c.classList.remove('active')); if(ev && ev.currentTarget){ev.currentTarget.classList.add('active');} document.getElementById("header-title").innerText=name; document.getElementById("add-member-btn").style.display=gid?"block":"none"; document.getElementById("call-btn").style.display=isDm?"flex":"none"; document.getElementById("messages").innerHTML=""; requestHistory(); closeSidebarOnMobile(); if(gid) loadVoiceChannels(gid); }
             async function sendFriendRequest() { var u=document.getElementById("dm-username").value; if(u) fetch("/send_request", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sender:username,receiver:u})}).then(r=>{if(r.ok){alert("Отправлено");document.getElementById("dm-modal").style.display="none";}else alert("Ошибка")}); }
             async function createGroup() { var n=document.getElementById("group-name-input").value; if(n) fetch("/create_group", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:n,owner:username})}).then(r=>{if(r.ok){document.getElementById("create-group-modal").style.display="none";loadGroups();}}); }
             async function addMemberToGroup() { var u=document.getElementById("new-member-username").value; if(u) fetch("/add_member", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({group_id:currentGroupId,username:u})}).then(r=>{if(r.ok){alert("Добавлен");document.getElementById("add-member-modal").style.display="none";}else alert("Ошибка")}); }
@@ -764,6 +919,117 @@
                 } catch (e) {
                     console.error(e);
                 }
+            }
+            
+            // --- НОВЫЕ ФУНКЦИИ: ТЕМЫ, СТАТУСЫ, ПРЕВЬЮ, ГОЛОСОВЫЕ КАНАЛЫ ---
+            
+            // ТЕМЫ ОФОРМЛЕНИЯ
+            window.changeTheme = async function(theme) {
+                document.body.className = theme + '-theme';
+                document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
+                event.target.classList.add('active');
+                if (username) {
+                    await fetch("/update_theme", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username:username,theme:theme})});
+                    localStorage.setItem('flux_theme', theme);
+                }
+            }
+            
+            // Загружаем сохранённую тему при старте
+            window.addEventListener('DOMContentLoaded', () => {
+                let savedTheme = localStorage.getItem('flux_theme') || 'dark';
+                document.body.className = savedTheme + '-theme';
+            });
+            
+            // СТАТУСЫ ПОЛЬЗОВАТЕЛЕЙ
+            window.updateUserStatus = async function(status) {
+                let customStatus = document.getElementById("settings-custom-status")?.value || null;
+                await fetch("/update_status", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username:username,status:status,custom_status:customStatus})});
+                alert("Статус обновлён!");
+            }
+            
+            // ПРЕВЬЮ ССЫЛОК - функция уже интегрирована в addMsg выше
+            
+            // ГОЛОСОВЫЕ КАНАЛЫ
+            async function loadVoiceChannels(groupId) {
+                if (!groupId) return;
+                try {
+                    let r = await fetch(`/get_voice_channels?group_id=${groupId}`);
+                    let channels = await r.json();
+                    let container = document.getElementById("voice-channels-list");
+                    if (!container) {
+                        container = document.createElement("div");
+                        container.id = "voice-channels-list";
+                        container.innerHTML = '<div class="sidebar-title">ГОЛОСОВЫЕ КАНАЛЫ</div>';
+                        document.getElementById("groups-list").parentElement.insertBefore(container, document.getElementById("groups-list"));
+                    }
+                    container.innerHTML = '<div class="sidebar-title">🔊 ГОЛОСОВЫЕ</div>';
+                    channels.forEach(vc => {
+                        let div = document.createElement("div");
+                        div.className = "voice-channel";
+                        div.innerHTML = `<span class="voice-icon">🔊</span>${vc.name}<span class="voice-members-count">${vc.members}</span>`;
+                        div.onclick = () => joinVoiceChannel(vc.id);
+                        container.appendChild(div);
+                    });
+                } catch(e) { console.error(e); }
+            }
+            
+            async function joinVoiceChannel(channelId) {
+                await fetch("/join_voice", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({channel_id:channelId,username:username})});
+                alert("Вы присоединились к голосовому каналу!");
+            }
+            
+            // РАСШИРЕННЫЕ ЭМОДЗИ - добавляем кнопку в input
+            window.toggleEmojiPicker = function() {
+                let picker = document.getElementById("emoji-picker");
+                if (!picker) {
+                    picker = document.createElement("div");
+                    picker.id = "emoji-picker";
+                    picker.className = "emoji-picker";
+                    let emojis = ['👍','❤️','😂','😮','😢','🔥','💯','🎉','👏','🙌','😍','🤔','😴','🤮','💪','🎮','🎵','🎬','📷','📱','💻','🚀','⭐','✨','💎','🎯','🏆','🎊','🎈','🎁'];
+                    let grid = document.createElement("div");
+                    grid.className = "emoji-grid";
+                    emojis.forEach(emoji => {
+                        let item = document.createElement("div");
+                        item.className = "emoji-item";
+                        item.innerText = emoji;
+                        item.onclick = () => {
+                            document.getElementById("messageText").value += emoji;
+                            picker.classList.remove("show");
+                        };
+                        grid.appendChild(item);
+                    });
+                    picker.appendChild(grid);
+                    document.querySelector(".input-wrapper").appendChild(picker);
+                }
+                picker.classList.toggle("show");
+            }
+            
+            // Добавляем кнопку эмодзи в input
+            setTimeout(() => {
+                let inputWrapper = document.querySelector(".input-wrapper");
+                if (inputWrapper && !document.getElementById("emoji-btn")) {
+                    let emojiBtn = document.createElement("div");
+                    emojiBtn.id = "emoji-btn";
+                    emojiBtn.className = "icon-btn-input";
+                    emojiBtn.innerHTML = "😀";
+                    emojiBtn.onclick = toggleEmojiPicker;
+                    inputWrapper.insertBefore(emojiBtn, inputWrapper.querySelector("#messageText"));
+                }
+            }, 1000);
+            
+            // Обработка событий голосовых каналов
+            if (typeof ws !== 'undefined' && ws) {
+                ws.addEventListener('message', (e) => {
+                    try {
+                        let d = JSON.parse(e.data);
+                        if (d.type === "voice_channel_created" || d.type === "voice_joined" || d.type === "voice_left") {
+                            if (currentGroupId) loadVoiceChannels(currentGroupId);
+                        }
+                        if (d.type === "status_update") {
+                            updateStatus(d.username, d.status);
+                        }
+                    } catch(e) {}
+                });
             }
         </script>
     </body>

@@ -150,3 +150,82 @@ async def init_db():
                 """
             )
         )
+        
+        # PINNED MESSAGES: закреплённые сообщения (как в Discord/Telegram)
+        await conn.execute(
+            text(
+                """
+                CREATE TABLE IF NOT EXISTS pinned_messages (
+                    id SERIAL PRIMARY KEY,
+                    message_id INTEGER NOT NULL,
+                    channel TEXT NOT NULL,
+                    pinned_by TEXT NOT NULL,
+                    pinned_at TEXT NOT NULL
+                )
+                """
+            )
+        )
+        
+        # USER STATUS: статусы пользователей (online/offline/recently/away)
+        alter_users_status = [
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'offline'",
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS last_seen TEXT DEFAULT NULL",
+        ]
+        for stmt in alter_users_status:
+            try:
+                await conn.execute(text(stmt))
+            except Exception:
+                pass
+        
+        # MESSAGES: дополнительные поля для новых функций
+        alter_messages_new = [
+            "ALTER TABLE messages ADD COLUMN IF NOT EXISTS mentions TEXT DEFAULT '[]'",
+            "ALTER TABLE messages ADD COLUMN IF NOT EXISTS forwarded_from TEXT DEFAULT NULL",
+            "ALTER TABLE messages ADD COLUMN IF NOT EXISTS is_pinned BOOLEAN DEFAULT FALSE",
+            "ALTER TABLE messages ADD COLUMN IF NOT EXISTS link_preview TEXT DEFAULT NULL",
+        ]
+        for stmt in alter_messages_new:
+            try:
+                await conn.execute(text(stmt))
+            except Exception:
+                pass
+        
+        # VOICE CHANNELS: голосовые каналы (как в Discord)
+        await conn.execute(
+            text(
+                """
+                CREATE TABLE IF NOT EXISTS voice_channels (
+                    id SERIAL PRIMARY KEY,
+                    name TEXT NOT NULL,
+                    group_id INTEGER,
+                    created_by TEXT NOT NULL
+                )
+                """
+            )
+        )
+        
+        # VOICE CHANNEL MEMBERS: кто сейчас в голосовом канале
+        await conn.execute(
+            text(
+                """
+                CREATE TABLE IF NOT EXISTS voice_channel_members (
+                    id SERIAL PRIMARY KEY,
+                    channel_id INTEGER NOT NULL,
+                    username TEXT NOT NULL,
+                    joined_at TEXT NOT NULL,
+                    UNIQUE(channel_id, username)
+                )
+                """
+            )
+        )
+        
+        # USER SETTINGS: настройки пользователя (тема, уведомления и т.д.)
+        alter_users_settings = [
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS theme TEXT DEFAULT 'dark'",
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS custom_status TEXT DEFAULT NULL",
+        ]
+        for stmt in alter_users_settings:
+            try:
+                await conn.execute(text(stmt))
+            except Exception:
+                pass

@@ -8,3 +8,4 @@ asyncpg
 pydantic
 passlib
 argon2-cffi
+aiohttp
