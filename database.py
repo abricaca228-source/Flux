@@ -57,6 +57,11 @@ async def init_db():
             "ALTER TABLE users ADD COLUMN IF NOT EXISTS location TEXT",
             "ALTER TABLE users ADD COLUMN IF NOT EXISTS birth_date TEXT",
             "ALTER TABLE users ADD COLUMN IF NOT EXISTS social_link TEXT",
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS user_id TEXT UNIQUE",
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS phone TEXT",
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS email TEXT",
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_enabled BOOLEAN DEFAULT FALSE",
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS privacy_settings TEXT DEFAULT '{}'",
         ]
         for stmt in alter_users_statements:
             try:
@@ -223,9 +228,100 @@ async def init_db():
         alter_users_settings = [
             "ALTER TABLE users ADD COLUMN IF NOT EXISTS theme TEXT DEFAULT 'dark'",
             "ALTER TABLE users ADD COLUMN IF NOT EXISTS custom_status TEXT DEFAULT NULL",
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS notification_settings TEXT DEFAULT '{}'",
         ]
         for stmt in alter_users_settings:
             try:
                 await conn.execute(text(stmt))
             except Exception:
                 pass
+        
+        # GROUP ROLES: роли в группах (owner, admin, member)
+        await conn.execute(
+            text(
+                """
+                CREATE TABLE IF NOT EXISTS group_roles (
+                    id SERIAL PRIMARY KEY,
+                    group_id INTEGER NOT NULL,
+                    username TEXT NOT NULL,
+                    role TEXT NOT NULL DEFAULT 'member',
+                    UNIQUE(group_id, username)
+                )
+                """
+            )
+        )
+        
+        # MESSAGE THEMES: цветные темы для сообщений
+        alter_messages_themes = [
+            "ALTER TABLE messages ADD COLUMN IF NOT EXISTS message_theme TEXT DEFAULT NULL",
+            "ALTER TABLE messages ADD COLUMN IF NOT EXISTS edit_history TEXT DEFAULT '[]'",
+        ]
+        for stmt in alter_messages_themes:
+            try:
+                await conn.execute(text(stmt))
+            except Exception:
+                pass
+        
+        # USER ACTIVITY: статистика активности
+        await conn.execute(
+            text(
+                """
+                CREATE TABLE IF NOT EXISTS user_activity (
+                    id SERIAL PRIMARY KEY,
+                    username TEXT NOT NULL,
+                    date TEXT NOT NULL,
+                    messages_count INTEGER DEFAULT 0,
+                    reactions_given INTEGER DEFAULT 0,
+                    reactions_received INTEGER DEFAULT 0
+                )
+                """
+            )
+        )
+        
+        # STICKERS: система стикеров
+        await conn.execute(
+            text(
+                """
+                CREATE TABLE IF NOT EXISTS stickers (
+                    id SERIAL PRIMARY KEY,
+                    name TEXT NOT NULL,
+                    pack_name TEXT NOT NULL,
+                    sticker_data TEXT NOT NULL,
+                    created_by TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    is_animated BOOLEAN DEFAULT FALSE
+                )
+                """
+            )
+        )
+        
+        # STICKER PACKS: наборы стикеров
+        await conn.execute(
+            text(
+                """
+                CREATE TABLE IF NOT EXISTS sticker_packs (
+                    id SERIAL PRIMARY KEY,
+                    name TEXT NOT NULL UNIQUE,
+                    title TEXT NOT NULL,
+                    created_by TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    icon TEXT
+                )
+                """
+            )
+        )
+        
+        # USER STICKER PACKS: какие наборы стикеров есть у пользователя
+        await conn.execute(
+            text(
+                """
+                CREATE TABLE IF NOT EXISTS user_sticker_packs (
+                    id SERIAL PRIMARY KEY,
+                    username TEXT NOT NULL,
+                    pack_id INTEGER NOT NULL,
+                    added_at TEXT NOT NULL,
+                    UNIQUE(username, pack_id)
+                )
+                """
+            )
+        )

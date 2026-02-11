@@ -24,7 +24,7 @@ class AuthModel(BaseModel):
     username: str; password: str; real_name: str = ""; birth_date: str = ""
 
 class ProfileUpdateModel(BaseModel): 
-    username: str; bio: str; avatar_url: str; wallpaper: str = ""; real_name: str = ""; location: str = ""; birth_date: str = ""; social_link: str = ""
+    username: str; bio: str; avatar_url: str; wallpaper: str = ""; real_name: str = ""; location: str = ""; birth_date: str = ""; social_link: str = ""; phone: str = ""; email: str = ""
 
 class FriendRequestModel(BaseModel): sender: str; receiver: str
 class RespondRequestModel(BaseModel): request_id: int; action: str 
@@ -36,6 +36,10 @@ class VoiceChannelModel(BaseModel): name: str; group_id: int = None; created_by:
 class JoinVoiceModel(BaseModel): channel_id: int; username: str
 class UpdateStatusModel(BaseModel): username: str; status: str; custom_status: str = None
 class UpdateThemeModel(BaseModel): username: str; theme: str
+class MessageThemeModel(BaseModel): message_id: int; theme: str
+class GetUsersModel(BaseModel): query: str
+class SetRoleModel(BaseModel): group_id: int; username: str; role: str
+class NotificationSettingsModel(BaseModel): username: str; settings: dict
 
 @app.on_event("startup")
 async def startup():
@@ -83,31 +87,47 @@ async def get(request: Request): return templates.TemplateResponse("index.html",
 async def register(user: AuthModel):
     async with AsyncSessionLocal() as session:
         if (await session.execute(text("SELECT id FROM users WHERE username=:u"), {"u":user.username})).scalar(): raise HTTPException(400, "Ник занят")
-        await session.execute(text("INSERT INTO users (username, password, bio, is_admin, wallpaper, real_name, location, birth_date, social_link) VALUES (:u, :p, 'Новичок', :a, '', :rn, '', :bd, '')"), {"u":user.username, "p":get_password_hash(user.password), "a":False, "rn":user.real_name, "bd":user.birth_date})
+        # Генерируем уникальный user_id (6-значное число, как в Telegram)
+        import random
+        while True:
+            user_id = str(random.randint(100000, 999999))
+            if not (await session.execute(text("SELECT id FROM users WHERE user_id=:uid"), {"uid":user_id})).scalar():
+                break
+        await session.execute(text("INSERT INTO users (username, password, bio, is_admin, wallpaper, real_name, location, birth_date, social_link, user_id) VALUES (:u, :p, 'Новичок', :a, '', :rn, '', :bd, '', :uid)"), {"u":user.username, "p":get_password_hash(user.password), "a":False, "rn":user.real_name, "bd":user.birth_date, "uid":user_id})
         exists = (await session.execute(text("SELECT id FROM dms WHERE user1=:u AND user2=:u"), {"u":user.username})).scalar()
         if not exists: await session.execute(text("INSERT INTO dms (user1, user2) VALUES (:u, :u)"), {"u":user.username})
         await session.commit()
-    return {"message": "Success"}
+    return {"message": "Success", "user_id": user_id}
 
 @app.post("/login")
 async def login(user: AuthModel):
     async with AsyncSessionLocal() as session:
-        row = (await session.execute(text("SELECT password, avatar_url, bio, is_admin, real_name, location, birth_date, social_link, wallpaper FROM users WHERE username=:u"), {"u":user.username})).fetchone()
+        row = (await session.execute(text("SELECT password, avatar_url, bio, is_admin, real_name, location, birth_date, social_link, wallpaper, user_id FROM users WHERE username=:u"), {"u":user.username})).fetchone()
         if not row or not verify_password(user.password, row[0]): raise HTTPException(400, "Неверный логин или пароль")
-    return {"message": "Success", "avatar_url": row[1], "bio": row[2], "is_admin": row[3], "real_name": row[4] or "", "location": row[5] or "", "birth_date": row[6] or "", "social_link": row[7] or "", "wallpaper": row[8] or ""}
+        # Если у пользователя нет user_id, генерируем его
+        if not row[9]:
+            import random
+            while True:
+                user_id = str(random.randint(100000, 999999))
+                if not (await session.execute(text("SELECT id FROM users WHERE user_id=:uid"), {"uid":user_id})).scalar():
+                    await session.execute(text("UPDATE users SET user_id=:uid WHERE username=:u"), {"uid":user_id, "u":user.username})
+                    await session.commit()
+                    break
+            return {"message": "Success", "avatar_url": row[1], "bio": row[2], "is_admin": row[3], "real_name": row[4] or "", "location": row[5] or "", "birth_date": row[6] or "", "social_link": row[7] or "", "wallpaper": row[8] or "", "user_id": user_id}
+    return {"message": "Success", "avatar_url": row[1], "bio": row[2], "is_admin": row[3], "real_name": row[4] or "", "location": row[5] or "", "birth_date": row[6] or "", "social_link": row[7] or "", "wallpaper": row[8] or "", "user_id": row[9] or ""}
 
 @app.post("/update_profile")
 async def update_profile(data: ProfileUpdateModel):
     async with AsyncSessionLocal() as session:
-        q = "UPDATE users SET avatar_url=:a, bio=:b, real_name=:rn, location=:l, birth_date=:bd, social_link=:sl, wallpaper=:w WHERE username=:u"
-        await session.execute(text(q), {"a":data.avatar_url, "b":data.bio, "u":data.username, "rn":data.real_name, "l":data.location, "bd":data.birth_date, "sl":data.social_link, "w":data.wallpaper})
+        q = "UPDATE users SET avatar_url=:a, bio=:b, real_name=:rn, location=:l, birth_date=:bd, social_link=:sl, wallpaper=:w, phone=:p, email=:e WHERE username=:u"
+        await session.execute(text(q), {"a":data.avatar_url, "b":data.bio, "u":data.username, "rn":data.real_name, "l":data.location, "bd":data.birth_date, "sl":data.social_link, "w":data.wallpaper, "p":data.phone, "e":data.email})
         await session.commit()
         # Берём свежие данные профиля, чтобы отдать фронтенду полный объект,
         # который сразу подойдёт для updateMyUI (аватар, обои, био, админ и т.д.).
         row = (
             await session.execute(
                 text(
-                    "SELECT username, bio, avatar_url, is_admin, real_name, location, birth_date, social_link, wallpaper "
+                    "SELECT username, bio, avatar_url, is_admin, real_name, location, birth_date, social_link, wallpaper, user_id, phone, email "
                     "FROM users WHERE username=:u"
                 ),
                 {"u": data.username},
@@ -125,6 +145,9 @@ async def update_profile(data: ProfileUpdateModel):
             "birth_date": row[6] or "",
             "social_link": row[7] or "",
             "wallpaper": row[8] or "",
+            "user_id": row[9] or "",
+            "phone": row[10] or "",
+            "email": row[11] or "",
         }
     
     # !!! ВАЖНО: Моментальное уведомление всем, что профиль обновился !!!
@@ -138,11 +161,14 @@ async def update_profile(data: ProfileUpdateModel):
     return profile
 
 @app.get("/get_profile")
-async def get_profile(username: str):
+async def get_profile(username: str = None, user_id: str = None):
     async with AsyncSessionLocal() as session:
-        row = (await session.execute(text("SELECT username, bio, avatar_url, is_admin, real_name, location, birth_date, social_link, wallpaper FROM users WHERE username=:u"), {"u":username})).fetchone()
+        if user_id:
+            row = (await session.execute(text("SELECT username, bio, avatar_url, is_admin, real_name, location, birth_date, social_link, wallpaper, user_id, phone, email FROM users WHERE user_id=:uid"), {"uid":user_id})).fetchone()
+        else:
+            row = (await session.execute(text("SELECT username, bio, avatar_url, is_admin, real_name, location, birth_date, social_link, wallpaper, user_id, phone, email FROM users WHERE username=:u"), {"u":username})).fetchone()
         if not row: raise HTTPException(404, "User not found")
-        return {"username": row[0], "bio": row[1], "avatar_url": row[2], "is_admin": row[3], "real_name": row[4] or "", "location": row[5] or "", "birth_date": row[6] or "", "social_link": row[7] or "", "wallpaper": row[8] or ""}
+        return {"username": row[0], "bio": row[1], "avatar_url": row[2], "is_admin": row[3], "real_name": row[4] or "", "location": row[5] or "", "birth_date": row[6] or "", "social_link": row[7] or "", "wallpaper": row[8] or "", "user_id": row[9] or "", "phone": row[10] or "", "email": row[11] or ""}
 
 @app.post("/send_request")
 async def send_request(data: FriendRequestModel):
@@ -358,6 +384,113 @@ async def get_voice_channels(group_id: int = None):
             channels.append({"id": r[0], "name": r[1], "group_id": r[2], "created_by": r[3], "members": r[4]})
         return channels
 
+@app.get("/search_users")
+async def search_users(query: str):
+    async with AsyncSessionLocal() as session:
+        res = await session.execute(text("SELECT username, avatar_url, bio FROM users WHERE username LIKE :q LIMIT 10"), {"q": f"%{query}%"})
+        users = []
+        for r in res.fetchall():
+            users.append({"username": r[0], "avatar_url": r[1] or "", "bio": r[2] or ""})
+        return users
+
+@app.post("/set_message_theme")
+async def set_message_theme(data: MessageThemeModel):
+    async with AsyncSessionLocal() as session:
+        await session.execute(text("UPDATE messages SET message_theme=:t WHERE id=:id"), {"t":data.theme, "id":data.message_id})
+        await session.commit()
+    await manager.broadcast({"type": "message_theme_changed", "message_id": data.message_id, "theme": data.theme})
+    return {"message": "Theme set"}
+
+@app.post("/set_role")
+async def set_role(data: SetRoleModel):
+    async with AsyncSessionLocal() as session:
+        owner = (await session.execute(text("SELECT owner FROM groups WHERE id=:id"), {"id":data.group_id})).scalar()
+        if not owner: raise HTTPException(404, "Group not found")
+        # Проверяем, что текущий пользователь - владелец (нужно передавать текущего пользователя)
+        await session.execute(text("INSERT INTO group_roles (group_id, username, role) VALUES (:gid, :u, :r) ON CONFLICT (group_id, username) DO UPDATE SET role=:r"), {"gid":data.group_id, "u":data.username, "r":data.role})
+        await session.commit()
+    return {"message": "Role set"}
+
+@app.get("/get_activity")
+async def get_activity(username: str, days: int = 7):
+    async with AsyncSessionLocal() as session:
+        res = await session.execute(text("SELECT date, messages_count, reactions_given, reactions_received FROM user_activity WHERE username=:u ORDER BY date DESC LIMIT :d"), {"u":username, "d":days})
+        activity = []
+        for r in res.fetchall():
+            activity.append({"date": r[0], "messages": r[1], "reactions_given": r[2], "reactions_received": r[3]})
+        return activity
+
+@app.post("/update_notification_settings")
+async def update_notification_settings(data: NotificationSettingsModel):
+    async with AsyncSessionLocal() as session:
+        await session.execute(text("UPDATE users SET notification_settings=:s WHERE username=:u"), {"s":json.dumps(data.settings), "u":data.username})
+        await session.commit()
+    return {"message": "Updated"}
+
+@app.post("/update_user_id")
+async def update_user_id(data: UserIdUpdateModel):
+    async with AsyncSessionLocal() as session:
+        # Проверяем, не занят ли новый ID
+        existing = (await session.execute(text("SELECT id FROM users WHERE user_id=:uid AND username!=:u"), {"uid":data.new_user_id, "u":data.username})).scalar()
+        if existing:
+            raise HTTPException(400, "Этот ID уже занят")
+        # Проверяем формат (6 цифр)
+        if not data.new_user_id.isdigit() or len(data.new_user_id) != 6:
+            raise HTTPException(400, "ID должен состоять из 6 цифр")
+        await session.execute(text("UPDATE users SET user_id=:uid WHERE username=:u"), {"uid":data.new_user_id, "u":data.username})
+        await session.commit()
+    await manager.broadcast({"type": "user_id_updated", "username": data.username, "user_id": data.new_user_id})
+    return {"message": "User ID updated", "user_id": data.new_user_id}
+
+@app.post("/upload_sticker")
+async def upload_sticker(data: StickerModel):
+    async with AsyncSessionLocal() as session:
+        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        await session.execute(text("INSERT INTO stickers (name, pack_name, sticker_data, created_by, created_at, is_animated) VALUES (:n, :pn, :sd, :cb, :ca, :ia)"), {"n":data.name, "pn":data.pack_name, "sd":data.sticker_data, "cb":data.created_by, "ca":now, "ia":data.is_animated})
+        await session.commit()
+    return {"message": "Sticker uploaded"}
+
+@app.get("/get_stickers")
+async def get_stickers(pack_name: str = None):
+    async with AsyncSessionLocal() as session:
+        if pack_name:
+            res = await session.execute(text("SELECT id, name, sticker_data, is_animated FROM stickers WHERE pack_name=:pn"), {"pn":pack_name})
+        else:
+            res = await session.execute(text("SELECT id, name, sticker_data, is_animated, pack_name FROM stickers"))
+        stickers = []
+        for r in res.fetchall():
+            stickers.append({"id": r[0], "name": r[1], "sticker_data": r[2], "is_animated": r[3] if len(r) > 3 else False, "pack_name": r[4] if len(r) > 4 else None})
+        return stickers
+
+@app.post("/create_sticker_pack")
+async def create_sticker_pack(data: StickerPackModel):
+    async with AsyncSessionLocal() as session:
+        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        await session.execute(text("INSERT INTO sticker_packs (name, title, created_by, created_at, icon) VALUES (:n, :t, :cb, :ca, :i)"), {"n":data.name, "t":data.title, "cb":data.created_by, "ca":now, "i":data.icon or ""})
+        await session.commit()
+    return {"message": "Pack created"}
+
+@app.get("/get_sticker_packs")
+async def get_sticker_packs(username: str = None):
+    async with AsyncSessionLocal() as session:
+        if username:
+            # Получаем наборы стикеров пользователя
+            res = await session.execute(text("SELECT sp.id, sp.name, sp.title, sp.icon FROM sticker_packs sp JOIN user_sticker_packs usp ON sp.id = usp.pack_id WHERE usp.username=:u"), {"u":username})
+        else:
+            res = await session.execute(text("SELECT id, name, title, icon FROM sticker_packs"))
+        packs = []
+        for r in res.fetchall():
+            packs.append({"id": r[0], "name": r[1], "title": r[2], "icon": r[3] or ""})
+        return packs
+
+@app.post("/add_sticker_pack")
+async def add_sticker_pack(data: AddStickerPackModel):
+    async with AsyncSessionLocal() as session:
+        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        await session.execute(text("INSERT INTO user_sticker_packs (username, pack_id, added_at) VALUES (:u, :pid, :at) ON CONFLICT (username, pack_id) DO NOTHING"), {"u":data.username, "pid":data.pack_id, "at":now})
+        await session.commit()
+    return {"message": "Pack added"}
+
 @app.websocket("/ws/{username}")
 async def websocket_endpoint(websocket: WebSocket, username: str):
     await manager.connect(websocket, username)
@@ -382,12 +515,27 @@ async def websocket_endpoint(websocket: WebSocket, username: str):
                             if parent: reply_content = {"username": parent[0], "content": parent[1]}
                         mentions_list = json.loads(r[14]) if r[14] else []
                         link_preview_obj = json.loads(r[17]) if r[17] else None
-                        history.append({"id": r[0], "username": r[1], "content": r[2], "channel": r[3], "created_at": r[4], "avatar_url": r[5], "bio": r[6], "is_admin": r[7], "is_edited": r[8] if len(r) > 8 else False, "reactions": json.loads(r[9]) if r[9] else {}, "reply_to": r[10], "reply_preview": reply_content, "read_by": json.loads(r[11]) if r[11] else [], "timer": r[12] or 0, "viewed_at": r[13], "mentions": mentions_list, "forwarded_from": r[15] or None, "is_pinned": r[16] or False, "link_preview": link_preview_obj})
+                        message_theme = r[18] if len(r) > 18 else None
+                        # Получаем user_id автора сообщения
+                        user_id_res = await session.execute(text("SELECT user_id FROM users WHERE username=:u"), {"u":r[1]})
+                        user_id_row = user_id_res.fetchone()
+                        author_user_id = user_id_row[0] if user_id_row and user_id_row[0] else None
+                        history.append({"id": r[0], "username": r[1], "content": r[2], "channel": r[3], "created_at": r[4], "avatar_url": r[5], "bio": r[6], "is_admin": r[7], "is_edited": r[8] if len(r) > 8 else False, "reactions": json.loads(r[9]) if r[9] else {}, "reply_to": r[10], "reply_preview": reply_content, "read_by": json.loads(r[11]) if r[11] else [], "timer": r[12] or 0, "viewed_at": r[13], "mentions": mentions_list, "forwarded_from": r[15] or None, "is_pinned": r[16] or False, "link_preview": link_preview_obj, "message_theme": message_theme, "user_id": author_user_id})
                     await websocket.send_text(json.dumps(history))
 
             elif data.get("type") == "message":
                 now = datetime.now().strftime("%H:%M")
                 content = data['content']
+                
+                # Обновляем статистику активности
+                today = datetime.now().strftime("%Y-%m-%d")
+                try:
+                    async with AsyncSessionLocal() as temp_session:
+                        await temp_session.execute(text("INSERT INTO user_activity (username, date, messages_count) VALUES (:u, :d, 1) ON CONFLICT (username, date) DO UPDATE SET messages_count = user_activity.messages_count + 1"), {"u":data['username'], "d":today})
+                        await temp_session.commit()
+                except Exception as e:
+                    print(f"Activity update error: {e}")
+                    pass
                 
                 # Обработка команд ботов
                 if content.startswith('/'):
@@ -514,15 +662,29 @@ async def websocket_endpoint(websocket: WebSocket, username: str):
                 async with AsyncSessionLocal() as session:
                     mid = data.get("message_id")
                     emoji = data.get("emoji")
-                    res = await session.execute(text("SELECT reactions FROM messages WHERE id=:id"), {"id":mid})
+                    res = await session.execute(text("SELECT reactions, username FROM messages WHERE id=:id"), {"id":mid})
                     row = res.fetchone()
                     if row:
                         current = json.loads(row[0]) if row[0] else {}
+                        msg_author = row[1]
+                        was_added = username not in (current.get(emoji) or [])
                         if emoji not in current: current[emoji] = []
                         if username in current[emoji]: current[emoji].remove(username); 
                         else: current[emoji].append(username)
                         if not current[emoji]: del current[emoji]
                         await session.execute(text("UPDATE messages SET reactions=:r WHERE id=:id"), {"r":json.dumps(current), "id":mid})
+                        
+                        # Обновляем статистику реакций
+                        today = datetime.now().strftime("%Y-%m-%d")
+                        try:
+                            if was_added:
+                                await session.execute(text("INSERT INTO user_activity (username, date, reactions_given) VALUES (:u, :d, 1) ON CONFLICT (username, date) DO UPDATE SET reactions_given = user_activity.reactions_given + 1"), {"u":username, "d":today})
+                                if msg_author != username:
+                                    await session.execute(text("INSERT INTO user_activity (username, date, reactions_received) VALUES (:u, :d, 1) ON CONFLICT (username, date) DO UPDATE SET reactions_received = user_activity.reactions_received + 1"), {"u":msg_author, "d":today})
+                        except Exception as e:
+                            print(f"Reaction activity update error: {e}")
+                            pass
+                        
                         await session.commit()
                         await manager.broadcast({"type": "reaction_update", "message_id": mid, "reactions": current})
 
