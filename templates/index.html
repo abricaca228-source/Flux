@@ -577,20 +577,38 @@
                 try {
                     let r = await fetch("/"+type, {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
                     if(r.ok) {
-                        if (type === 'register') { alert("Аккаунт создан! Теперь войдите."); showLogin(); } 
-                        else {
-                            let d = await r.json(); username=body.username; myIsAdmin=d.is_admin;
-                            updateMyUI(d); loadDMs(); loadGroups(); loadRequests();
+                        if (type === 'register') { 
+                            alert("Аккаунт создан! Теперь войдите."); 
+                            window.showLogin(); 
+                        } else {
+                            let d = await r.json(); 
+                            username=body.username; 
+                            myIsAdmin=d.is_admin;
+                            updateMyUI(d);
+                            loadDMs();
+                            loadGroups();
+                            loadRequests();
                             document.getElementById("login-screen").style.display="none"; 
                             document.getElementById("app-container").style.display="flex";
                             connectWS();
-                            document.getElementById("settings-realname").value = d.real_name || "";
-                            document.getElementById("settings-birthdate").value = d.birth_date || "";
-                            document.getElementById("settings-location").value = d.location || "";
-                            document.getElementById("settings-social").value = d.social_link || "";
+                            try {
+                                document.getElementById("settings-realname").value = d.real_name || "";
+                                document.getElementById("settings-birthdate").value = d.birth_date || "";
+                                document.getElementById("settings-location").value = d.location || "";
+                                document.getElementById("settings-social").value = d.social_link || "";
+                            } catch(e) {}
                         }
-                    } else { document.getElementById(type==='login'?"loginError":"regError").innerText=(await r.json()).detail; document.getElementById(type==='login'?"loginError":"regError").style.display="block"; }
-                } catch(e) { alert("Network Error"); }
+                    } else { 
+                        let errorData = await r.json();
+                        let errorEl = document.getElementById(type==='login'?"loginError":"regError");
+                        if(errorEl) {
+                            errorEl.innerText = errorData.detail || "Ошибка входа";
+                            errorEl.style.display="block";
+                        }
+                    }
+                } catch(e) { 
+                    alert("Ошибка сети: " + e.message); 
+                }
             }
 
             const ICONS = {crown:`<span style="color:gold;margin-left:4px">👑</span>`, trash: `🗑️`, edit: `✏️`, reply: `↩️`, pin: `📌`, forward: `↪`};
@@ -674,7 +692,7 @@
                 }
             }
 
-            function updateMyUI(d) {
+            window.updateMyUI = function(d) {
                 currentUserAvatar = d.avatar_url && !d.avatar_url.includes("discord") ? d.avatar_url : getDefaultAvatar(username);
                 currentUserWallpaper = d.wallpaper || "";
                 document.getElementById("my-name-text").innerHTML = username + (d.is_admin?ICONS.crown:"");
@@ -683,7 +701,7 @@
                 if(currentUserWallpaper) document.getElementById("chat-area").style.backgroundImage = `url(${currentUserWallpaper})`;
             }
 
-            function connectWS() {
+            window.connectWS = function() {
                 var proto = window.location.protocol==='https:'?'wss:':'ws:';
                 ws = new WebSocket(proto+"//"+window.location.host+"/ws/"+username);
                 ws.onopen = () => { if(currentChannel) requestHistory(); };
@@ -1194,9 +1212,9 @@
                     else alert("Ошибка пересылки");
                 } catch(e) { alert("Ошибка"); }
             }
-            async function loadDMs() { let r=await fetch("/get_dms?username="+username); let d=await r.json(); document.getElementById("dm-list").innerHTML=""; d.forEach(u => { let name = u === "Избранное" ? "Избранное (Saved)" : u; let div=document.createElement("div"); div.className="channel"; div.innerHTML=`<img src="${getDefaultAvatar(u)}" class="dm-avatar"><span style="flex-grow:1">${name}<span id="status-${u}" class="status-dot"></span></span>`; let chatID = u === "Избранное" ? "dm_"+username+"_"+username : "dm_"+[username,u].sort().join("_"); div.onclick=(ev)=>switchChat(chatID, name, true, null, ev); document.getElementById("dm-list").appendChild(div); }); }
-            async function loadGroups() { let r=await fetch("/get_my_groups?username="+username); let d=await r.json(); document.getElementById("groups-list").innerHTML=""; d.forEach(g => { let div=document.createElement("div"); div.className="channel"; div.innerText=g.name; div.onclick=(ev)=>switchChat("group_"+g.id, g.name, false, g.id, ev); document.getElementById("groups-list").appendChild(div); }); }
-            async function loadRequests() { let r=await fetch("/get_requests?username="+username); let d=await r.json(); document.getElementById("requests-list").innerHTML=""; document.getElementById("requests-section").style.display=d.length?"block":"none"; d.forEach(q => { let div=document.createElement("div"); div.className="channel"; div.style.cursor="default"; div.innerHTML=`${q.sender} <span class="icon-btn" onclick="respondReq(${q.id},'accept')" style="margin-left:auto">✅</span><span class="icon-btn" onclick="respondReq(${q.id},'reject')">❌</span>`; document.getElementById("requests-list").appendChild(div); }); }
+            window.loadDMs = async function() { let r=await fetch("/get_dms?username="+username); let d=await r.json(); document.getElementById("dm-list").innerHTML=""; d.forEach(u => { let name = u === "Избранное" ? "Избранное (Saved)" : u; let div=document.createElement("div"); div.className="channel"; div.innerHTML=`<img src="${getDefaultAvatar(u)}" class="dm-avatar"><span style="flex-grow:1">${name}<span id="status-${u}" class="status-dot"></span></span>`; let chatID = u === "Избранное" ? "dm_"+username+"_"+username : "dm_"+[username,u].sort().join("_"); div.onclick=(ev)=>switchChat(chatID, name, true, null, ev); document.getElementById("dm-list").appendChild(div); }); }
+            window.loadGroups = async function() { let r=await fetch("/get_my_groups?username="+username); let d=await r.json(); document.getElementById("groups-list").innerHTML=""; d.forEach(g => { let div=document.createElement("div"); div.className="channel"; div.innerText=g.name; div.onclick=(ev)=>switchChat("group_"+g.id, g.name, false, g.id, ev); document.getElementById("groups-list").appendChild(div); }); }
+            window.loadRequests = async function() { let r=await fetch("/get_requests?username="+username); let d=await r.json(); document.getElementById("requests-list").innerHTML=""; document.getElementById("requests-section").style.display=d.length?"block":"none"; d.forEach(q => { let div=document.createElement("div"); div.className="channel"; div.style.cursor="default"; div.innerHTML=`${q.sender} <span class="icon-btn" onclick="window.respondReq(${q.id},'accept')" style="margin-left:auto">✅</span><span class="icon-btn" onclick="window.respondReq(${q.id},'reject')">❌</span>`; document.getElementById("requests-list").appendChild(div); }); }
             function switchChat(id, name, isDm, gid, ev) { currentChannel=id; currentGroupId=gid; document.querySelectorAll('.channel').forEach(c=>c.classList.remove('active')); if(ev && ev.currentTarget){ev.currentTarget.classList.add('active');} document.getElementById("header-title").innerText=name; document.getElementById("add-member-btn").style.display=gid?"block":"none"; document.getElementById("call-btn").style.display=isDm?"flex":"none"; document.getElementById("messages").innerHTML=""; requestHistory(); closeSidebarOnMobile(); if(gid) loadVoiceChannels(gid); }
             window.sendFriendRequest = async function() { var u=document.getElementById("dm-username").value; if(u) fetch("/send_request", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sender:username,receiver:u})}).then(r=>{if(r.ok){alert("Отправлено");document.getElementById("dm-modal").style.display="none";}else alert("Ошибка")}); }
             async             window.createGroup = function() { var n=document.getElementById("group-name-input").value; if(n) fetch("/create_group", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:n,owner:username})}).then(r=>{if(r.ok){document.getElementById("create-group-modal").style.display="none";loadGroups();}}); }
