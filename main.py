@@ -19,20 +19,10 @@ def verify_password(plain, hashed):
     except: return False
 
 class AuthModel(BaseModel): 
-    username: str
-    password: str
-    real_name: str = ""
-    birth_date: str = ""
+    username: str; password: str; real_name: str = ""; birth_date: str = ""
 
 class ProfileUpdateModel(BaseModel): 
-    username: str
-    bio: str
-    avatar_url: str
-    wallpaper: str = ""
-    real_name: str = ""
-    location: str = ""
-    birth_date: str = ""
-    social_link: str = ""
+    username: str; bio: str; avatar_url: str; wallpaper: str = ""; real_name: str = ""; location: str = ""; birth_date: str = ""; social_link: str = ""
 
 class FriendRequestModel(BaseModel): sender: str; receiver: str
 class RespondRequestModel(BaseModel): request_id: int; action: str 
@@ -43,43 +33,10 @@ class AddMemberModel(BaseModel): group_id: int; username: str
 async def startup():
     await init_db()
     async with AsyncSessionLocal() as session:
-        # Создаем таблицы, если их нет (данные не удаляем)
-        await session.execute(text("""
-            CREATE TABLE IF NOT EXISTS users (
-                id SERIAL PRIMARY KEY,
-                username TEXT UNIQUE,
-                password TEXT,
-                bio TEXT,
-                avatar_url TEXT,
-                is_admin BOOLEAN DEFAULT FALSE,
-                wallpaper TEXT DEFAULT '',
-                real_name TEXT DEFAULT '',
-                location TEXT DEFAULT '',
-                birth_date TEXT DEFAULT '',
-                social_link TEXT DEFAULT ''
-            )
-        """))
-        await session.execute(text("""
-            CREATE TABLE IF NOT EXISTS messages (
-                id SERIAL PRIMARY KEY,
-                username TEXT,
-                content TEXT,
-                channel TEXT,
-                created_at TEXT,
-                is_edited BOOLEAN DEFAULT FALSE,
-                reactions TEXT DEFAULT '{}',
-                reply_to INTEGER DEFAULT NULL,
-                read_by TEXT DEFAULT '[]',
-                timer INTEGER DEFAULT 0,
-                viewed_at TEXT DEFAULT NULL
-            )
-        """))
-        for t in [
-            "CREATE TABLE IF NOT EXISTS friend_requests (id SERIAL PRIMARY KEY, sender TEXT, receiver TEXT, status TEXT)",
-            "CREATE TABLE IF NOT EXISTS dms (id SERIAL PRIMARY KEY, user1 TEXT, user2 TEXT)",
-            "CREATE TABLE IF NOT EXISTS groups (id SERIAL PRIMARY KEY, name TEXT, owner TEXT)",
-            "CREATE TABLE IF NOT EXISTS group_members (id SERIAL PRIMARY KEY, group_id INTEGER, username TEXT)"
-        ]:
+        # Создаем таблицы (данные сохраняются)
+        await session.execute(text("""CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, username TEXT UNIQUE, password TEXT, bio TEXT, avatar_url TEXT, is_admin BOOLEAN DEFAULT FALSE, wallpaper TEXT DEFAULT '', real_name TEXT DEFAULT '', location TEXT DEFAULT '', birth_date TEXT DEFAULT '', social_link TEXT DEFAULT '')"""))
+        await session.execute(text("""CREATE TABLE IF NOT EXISTS messages (id SERIAL PRIMARY KEY, username TEXT, content TEXT, channel TEXT, created_at TEXT, is_edited BOOLEAN DEFAULT FALSE, reactions TEXT DEFAULT '{}', reply_to INTEGER DEFAULT NULL, read_by TEXT DEFAULT '[]', timer INTEGER DEFAULT 0, viewed_at TEXT DEFAULT NULL)"""))
+        for t in ["CREATE TABLE IF NOT EXISTS friend_requests (id SERIAL PRIMARY KEY, sender TEXT, receiver TEXT, status TEXT)", "CREATE TABLE IF NOT EXISTS dms (id SERIAL PRIMARY KEY, user1 TEXT, user2 TEXT)", "CREATE TABLE IF NOT EXISTS groups (id SERIAL PRIMARY KEY, name TEXT, owner TEXT)", "CREATE TABLE IF NOT EXISTS group_members (id SERIAL PRIMARY KEY, group_id INTEGER, username TEXT)"]:
             try: await session.execute(text(t)); await session.commit()
             except: pass
 
@@ -113,17 +70,10 @@ async def get(request: Request): return templates.TemplateResponse("index.html",
 @app.post("/register")
 async def register(user: AuthModel):
     async with AsyncSessionLocal() as session:
-        if (await session.execute(text("SELECT id FROM users WHERE username=:u"), {"u":user.username})).scalar(): 
-            raise HTTPException(400, "Ник занят")
-        
-        await session.execute(text("INSERT INTO users (username, password, bio, is_admin, wallpaper, real_name, location, birth_date, social_link) VALUES (:u, :p, 'Новичок', :a, '', :rn, '', :bd, '')"), 
-            {"u":user.username, "p":get_password_hash(user.password), "a":False, "rn":user.real_name, "bd":user.birth_date})
-        
-        # Проверка на существование чата с самим собой
+        if (await session.execute(text("SELECT id FROM users WHERE username=:u"), {"u":user.username})).scalar(): raise HTTPException(400, "Ник занят")
+        await session.execute(text("INSERT INTO users (username, password, bio, is_admin, wallpaper, real_name, location, birth_date, social_link) VALUES (:u, :p, 'Новичок', :a, '', :rn, '', :bd, '')"), {"u":user.username, "p":get_password_hash(user.password), "a":False, "rn":user.real_name, "bd":user.birth_date})
         exists = (await session.execute(text("SELECT id FROM dms WHERE user1=:u AND user2=:u"), {"u":user.username})).scalar()
-        if not exists:
-            await session.execute(text("INSERT INTO dms (user1, user2) VALUES (:u, :u)"), {"u":user.username})
-        
+        if not exists: await session.execute(text("INSERT INTO dms (user1, user2) VALUES (:u, :u)"), {"u":user.username})
         await session.commit()
     return {"message": "Success"}
 
@@ -132,22 +82,23 @@ async def login(user: AuthModel):
     async with AsyncSessionLocal() as session:
         row = (await session.execute(text("SELECT password, avatar_url, bio, is_admin, real_name, location, birth_date, social_link, wallpaper FROM users WHERE username=:u"), {"u":user.username})).fetchone()
         if not row or not verify_password(user.password, row[0]): raise HTTPException(400, "Неверный логин или пароль")
-    return {
-        "message": "Success", "avatar_url": row[1], "bio": row[2], "is_admin": row[3], 
-        "real_name": row[4] or "", "location": row[5] or "", "birth_date": row[6] or "", 
-        "social_link": row[7] or "", "wallpaper": row[8] or ""
-    }
+    return {"message": "Success", "avatar_url": row[1], "bio": row[2], "is_admin": row[3], "real_name": row[4] or "", "location": row[5] or "", "birth_date": row[6] or "", "social_link": row[7] or "", "wallpaper": row[8] or ""}
 
 @app.post("/update_profile")
 async def update_profile(data: ProfileUpdateModel):
     async with AsyncSessionLocal() as session:
-        # Обновляем все поля
         q = "UPDATE users SET avatar_url=:a, bio=:b, real_name=:rn, location=:l, birth_date=:bd, social_link=:sl, wallpaper=:w WHERE username=:u"
         await session.execute(text(q), {"a":data.avatar_url, "b":data.bio, "u":data.username, "rn":data.real_name, "l":data.location, "bd":data.birth_date, "sl":data.social_link, "w":data.wallpaper})
         await session.commit()
-        
-        # Получаем актуальный статус админа для возврата
         admin_status = (await session.execute(text("SELECT is_admin FROM users WHERE username=:u"), {"u":data.username})).scalar()
+    
+    # !!! ВАЖНО: Моментальное уведомление всем, что профиль обновился !!!
+    await manager.broadcast({
+        "type": "profile_update",
+        "username": data.username,
+        "avatar_url": data.avatar_url,
+        "bio": data.bio
+    })
     return {"message": "Updated", "bio": data.bio, "is_admin": admin_status}
 
 @app.get("/get_profile")
@@ -167,6 +118,7 @@ async def send_request(data: FriendRequestModel):
         if (await session.execute(text("SELECT id FROM friend_requests WHERE sender=:s AND receiver=:r"), {"s":data.sender, "r":data.receiver})).scalar(): raise HTTPException(400, "Заявка уже есть")
         await session.execute(text("INSERT INTO friend_requests (sender, receiver, status) VALUES (:s, :r, 'pending')"), {"s":data.sender, "r":data.receiver})
         await session.commit()
+    # Уведомляем получателя моментально
     await manager.send_personal_message({"type": "new_request", "sender": data.sender}, data.receiver)
     return {"message": "Sent"}
 
@@ -181,10 +133,13 @@ async def respond_request(data: RespondRequestModel):
     async with AsyncSessionLocal() as session:
         req = (await session.execute(text("SELECT sender, receiver FROM friend_requests WHERE id=:id"), {"id":data.request_id})).fetchone()
         if not req: raise HTTPException(404, "Заявка не найдена")
+        sender, receiver = req[0], req[1]
         if data.action == "accept":
-            u1, u2 = sorted([req[0], req[1]])
+            u1, u2 = sorted([sender, receiver])
             await session.execute(text("INSERT INTO dms (user1, user2) VALUES (:u1, :u2)"), {"u1":u1, "u2":u2})
-            await manager.send_personal_message({"type": "request_accepted", "friend": req[1]}, req[0])
+            # Уведомляем обоих, что они теперь друзья (для обновления списка)
+            await manager.send_personal_message({"type": "request_accepted", "friend": receiver}, sender)
+            await manager.send_personal_message({"type": "request_accepted", "friend": sender}, receiver)
         await session.execute(text("DELETE FROM friend_requests WHERE id=:id"), {"id":data.request_id})
         await session.commit()
     return {"message": "Done"}
@@ -228,8 +183,7 @@ async def search_messages(channel: str, query: str):
     async with AsyncSessionLocal() as session:
         res = await session.execute(text("SELECT id, username, content, created_at FROM messages WHERE channel=:ch AND content LIKE :q ORDER BY id DESC"), {"ch": channel, "q": f"%{query}%"})
         results = []
-        for r in res.fetchall():
-            results.append({"id": r[0], "username": r[1], "content": r[2], "created_at": r[3]})
+        for r in res.fetchall(): results.append({"id": r[0], "username": r[1], "content": r[2], "created_at": r[3]})
         return results
 
 @app.websocket("/ws/{username}")
@@ -254,35 +208,21 @@ async def websocket_endpoint(websocket: WebSocket, username: str):
                             res_p = await session.execute(text("SELECT username, content FROM messages WHERE id=:pid"), {"pid":r[10]})
                             parent = res_p.fetchone()
                             if parent: reply_content = {"username": parent[0], "content": parent[1]}
-                        
-                        history.append({
-                            "id": r[0], "username": r[1], "content": r[2], "channel": r[3], "created_at": r[4], 
-                            "avatar_url": r[5], "bio": r[6], "is_admin": r[7], "is_edited": r[8] if len(r) > 8 else False, 
-                            "reactions": json.loads(r[9]) if r[9] else {}, "reply_to": r[10], "reply_preview": reply_content, 
-                            "read_by": json.loads(r[11]) if r[11] else [], "timer": r[12] or 0, "viewed_at": r[13]
-                        })
+                        history.append({"id": r[0], "username": r[1], "content": r[2], "channel": r[3], "created_at": r[4], "avatar_url": r[5], "bio": r[6], "is_admin": r[7], "is_edited": r[8] if len(r) > 8 else False, "reactions": json.loads(r[9]) if r[9] else {}, "reply_to": r[10], "reply_preview": reply_content, "read_by": json.loads(r[11]) if r[11] else [], "timer": r[12] or 0, "viewed_at": r[13]})
                     await websocket.send_text(json.dumps(history))
 
             elif data.get("type") == "message":
                 now = datetime.now().strftime("%H:%M")
                 async with AsyncSessionLocal() as session:
-                    # Создаем сообщение
-                    res = await session.execute(text("INSERT INTO messages (username, content, channel, created_at, is_edited, reactions, reply_to, read_by, timer, viewed_at) VALUES (:u, :c, :ch, :t, FALSE, '{}', :rep, '[]', :tim, NULL) RETURNING id"), 
-                        {"u":data['username'], "c":data['content'], "ch":data['channel'], "t":now, "rep":data.get('reply_to'), "tim":data.get('timer', 0)})
-                    nid = res.scalar()
+                    nid = (await session.execute(text("INSERT INTO messages (username, content, channel, created_at, is_edited, reactions, reply_to, read_by, timer, viewed_at) VALUES (:u, :c, :ch, :t, FALSE, '{}', :rep, '[]', :tim, NULL) RETURNING id"), {"u":data['username'], "c":data['content'], "ch":data['channel'], "t":now, "rep":data.get('reply_to'), "tim":data.get('timer', 0)})).scalar()
                     await session.commit()
-                    
-                    # ВАЖНО: Запрашиваем СВЕЖИЕ данные пользователя для отправки с сообщением
                     res_u = await session.execute(text("SELECT avatar_url, bio, is_admin FROM users WHERE username=:u"), {"u":data['username']})
                     u_row = res_u.fetchone()
-                    
                     reply_content = None
                     if data.get('reply_to'):
                         res_p = await session.execute(text("SELECT username, content FROM messages WHERE id=:pid"), {"pid":data.get('reply_to')})
                         parent = res_p.fetchone()
                         if parent: reply_content = {"username": parent[0], "content": parent[1]}
-                
-                # Отправляем сообщение всем с АКТУАЛЬНОЙ аватаркой
                 data.update({'id':nid, 'created_at':now, 'avatar_url':u_row[0] or "", 'bio':u_row[1] or "", 'is_admin':u_row[2] or False, 'is_edited': False, 'reactions': {}, 'reply_to': data.get('reply_to'), 'reply_preview': reply_content, 'read_by': [], 'timer': data.get('timer', 0), 'viewed_at': None})
                 await manager.broadcast(data)
 
@@ -315,10 +255,9 @@ async def websocket_endpoint(websocket: WebSocket, username: str):
                     if row:
                         current = json.loads(row[0]) if row[0] else {}
                         if emoji not in current: current[emoji] = []
-                        if username in current[emoji]:
-                            current[emoji].remove(username)
-                            if not current[emoji]: del current[emoji]
+                        if username in current[emoji]: current[emoji].remove(username); 
                         else: current[emoji].append(username)
+                        if not current[emoji]: del current[emoji]
                         await session.execute(text("UPDATE messages SET reactions=:r WHERE id=:id"), {"r":json.dumps(current), "id":mid})
                         await session.commit()
                         await manager.broadcast({"type": "reaction_update", "message_id": mid, "reactions": current})

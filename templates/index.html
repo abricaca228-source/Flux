@@ -34,6 +34,7 @@
             #header-status { font-size: 12px; color: var(--accent-primary); font-weight: normal; height: 14px; opacity: 0; transition: opacity 0.2s; font-style: italic; }
             #header-status.show { opacity: 1; }
             .header-actions { display: flex; gap: 10px; align-items: center; }
+            .call-btn, .search-btn { cursor: pointer; color: var(--success); display: none; padding: 0; border-radius: 50%; border: 2px solid var(--success); width: 34px; height: 34px; align-items: center; justify-content: center; transition: 0.3s; font-size: 16px; }
             
             #messages { list-style-type: none; margin: 0; padding: 20px; flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; z-index: 1; position: relative;}
             .msg-row { display: flex; width: 100%; align-items: flex-end; position: relative; margin-bottom: 5px; }
@@ -42,7 +43,7 @@
             .msg-row.other .msg-bubble { background: rgba(255, 255, 255, 0.08); border: 1px solid var(--glass-border); border-bottom-left-radius: 4px; margin-left: 8px; }
             .msg-row.me .msg-bubble { background: linear-gradient(135deg, var(--accent-secondary), var(--accent-primary)); color: #0f0c29; border-bottom-right-radius: 4px; font-weight: 500; }
             
-            /* ИСПРАВЛЕННЫЙ ШПИОН */
+            /* SPY FIX */
             .spy-hidden { 
                 cursor: pointer; 
                 background: rgba(40, 10, 20, 0.9) !important; 
@@ -54,9 +55,7 @@
                 display: flex; flex-direction: column; align-items: center; justify-content: center;
                 min-width: 180px;
             }
-            /* Слой для клика, чтобы наверняка */
             .spy-overlay { position: absolute; top:0; left:0; width:100%; height:100%; z-index: 5; cursor: pointer; }
-            
             .spy-msg { border: 2px solid var(--danger) !important; background: rgba(255, 65, 108, 0.1) !important; color: white !important; }
             .spy-header { font-size: 11px; color: var(--danger); font-weight: 800; margin-bottom: 5px; display: flex; align-items: center; gap: 5px; text-transform: uppercase; letter-spacing: 1px; }
             .spy-timer { background: var(--danger); color: white; padding: 2px 6px; border-radius: 4px; font-family: monospace; }
@@ -79,12 +78,12 @@
             .icon-btn-input:hover { background: rgba(255,255,255,0.1); color: white; }
             .spy-btn { transition: 0.3s; } .spy-btn.active { color: var(--danger); animation: pulse 1s infinite; filter: drop-shadow(0 0 5px var(--danger)); }
             
-            /* КНОПКИ В ПРОФИЛЕ (ИСПРАВЛЕНО) */
-            .settings-buttons-row { display: flex; gap: 10px; margin-bottom: 15px; justify-content: center; }
-            .settings-btn-item { 
-                flex: 1; text-align: center; margin: 0; font-size: 13px; padding: 10px 5px; cursor: pointer; display: block;
-                background: linear-gradient(90deg, var(--accent-secondary), var(--accent-primary)); color: white; border-radius: 10px; font-weight: bold; text-transform: uppercase;
-            }
+            /* PROFILE SETTINGS GRID - КРАСИВО */
+            .settings-buttons-row { display: flex; gap: 10px; margin-bottom: 20px; justify-content: center; }
+            .settings-btn-item { flex: 1; text-align: center; margin: 0; font-size: 13px; padding: 10px 5px; cursor: pointer; display: block; background: linear-gradient(90deg, var(--accent-secondary), var(--accent-primary)); color: white; border-radius: 10px; font-weight: bold; text-transform: uppercase; }
+            .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+            .settings-input { width: 100%; padding: 10px; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); color: white; border-radius: 8px; box-sizing: border-box;}
+            .full-width { grid-column: span 2; }
             
             /* AUTH & MODALS */
             .auth-container { position: absolute; top:0; left:0; width:100%; height:100%; background: radial-gradient(circle at center, #302b63 0%, #0f0c29 100%); z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center;}
@@ -122,7 +121,6 @@
             .play-icon { width: 32px; height: 32px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--accent-primary); cursor: pointer; flex-shrink: 0; transition: 0.2s; }
             .track-bar { flex-grow: 1; height: 4px; background: rgba(255,255,255,0.3); border-radius: 2px; position: relative; cursor: pointer; }
             .track-progress { height: 100%; width: 0%; background: white; border-radius: 2px; position: relative; transition: width 0.1s linear; }
-            .track-progress::after { content: ''; position: absolute; right: -5px; top: -3px; width: 10px; height: 10px; background: white; border-radius: 50%; box-shadow: 0 0 5px rgba(0,0,0,0.3); }
             .track-time { font-size: 10px; width: 35px; text-align: right; font-family: monospace; opacity: 0.8; }
             .avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; margin-bottom: 2px; cursor: pointer; flex-shrink: 0;}
             .msg-row.me .avatar { display: none; }
@@ -172,12 +170,14 @@
                     <label class="settings-btn-item" style="background:linear-gradient(90deg, #8e2de2, #4a00e0);">Обои<input type="file" style="display:none;" accept="image/*" onchange="previewWallpaper(this)"></label>
                 </div>
                 
-                <input id="settings-bio" class="settings-input" placeholder="Статус">
-                <input id="settings-realname" class="settings-input" placeholder="Имя Фамилия">
-                <input id="settings-location" class="settings-input" placeholder="Город">
-                <div style="text-align:left;color:#b8b8d0;font-size:12px;margin-bottom:5px;">Дата рождения:</div>
-                <input id="settings-birthdate" class="settings-input" type="date">
-                <input id="settings-social" class="settings-input" placeholder="Соцсети">
+                <div class="settings-grid">
+                    <input id="settings-realname" class="settings-input" placeholder="Имя Фамилия">
+                    <input id="settings-bio" class="settings-input" placeholder="Статус (Bio)">
+                    <input id="settings-location" class="settings-input" placeholder="Город">
+                    <input id="settings-birthdate" class="settings-input" type="date">
+                    <input id="settings-social" class="settings-input full-width" placeholder="Соцсети">
+                </div>
+                
                 <button class="btn" onclick="saveProfile()">Сохранить</button>
             </div>
         </div>
@@ -280,24 +280,22 @@
                 document.getElementById('crop-btn').style.display = 'none';
             }
             
-            // Загрузка обоев (СЖАТИЕ)
             function previewWallpaper(i) { 
                 if(i.files[0]) { 
                     var r=new FileReader(); 
                     r.onload=e=> { 
-                        // Сжимаем обои перед сохранением, чтобы сервер не отверг
+                        // СЖАТИЕ ОБОЕВ
                         let img = new Image();
                         img.src = e.target.result;
                         img.onload = () => {
                             let canvas = document.createElement('canvas');
                             let ctx = canvas.getContext('2d');
-                            let maxW = 1200; // Ограничиваем ширину
+                            let maxW = 1200; 
                             let scale = maxW / img.width;
                             canvas.width = maxW;
                             canvas.height = img.height * scale;
                             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                            currentUserWallpaper = canvas.toDataURL('image/jpeg', 0.8); // Сохраняем в переменную
-                            // Предпросмотр
+                            currentUserWallpaper = canvas.toDataURL('image/jpeg', 0.8);
                             document.getElementById("chat-area").style.backgroundImage = `url(${currentUserWallpaper})`;
                         }
                     }; 
@@ -341,7 +339,6 @@
                 } catch(e) { alert("Network Error"); }
             }
 
-            // --- VARS ---
             const ICONS = {crown:`<span style="color:gold;margin-left:4px">👑</span>`, trash: `🗑️`, edit: `✏️`, reply: `↩️`};
             const notifSound = new Audio("https://cdn.freesound.org/previews/235/235911_2391840-lq.mp3");
             const ringtone = new Audio("https://cdn.freesound.org/previews/351/351239_1241198-lq.mp3"); ringtone.loop=true;
@@ -363,7 +360,7 @@
                     real_name:document.getElementById("settings-realname").value, location:document.getElementById("settings-location").value, birth_date:document.getElementById("settings-birthdate").value, social_link:document.getElementById("settings-social").value
                 }; 
                 let r=await fetch("/update_profile", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}); 
-                if(r.ok) { let d=await r.json(); updateMyUI(d); document.getElementById("my-avatar-img").src = currentUserAvatar; document.getElementById("settings-modal").style.display="none"; } 
+                if(r.ok) { let d=await r.json(); updateMyUI(d); document.getElementById("settings-modal").style.display="none"; } 
             }
 
             function updateMyUI(d) {
@@ -387,6 +384,21 @@
                     else if(d.type==="hang_up") closeCall();
                     else if(d.type==="initial_status") d.users.forEach(u=>updateStatus(u,'online'));
                     else if(d.type==="status") updateStatus(d.username, d.status);
+                    else if(d.type==="profile_update") {
+                        // ОБНОВЛЕНИЕ АВАТАРОВ В РЕАЛЬНОМ ВРЕМЕНИ
+                        document.querySelectorAll(".channel").forEach(el => {
+                            if(el.innerText.includes(d.username)) el.querySelector("img").src = d.avatar_url || getDefaultAvatar(d.username);
+                        });
+                        document.querySelectorAll(".msg-row.other").forEach(el => {
+                            let name = el.querySelector(".username");
+                            if(name && name.innerText === d.username) {
+                                let img = el.querySelector("img.avatar");
+                                if(img) img.src = d.avatar_url || getDefaultAvatar(d.username);
+                            }
+                        });
+                    }
+                    else if(d.type==="new_request") { loadRequests(); notifSound.play(); }
+                    else if(d.type==="request_accepted") { loadDMs(); notifSound.play(); }
                     else if(d.type==="typing") {
                         if(d.channel === currentChannel && d.username !== username) {
                             let status = document.getElementById("header-status"); status.innerText = d.username + " печатает..."; status.classList.add("show");
@@ -399,10 +411,10 @@
                             let bub = row.querySelector(".msg-bubble");
                             if(bub.classList.contains("spy-hidden")) {
                                 bub.classList.remove("spy-hidden");
-                                bub.querySelector(".spy-overlay").remove(); // Удаляем слой клика
+                                bub.querySelector(".spy-overlay").remove(); 
                                 bub.querySelector(".spy-icon").remove();
                                 bub.querySelector(".spy-text").remove();
-                                requestHistory(); // Обновляем контент
+                                requestHistory(); 
                             }
                         }
                     }
@@ -452,7 +464,6 @@
                 }
 
                 if (isHidden) {
-                    // СПЕЦИАЛЬНЫЙ СЛОЙ ДЛЯ КЛИКА
                     contentHtml = `<div class="spy-overlay" onclick="revealSpy(${d.id})"></div><div class="spy-icon">🔒</div><div class="spy-text">НАЖМИТЕ ДЛЯ ПРОСМОТРА</div>`;
                 } else {
                     if (d.content.startsWith("data:image")) contentHtml = `${spyHeader}<img src="${d.content}" class="chat-image" onclick="document.getElementById('image-modal').style.display='flex';document.getElementById('modal-img').src=this.src;">`;
